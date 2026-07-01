@@ -54,15 +54,15 @@ def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
     sel = dbo.select_16delta_put(symbol, entry_date, spot, iv_proxy,
                                  dte_min=trade.dte_min, dte_max=trade.dte_max,
                                  dte_target=trade.dte_target,
-                                 target_delta=trade.target_delta, neighbors=2)
+                                 target_delta=trade.target_delta)
     if sel is None:
         return None
 
     expiration = sel.expiration.normalize()
-    path = dbo.get_symbol_path(sel.raw_symbol, entry_date, expiration)
+    path = dbo.get_symbol_quotes(sel.raw_symbol, entry_date, expiration)
     if path.empty:
         return None
-    path = path.set_index("date").sort_index()
+    path = path.rename(columns={"mid": "close"}).set_index("date").sort_index()
 
     gross_credit = sel.price * CONTRACT_MULT
     slip = COST.slippage_ticks * CONTRACT_MULT
