@@ -13,11 +13,13 @@ from __future__ import annotations
 
 import os
 import sys
+from datetime import datetime, timezone
 
 import pandas as pd
 
 from src.otbt.config import DEFAULT_EQUITY_UNIVERSE, START_DATE, END_DATE, OUTPUT_DIR
 from src.otbt.data.prices import get_universe_prices
+from src.otbt.data import db
 from src.otbt.signals.engine import generate_signals, _prep
 from src.otbt.signals.baseline import generate_baseline
 from src.otbt.pricing.simulate import simulate_trade
@@ -53,16 +55,18 @@ def run(symbols):
     baseline_exp = rdf[rdf["signal_type"] == "vrp_baseline"]["pnl"].mean()
     summary = summarize(rdf, baseline_expectancy=baseline_exp)
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    rdf.to_parquet(os.path.join(OUTPUT_DIR, "trades.parquet"))
-    summary.to_csv(os.path.join(OUTPUT_DIR, "summary.csv"), index=False)
+    run_id = db.save_run(
+        rdf, summary, phase="phase0_modeled", universe=symbols,
+        start=str(START_DATE), end=str(END_DATE),
+        created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        notes="BS reconstruction, realized-vol proxy; relative ranking reliable, $ approximate")
 
     pd.set_option("display.width", 200, "display.max_columns", 30)
-    print("=== Phase-0 per-hypothesis results ($/contract, net of costs) ===\n")
+    print(f"=== Phase-0 per-hypothesis results (run_id={run_id}, $/contract, net) ===\n")
     print(summary.to_string(index=False))
-    print("\nNote: realized-vol proxy for IV -> dollar magnitudes approximate "
-          "(~±17% per charter); direction/ranking reliable. worst_loss & mae_p95 "
-          "are the tail metrics to watch.")
+    print(f"\nSaved {len(rdf)} trades to database {db.DB_PATH} (run_id={run_id}).")
+    print("Note: realized-vol proxy for IV -> dollar magnitudes approximate; "
+          "direction/ranking reliable. worst_loss & mae_p95 are the tail metrics.")
     return summary
 
 

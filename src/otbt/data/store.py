@@ -15,6 +15,7 @@ An empty result is still cached (as an empty frame) so we never re-pay to learn
 from __future__ import annotations
 
 import os
+import threading
 
 import pandas as pd
 
@@ -22,8 +23,14 @@ from ..config import DATA_CACHE_DIR
 
 _BASE = os.path.join(DATA_CACHE_DIR, "databento")
 
+# Cache-only mode: never hit the network. On a miss, return empty so the
+# caller skips the trade. Set OTBT_OFFLINE=1 to salvage results from already
+# paid-for cache without spending. Guards against surprise Databento charges.
+OFFLINE = os.environ.get("OTBT_OFFLINE") == "1"
+
 # Simple in-process counters so a run can report cache hits vs billed misses.
-STATS = {"hits": 0, "misses": 0}
+STATS = {"hits": 0, "misses": 0, "skipped": 0}
+_LOCK = threading.Lock()
 
 
 def _path(*parts: str) -> str:
@@ -43,14 +50,25 @@ def cached(rel_parts: tuple[str, ...], fetch_fn) -> pd.DataFrame:
     """
     path = _path(*[_safe(p) for p in rel_parts])
     if os.path.exists(path):
-        STATS["hits"] += 1
+        with _LOCK:
+            STATS["hits"] += 1
         return pd.read_parquet(path)
-    STATS["misses"] += 1
-    df = fetch_fn()
+    if OFFLINE:                           # cache-only: never spend, skip on miss
+        with _LOCK:
+            STATS["skipped"] += 1
+        return pd.DataFrame()
+    with _LOCK:
+        STATS["misses"] += 1
+    df = fetch_fn()                       # network call OUTSIDE the lock (concurrent)
     if df is None:
         df = pd.DataFrame()
-    # persist (empty frames get a sentinel column so parquet round-trips)
-    (df if not df.empty else pd.DataFrame({"__empty__": []})).to_parquet(path)
+    # persist (empty frames get a sentinel column so parquet round-trips).
+    # write to a temp path then atomically rename so concurrent readers never
+    # see a half-written file.
+    out = df if not df.empty else pd.DataFrame({"__empty__": []})
+    tmp = f"{path}.{threading.get_ident()}.tmp"
+    out.to_parquet(tmp)
+    os.replace(tmp, path)
     return df
 
 

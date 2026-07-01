@@ -17,6 +17,7 @@ get_cost()/get_billable_size() are free and used only for projection.
 from __future__ import annotations
 
 import os
+import threading
 from dataclasses import dataclass
 
 import pandas as pd
@@ -28,15 +29,17 @@ from .blackscholes import bs_delta, bs_price, strike_for_delta
 load_dotenv()
 
 _OPRA = "OPRA.PILLAR"
-_client = None
+_local = threading.local()
 
 
 def client():
-    global _client
-    if _client is None:
+    """Thread-local Databento client so concurrent workers don't share state."""
+    c = getattr(_local, "client", None)
+    if c is None:
         import databento as db
-        _client = db.Historical(os.environ["DATABENTO_API_KEY"])
-    return _client
+        c = db.Historical(os.environ["DATABENTO_API_KEY"])
+        _local.client = c
+    return c
 
 
 def _day_range(d):
@@ -107,8 +110,9 @@ def get_symbol_quotes(raw_symbol, start, end) -> pd.DataFrame:
             return pd.DataFrame()
         # closing quote: last valid 1-min bar at/under 16:00 ET each trading day
         et = pd.to_datetime(df["ts_event"], utc=True).dt.tz_convert("America/New_York")
-        df = df.assign(date=et.dt.normalize().dt.tz_localize(None), et=et)
-        df = df[df["et"].dt.time <= pd.Timestamp("16:00").time()]
+        mins = et.dt.hour * 60 + et.dt.minute       # minute-of-day in ET
+        df = df.assign(date=et.dt.normalize().dt.tz_localize(None))
+        df = df[mins <= 16 * 60]                     # at/under 16:00 ET close
         if df.empty:
             return pd.DataFrame()
         df["mid"] = (df["bid"] + df["ask"]) / 2.0

@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
 
@@ -25,9 +27,10 @@ from src.otbt.data import store
 
 EQUITY_START = "2013-04-01"          # OPRA history begins here
 INVALIDATION = {"bounce_100ema"}
+WORKERS = 16                          # concurrent network pulls (I/O-bound)
 
 
-def run(symbols, limit=None):
+def run(symbols, limit=None, workers=WORKERS):
     store.reset_stats()
     prices = get_universe_prices(symbols, EQUITY_START, str(END_DATE))
     prepped = {s: _prep(df) for s, df in prices.items()}
@@ -35,25 +38,35 @@ def run(symbols, limit=None):
     ledger = ledger[pd.to_datetime(ledger["date"]) >= EQUITY_START]
     if limit:
         ledger = ledger.groupby("symbol").head(limit)
-    print(f"Trades to price: {len(ledger)} (real IV, cache-first)\n")
+    rows = [sig for _, sig in ledger.iterrows()
+            if prepped.get(sig["symbol"]) is not None and sig["iv_proxy"] is not None]
+    total = len(rows)
+    print(f"Trades to price: {total} (real IV, cache-first, {workers} workers)\n", flush=True)
 
-    results = []
-    for i, (_, sig) in enumerate(ledger.iterrows(), 1):
-        df = prepped.get(sig["symbol"])
-        if df is None or sig["iv_proxy"] is None:
-            continue
+    def _price(sig):
         try:
-            r = simulate_real_trade(
-                sig["symbol"], sig["date"], df, sig["signal_type"],
-                float(sig["iv_proxy"]),
+            return simulate_real_trade(
+                sig["symbol"], sig["date"], prepped[sig["symbol"]],
+                sig["signal_type"], float(sig["iv_proxy"]),
                 invalidation_below_ema100=sig["signal_type"] in INVALIDATION)
         except Exception as exc:
-            print(f"[warn] {sig['symbol']} {sig['date']}: {exc}")
-            r = None
-        if r is not None:
-            results.append(r)
-        if i % 50 == 0:
-            print(f"  {i}/{len(ledger)} priced | billed pulls so far: {store.STATS['misses']}")
+            print(f"[warn] {sig['symbol']} {sig['date']}: {exc}", flush=True)
+            return None
+
+    results = []
+    done = 0
+    lock = threading.Lock()
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(_price, sig) for sig in rows]
+        for fut in as_completed(futures):
+            r = fut.result()
+            with lock:
+                done += 1
+                if r is not None:
+                    results.append(r)
+                if done % 100 == 0 or done == total:
+                    print(f"  {done}/{total} priced | billed pulls: {store.STATS['misses']} "
+                          f"| cache hits: {store.STATS['hits']}", flush=True)
 
     rdf = pd.DataFrame([r.__dict__ for r in results])
     if rdf.empty:
