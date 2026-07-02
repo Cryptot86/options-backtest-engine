@@ -26,6 +26,18 @@ def _conn():
     return con
 
 
+def _ensure_columns(con, table: str, df: pd.DataFrame) -> None:
+    """Add any DataFrame columns missing from an existing table (schema drift
+    across phases). No-op if the table doesn't exist yet (to_sql creates it)."""
+    existing = {r[1] for r in con.execute(f'PRAGMA table_info("{table}")').fetchall()}
+    if not existing:
+        return
+    for col, dtype in df.dtypes.items():
+        if col not in existing:
+            sqlt = "REAL" if pd.api.types.is_numeric_dtype(dtype) else "TEXT"
+            con.execute(f'ALTER TABLE "{table}" ADD COLUMN "{col}" {sqlt}')
+
+
 def save_run(trades: pd.DataFrame, summary: pd.DataFrame, *, phase: str,
              universe: list[str], start: str, end: str, created_at: str,
              notes: str = "") -> int:
@@ -42,6 +54,8 @@ def save_run(trades: pd.DataFrame, summary: pd.DataFrame, *, phase: str,
         for c in t.columns:                         # sqlite can't store Timestamps
             if pd.api.types.is_datetime64_any_dtype(t[c]):
                 t[c] = t[c].astype(str)
+        _ensure_columns(con, "trades", t)
+        _ensure_columns(con, "summary", s)
         t.to_sql("trades", con, if_exists="append", index=False)
         s.to_sql("summary", con, if_exists="append", index=False)
         con.commit()

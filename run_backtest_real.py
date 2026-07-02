@@ -15,11 +15,13 @@ import os
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 
 import pandas as pd
 
 from src.otbt.config import START_DATE, END_DATE, OUTPUT_DIR
 from src.otbt.data.prices import get_universe_prices
+from src.otbt.data import db
 from src.otbt.signals.engine import generate_signals, _prep
 from src.otbt.pricing.simulate_real import simulate_real_trade
 from src.otbt.reporting.metrics import summarize
@@ -30,12 +32,12 @@ INVALIDATION = {"bounce_100ema"}
 WORKERS = 16                          # concurrent network pulls (I/O-bound)
 
 
-def run(symbols, limit=None, workers=WORKERS):
+def run(symbols, limit=None, workers=WORKERS, start=EQUITY_START):
     store.reset_stats()
-    prices = get_universe_prices(symbols, EQUITY_START, str(END_DATE))
+    prices = get_universe_prices(symbols, start, str(END_DATE))
     prepped = {s: _prep(df) for s, df in prices.items()}
     ledger = generate_signals(prices)
-    ledger = ledger[pd.to_datetime(ledger["date"]) >= EQUITY_START]
+    ledger = ledger[pd.to_datetime(ledger["date"]) >= start]
     if limit:
         ledger = ledger.groupby("symbol").head(limit)
     rows = [sig for _, sig in ledger.iterrows()
@@ -70,26 +72,32 @@ def run(symbols, limit=None, workers=WORKERS):
 
     rdf = pd.DataFrame([r.__dict__ for r in results])
     if rdf.empty:
-        print("No trades priced.")
+        print(f"No trades priced. (billed pulls: {store.STATS['misses']}, "
+              f"skipped/offline: {store.STATS['skipped']})")
         return
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    rdf.to_parquet(os.path.join(OUTPUT_DIR, "trades_real.parquet"))
     base = rdf[rdf["signal_type"] == "vrp_baseline"]["pnl"].mean() if "vrp_baseline" in rdf["signal_type"].values else None
     summary = summarize(rdf, baseline_expectancy=base)
+    run_id = db.save_run(
+        rdf, summary, phase="phase1_realiv", universe=symbols,
+        start=start, end=str(END_DATE),
+        created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        notes="real IV (cbbo-1m), model-picked 16d strike, cache-first")
 
     pd.set_option("display.width", 200, "display.max_columns", 30)
-    print("\n=== Phase-1 REAL-IV results ($/contract, net of costs) ===\n")
+    print(f"\n=== Phase-1 REAL-IV results (run_id={run_id}, $/contract, net) ===\n")
     print(summary.to_string(index=False))
     print(f"\nTrades priced: {len(rdf)} | avg entry credit ${rdf['entry_credit'].mean():.0f} "
           f"| avg entry IV {rdf['entry_iv'].mean():.1%} | avg |delta| {rdf['entry_delta'].abs().mean():.3f}")
+    print(f"Saved to DB {db.DB_PATH} (run_id={run_id}).")
     print(f"Cache: {store.STATS['misses']} billed pulls, {store.STATS['hits']} hits this run")
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    limit = None
+    limit = start = None
     if "--limit" in args:
-        i = args.index("--limit")
-        limit = int(args[i + 1])
-        args = args[:i] + args[i + 2:]
-    run(args or ["SPY", "QQQ", "AAPL", "MSFT", "NVDA"], limit=limit)
+        i = args.index("--limit"); limit = int(args[i + 1]); args = args[:i] + args[i + 2:]
+    if "--start" in args:
+        i = args.index("--start"); start = args[i + 1]; args = args[:i] + args[i + 2:]
+    run(args or ["SPY", "QQQ", "AAPL", "MSFT", "NVDA"], limit=limit,
+        start=start or EQUITY_START)

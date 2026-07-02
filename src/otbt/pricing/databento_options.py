@@ -110,13 +110,14 @@ def get_symbol_quotes(raw_symbol, start, end) -> pd.DataFrame:
             return pd.DataFrame()
         # closing quote: last valid 1-min bar at/under 16:00 ET each trading day
         et = pd.to_datetime(df["ts_event"], utc=True).dt.tz_convert("America/New_York")
-        mins = et.dt.hour * 60 + et.dt.minute       # minute-of-day in ET
-        df = df.assign(date=et.dt.normalize().dt.tz_localize(None))
-        df = df[mins <= 16 * 60]                     # at/under 16:00 ET close
+        df = df.assign(date=et.dt.normalize().dt.tz_localize(None),
+                       mins=et.dt.hour * 60 + et.dt.minute)   # minute-of-day ET
+        df = df[df["mins"] <= 16 * 60]              # at/under 16:00 ET close
         if df.empty:
             return pd.DataFrame()
         df["mid"] = (df["bid"] + df["ask"]) / 2.0
-        return (df.sort_values("et").groupby("date", as_index=False)["mid"].last())
+        # closing quote = last valid bar of each trading day
+        return (df.sort_values(["date", "mins"]).groupby("date", as_index=False)["mid"].last())
 
     df = store.cached(key, _fetch)
     return df if "__empty__" not in df.columns else pd.DataFrame()
@@ -127,6 +128,34 @@ def _symbol_mid_on(raw_symbol, day) -> float | None:
     if p.empty:
         return None
     return float(p.iloc[0]["mid"])
+
+
+def get_symbol_daily(raw_symbol, start, end) -> pd.DataFrame:
+    """Daily last-trade closes for one option (schema ohlcv-1d) -> [date, mid].
+
+    ~400x less data than cbbo-1m minute bars (1 bar/day vs ~390), so it's the
+    fast/cheap default for the option's price path. Marks are last-trade (vs
+    quote-mid); fine for a liquid model-picked 16-delta strike where credits are
+    treated as approximate.
+    """
+    start, end = pd.Timestamp(start).normalize(), pd.Timestamp(end).normalize()
+    key = ("opra", "daily", f"{raw_symbol}__{start:%Y-%m-%d}__{end:%Y-%m-%d}.parquet")
+
+    def _fetch():
+        s = start.strftime("%Y-%m-%d")
+        e = (end + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = client().timeseries.get_range(
+            dataset=_OPRA, symbols=[raw_symbol], stype_in="raw_symbol",
+            schema="ohlcv-1d", start=s, end=e).to_df()
+        if df.empty:
+            return df
+        out = df.reset_index()[["ts_event", "close"]]
+        out["date"] = pd.to_datetime(out["ts_event"]).dt.tz_localize(None).dt.normalize()
+        out = out.rename(columns={"close": "mid"})
+        return out.groupby("date", as_index=False)["mid"].last()
+
+    df = store.cached(key, _fetch)
+    return df if "__empty__" not in df.columns else pd.DataFrame()
 
 
 # ---------------------------------------------------------------------------
@@ -142,6 +171,39 @@ class SelectedOption:
     price: float
     iv: float
     delta: float
+
+
+def select_16d_modeled(symbol, entry_date, spot, iv_estimate,
+                       dte_min=30, dte_max=45, dte_target=40,
+                       target_delta=0.16) -> SelectedOption | None:
+    """Pick the 16-delta put WITHOUT any quote pulls (cost-minimal).
+
+    Uses only the (cheap, cached) definitions to know listed strikes/expiries,
+    then places the strike with the MODEL (proven within ~1 strike of the real
+    16-delta). No per-strike quote requests -> the only paid pull per trade is
+    the one chosen option's price path. price/iv/delta are filled later from the
+    real path's entry-day mark.
+    """
+    defs = get_definitions(symbol, entry_date)
+    if defs.empty:
+        return None
+    puts = defs[defs["instrument_class"] == "P"].copy()
+    if puts.empty:
+        return None
+    puts["dte"] = (puts["expiration"] - pd.Timestamp(entry_date)).dt.days
+    puts = puts[(puts["dte"] >= dte_min) & (puts["dte"] <= dte_max)]
+    if puts.empty:
+        return None
+    exp = puts.iloc[(puts["dte"] - dte_target).abs().argsort().iloc[0]]["dte"]
+    puts = puts[puts["dte"] == exp]
+    T = int(exp) / 365.0
+    iv_use = max(iv_estimate * 1.15, 0.06)         # VRP bump toward real IV
+    K_star = strike_for_delta(spot, T, iv_use, target_delta, kind="put")
+    r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]  # snap to listed
+    return SelectedOption(int(r["instrument_id"]), str(r["raw_symbol"]),
+                          float(r["strike_price"]), pd.Timestamp(r["expiration"]),
+                          int(r["dte"]), price=float("nan"), iv=float("nan"),
+                          delta=float("nan"))
 
 
 def select_16delta_put(symbol, entry_date, underlying_px, iv_estimate,

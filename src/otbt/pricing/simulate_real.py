@@ -51,7 +51,8 @@ def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
     if spot is None:
         return None
 
-    sel = dbo.select_16delta_put(symbol, entry_date, spot, iv_proxy,
+    # model picks the strike (no quote pulls); the ONLY paid pull is the path
+    sel = dbo.select_16d_modeled(symbol, entry_date, spot, iv_proxy,
                                  dte_min=trade.dte_min, dte_max=trade.dte_max,
                                  dte_target=trade.dte_target,
                                  target_delta=trade.target_delta)
@@ -59,19 +60,37 @@ def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
         return None
 
     expiration = sel.expiration.normalize()
-    path = dbo.get_symbol_quotes(sel.raw_symbol, entry_date, expiration)
+    path = dbo.get_symbol_daily(sel.raw_symbol, entry_date, expiration)   # 1 bar/day (fast)
     if path.empty:
         return None
     path = path.rename(columns={"mid": "close"}).set_index("date").sort_index()
 
-    gross_credit = sel.price * CONTRACT_MULT
+    # entry credit = the real option mark on the entry day (from the path)
+    if entry_date not in path.index:
+        return None
+    entry_price = float(path.loc[entry_date, "close"])
+    if entry_price <= 0:
+        return None
+    # real IV/delta implied from the entry mark (for reporting/verification)
+    from .blackscholes import bs_price, bs_delta
+    from scipy.optimize import brentq
+    T = sel.dte / 365.0
+    try:
+        entry_iv = brentq(lambda s: bs_price(spot, sel.strike, T, s, kind="put") - entry_price,
+                          1e-3, 5.0, maxiter=100)
+        entry_delta = bs_delta(spot, sel.strike, T, entry_iv, kind="put")
+    except (ValueError, RuntimeError):
+        entry_iv = entry_delta = float("nan")
+    sel.price, sel.iv, sel.delta = entry_price, entry_iv, entry_delta
+
+    gross_credit = entry_price * CONTRACT_MULT
     slip = COST.slippage_ticks * CONTRACT_MULT
     entry_credit_net = gross_credit - slip - _costs_per_side()
-    tp_price = sel.price * (1 - trade.take_profit_pct)   # buy back at half
+    tp_price = entry_price * (1 - trade.take_profit_pct)   # buy back at half
 
     # walk the underlying trading days; forward-fill option marks over gaps
     days = underlying_df.loc[entry_date:expiration].index
-    last_opt = sel.price
+    last_opt = entry_price
     worst_pnl = 0.0
     exit_reason, exit_date, exit_opt = "expiration", days[-1], None
 
@@ -80,7 +99,7 @@ def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
             last_opt = float(path.loc[dt, "close"])
         opt = last_opt
         dte = (expiration - dt).days
-        cur_pnl = (sel.price - opt) * CONTRACT_MULT
+        cur_pnl = (entry_price - opt) * CONTRACT_MULT
         worst_pnl = min(worst_pnl, cur_pnl)
 
         if opt <= tp_price:
