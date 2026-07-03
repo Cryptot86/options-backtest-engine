@@ -45,7 +45,7 @@ def _costs_per_side(contracts=1):
 
 def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
                         iv_proxy, invalidation_below_ema100=False,
-                        trade=TRADE) -> RealTradeResult | None:
+                        stop_loss_dollars=None, trade=TRADE) -> RealTradeResult | None:
     entry_date = pd.Timestamp(entry_date).normalize()
     spot = float(underlying_df.loc[entry_date, "close"]) if entry_date in underlying_df.index else None
     if spot is None:
@@ -104,6 +104,9 @@ def simulate_real_trade(symbol, entry_date, underlying_df, signal_type,
 
         if opt <= tp_price:
             exit_reason, exit_date, exit_opt = "take_profit_50", dt, tp_price
+            break
+        if stop_loss_dollars is not None and cur_pnl <= -abs(stop_loss_dollars):
+            exit_reason, exit_date, exit_opt = "stop_loss", dt, opt
             break
         if invalidation_below_ema100 and dt in underlying_df.index \
                 and float(underlying_df.loc[dt, "close"]) < float(underlying_df.loc[dt, "ema100"]):

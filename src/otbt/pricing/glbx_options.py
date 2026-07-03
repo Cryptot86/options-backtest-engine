@@ -1,0 +1,283 @@
+"""GLBX (CME) futures-options layer — plan-covered, $0 marginal cost.
+
+Same architecture as the OPRA equity layer, adapted for futures:
+  - signals run on the CONTINUOUS front-month series (e.g. CL.n.0)
+  - options live under their own root (CL futures -> LO options)
+  - each option's `underlying` names the exact futures contract (e.g. CLQ5);
+    Black-76 prices off that future, not the continuous series
+  - contract multipliers differ per product (CL = 1,000 bbl)
+
+All pulls are cache-first via store.cached, schemas are L0 (ohlcv-1d,
+definition) -> included in the CME Standard plan.
+"""
+from __future__ import annotations
+
+import os
+import threading
+from dataclasses import dataclass
+
+import pandas as pd
+from dotenv import load_dotenv
+
+from ..data import store
+from .blackscholes import b76_delta, b76_price, strike_for_delta
+
+load_dotenv()
+
+_GLBX = "GLBX.MDP3"
+_local = threading.local()
+
+# product specs: futures root -> options root + contract multiplier
+FUT_SPECS = {
+    "CL": {"opt_root": "LO", "mult": 1_000},     # WTI crude, $/bbl x 1000
+    "NG": {"opt_root": "ON", "mult": 10_000},    # natgas, $/MMBtu x 10000
+    "GC": {"opt_root": "OG", "mult": 100},       # gold, $/oz x 100
+}
+
+
+def client():
+    c = getattr(_local, "client", None)
+    if c is None:
+        import databento as db
+        c = db.Historical(os.environ["DATABENTO_API_KEY"])
+        _local.client = c
+    return c
+
+
+# ---------------------------------------------------------------------------
+# Fetchers (all cache-first, all L0/plan-covered)
+# ---------------------------------------------------------------------------
+def get_continuous(root: str, start, end) -> pd.DataFrame:
+    """Front-month continuous daily OHLCV (volume-ranked, e.g. CL.n.0)."""
+    key = ("glbx", "cont", f"{root}__{start}__{end}.parquet")
+
+    def _fetch():
+        df = client().timeseries.get_range(
+            dataset=_GLBX, symbols=[f"{root}.n.0"], stype_in="continuous",
+            schema="ohlcv-1d", start=str(start), end=str(end)).to_df()
+        if df.empty:
+            return df
+        out = df.reset_index()
+        out["date"] = pd.to_datetime(out["ts_event"]).dt.tz_localize(None).dt.normalize()
+        return out[["date", "open", "high", "low", "close", "volume"]]
+
+    df = store.cached(key, _fetch)
+    if "__empty__" in df.columns or df.empty:
+        return pd.DataFrame()
+    return df.set_index("date").sort_index()
+
+
+def get_option_definitions(fut_root: str, day) -> pd.DataFrame:
+    """Listed options (strikes/expiries/underlying contract) for one day."""
+    opt_root = FUT_SPECS[fut_root]["opt_root"]
+    day = pd.Timestamp(day).normalize()
+    key = ("glbx", "definition", opt_root, day.strftime("%Y-%m-%d") + ".parquet")
+
+    def _fetch():
+        s = day.strftime("%Y-%m-%d")
+        e = (day + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = client().timeseries.get_range(
+            dataset=_GLBX, symbols=[f"{opt_root}.OPT"], stype_in="parent",
+            schema="definition", start=s, end=e).to_df()
+        if df.empty:
+            return df
+        cols = ["raw_symbol", "instrument_class", "strike_price", "expiration",
+                "underlying"]
+        df = df[[c for c in cols if c in df.columns]].drop_duplicates("raw_symbol")
+        df["expiration"] = pd.to_datetime(df["expiration"]).dt.tz_localize(None)
+        return df.reset_index(drop=True)
+
+    df = store.cached(key, _fetch)
+    return df if "__empty__" not in df.columns else pd.DataFrame()
+
+
+def get_symbol_daily(raw_symbol: str, start, end) -> pd.DataFrame:
+    """Daily closes for one GLBX instrument (option or future) -> [date, mid]."""
+    start, end = pd.Timestamp(start).normalize(), pd.Timestamp(end).normalize()
+    key = ("glbx", "daily", f"{raw_symbol}__{start:%Y-%m-%d}__{end:%Y-%m-%d}.parquet")
+
+    def _fetch():
+        s = start.strftime("%Y-%m-%d")
+        e = (end + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = client().timeseries.get_range(
+            dataset=_GLBX, symbols=[raw_symbol], stype_in="raw_symbol",
+            schema="ohlcv-1d", start=s, end=e).to_df()
+        if df.empty:
+            return df
+        out = df.reset_index()[["ts_event", "close"]]
+        out["date"] = pd.to_datetime(out["ts_event"]).dt.tz_localize(None).dt.normalize()
+        out = out.rename(columns={"close": "mid"})
+        return out.groupby("date", as_index=False)["mid"].last()
+
+    df = store.cached(key, _fetch)
+    return df if "__empty__" not in df.columns else pd.DataFrame()
+
+
+# ---------------------------------------------------------------------------
+# 16-delta put selection (model-picked, Black-76)
+# ---------------------------------------------------------------------------
+@dataclass
+class SelectedFutOption:
+    raw_symbol: str
+    underlying: str          # futures contract, e.g. CLQ5
+    strike: float
+    expiration: pd.Timestamp
+    dte: int
+    fut_price: float         # underlying future's price at entry
+    price: float             # filled from real path entry mark
+    iv: float
+    delta: float
+
+
+def select_16d_fut(fut_root: str, entry_date, iv_estimate,
+                   dte_min=30, dte_max=45, dte_target=40,
+                   target_delta=0.16) -> SelectedFutOption | None:
+    """Pick the 16-delta put on the futures option chain, model-placed.
+
+    Picks the expiry nearest dte_target, reads the option's `underlying`
+    futures contract, pulls THAT future's entry price (plan-covered), and
+    solves the Black-76 16-delta strike -> snap to listed.
+    """
+    entry_date = pd.Timestamp(entry_date).normalize()
+    defs = get_option_definitions(fut_root, entry_date)
+    if defs.empty:
+        return None
+    puts = defs[defs["instrument_class"] == "P"].copy()
+    if puts.empty:
+        return None
+    puts["dte"] = (puts["expiration"].dt.normalize() - entry_date).dt.days
+    puts = puts[(puts["dte"] >= dte_min) & (puts["dte"] <= dte_max)]
+    if puts.empty:
+        return None
+    exp = puts.iloc[(puts["dte"] - dte_target).abs().argsort().iloc[0]]["dte"]
+    puts = puts[puts["dte"] == exp]
+
+    und = str(puts.iloc[0]["underlying"])          # e.g. CLQ5
+    fpx = get_symbol_daily(und, entry_date, entry_date)
+    if fpx.empty:
+        return None
+    F = float(fpx.iloc[0]["mid"])
+
+    T = int(exp) / 365.0
+    if iv_estimate is None or pd.isna(iv_estimate):   # unwarmed rvol -> sane default
+        iv_estimate = 0.30
+    iv_use = max(iv_estimate * 1.15, 0.10)         # futures vol floor higher
+    K_star = strike_for_delta(F, T, iv_use, target_delta, kind="put", futures=True)
+    r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]
+    return SelectedFutOption(str(r["raw_symbol"]), und, float(r["strike_price"]),
+                             pd.Timestamp(r["expiration"]).normalize(), int(r["dte"]),
+                             F, float("nan"), float("nan"), float("nan"))
+
+
+# ---------------------------------------------------------------------------
+# Trade simulation (Black-76, product multiplier)
+# ---------------------------------------------------------------------------
+from ..config import TRADE, COST
+
+
+@dataclass
+class FutTradeResult:
+    symbol: str
+    signal_type: str
+    entry_date: pd.Timestamp
+    exit_date: pd.Timestamp
+    strike: float
+    dte: int
+    entry_iv: float
+    entry_delta: float
+    entry_credit: float
+    pnl: float
+    pnl_pct_credit: float
+    mae: float
+    days_held: int
+    exit_reason: str
+
+
+def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
+                       invalidation_below_ema100=False, stop_loss_dollars=None,
+                       trade=TRADE) -> FutTradeResult | None:
+    """Simulate one short futures-option trade off real GLBX daily prices.
+
+    cont_df is the prepped continuous frame (close/ema100 columns) used for the
+    trading calendar and the bounce invalidation rule.
+    """
+    mult = FUT_SPECS[fut_root]["mult"]
+    entry_date = pd.Timestamp(entry_date).normalize()
+    if entry_date not in cont_df.index:
+        return None
+
+    sel = select_16d_fut(fut_root, entry_date, iv_proxy,
+                         dte_min=trade.dte_min, dte_max=trade.dte_max,
+                         dte_target=trade.dte_target, target_delta=trade.target_delta)
+    if sel is None:
+        return None
+
+    path = get_symbol_daily(sel.raw_symbol, entry_date, sel.expiration)
+    if path.empty:
+        return None
+    path = path.set_index("date").sort_index()
+    if entry_date not in path.index:
+        return None
+    entry_price = float(path.loc[entry_date, "mid"])
+    if entry_price <= 0:
+        return None
+
+    # real IV/delta implied from the entry mark via Black-76
+    from scipy.optimize import brentq
+    T = sel.dte / 365.0
+    try:
+        entry_iv = brentq(lambda s: b76_price(sel.fut_price, sel.strike, T, s,
+                                              kind="put") - entry_price,
+                          1e-3, 5.0, maxiter=100)
+        entry_delta = b76_delta(sel.fut_price, sel.strike, T, entry_iv, kind="put")
+    except (ValueError, RuntimeError):
+        entry_iv = entry_delta = float("nan")
+
+    gross_credit = entry_price * mult
+    fees = (COST.commission_per_contract + COST.exchange_fees_per_contract)
+    slip = COST.slippage_ticks * mult
+    tp_price = entry_price * (1 - trade.take_profit_pct)
+
+    # underlying futures path for expiration intrinsic
+    days = cont_df.loc[entry_date:sel.expiration].index
+    last_opt = entry_price
+    worst_pnl = 0.0
+    exit_reason, exit_date, exit_opt = "expiration", days[-1], None
+
+    for dt in days[1:]:
+        if dt in path.index:
+            last_opt = float(path.loc[dt, "mid"])
+        opt = last_opt
+        dte = (sel.expiration - dt).days
+        cur_pnl = (entry_price - opt) * mult
+        worst_pnl = min(worst_pnl, cur_pnl)
+
+        if opt <= tp_price:
+            exit_reason, exit_date, exit_opt = "take_profit_50", dt, tp_price
+            break
+        if stop_loss_dollars is not None and cur_pnl <= -abs(stop_loss_dollars):
+            exit_reason, exit_date, exit_opt = "stop_loss", dt, opt
+            break
+        if invalidation_below_ema100 and float(cont_df.loc[dt, "close"]) < \
+                float(cont_df.loc[dt, "ema100"]):
+            exit_reason, exit_date, exit_opt = "below_100ema", dt, opt
+            break
+        if dte <= trade.manage_dte:
+            exit_reason, exit_date, exit_opt = "manage_21dte", dt, opt
+            break
+
+    if exit_opt is None:   # expiration -> intrinsic on the underlying future
+        fend = get_symbol_daily(sel.underlying, exit_date, exit_date)
+        Fx = float(fend.iloc[0]["mid"]) if not fend.empty else float(cont_df.loc[exit_date, "close"])
+        exit_opt = max(sel.strike - Fx, 0.0)
+
+    pnl = gross_credit - exit_opt * mult - 2 * slip - 2 * fees
+    return FutTradeResult(
+        symbol=fut_root, signal_type=signal_type, entry_date=entry_date,
+        exit_date=pd.Timestamp(exit_date), strike=sel.strike, dte=sel.dte,
+        entry_iv=entry_iv, entry_delta=entry_delta,
+        entry_credit=gross_credit - slip - fees, pnl=pnl,
+        pnl_pct_credit=pnl / gross_credit if gross_credit else 0.0,
+        mae=worst_pnl, days_held=(pd.Timestamp(exit_date) - entry_date).days,
+        exit_reason=exit_reason,
+    )
