@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git add *)",
       "Bash(git commit -q -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8501)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/otbt/pricing/rolling.py'\\).read\\(\\)\\); print\\('rolling syntax OK'\\)\")",
+      "Bash(awk '/### GC ###/,/### ES ###/' output/futures_suite.log)"
     ]
   }
 }
