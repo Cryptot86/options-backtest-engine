@@ -224,7 +224,9 @@ def select_delta_option(fut_root: str, entry_date, iv_estimate, kind="put",
     T = int(exp) / 365.0
     if iv_estimate is None or pd.isna(iv_estimate):   # unwarmed rvol -> sane default
         iv_estimate = 0.30
-    iv_use = max(iv_estimate * 1.15, 0.10)         # futures vol floor higher
+    # Floor only guards degenerate values. A 0.10 floor overshot low-vol FX
+    # (euro ~8% vol -> strikes landed ~10-delta instead of 16).
+    iv_use = max(iv_estimate * 1.15, 0.03)
     K_star = strike_for_delta(F, T, iv_use, target_delta, kind=kind, futures=True)
     r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]
     return SelectedFutOption(str(r["raw_symbol"]), und, float(r["strike_price"]),
