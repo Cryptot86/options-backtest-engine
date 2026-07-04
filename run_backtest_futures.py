@@ -29,7 +29,7 @@ INVALIDATION = {"bounce_100ema"}
 WORKERS = 16
 
 
-def run(root: str, start=GLBX_START, limit=None, workers=WORKERS):
+def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0):
     store.reset_stats()
     cont = get_continuous(root, start, str(END_DATE))
     if cont.empty:
@@ -42,6 +42,15 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS):
     ledger = generate_signals({root: cont})
     ledger = ledger[pd.to_datetime(ledger["date"]) >= start]
     ledger = ledger[ledger["iv_proxy"].notna()]      # drop rvol warmup period
+    if lag:
+        # TJ's real execution: signal from day-D close, enter NEXT morning.
+        # Modeled as entry at D+lag's settlement (options have daily marks only).
+        idx = cont.index
+        def _shift(d):
+            pos = idx.searchsorted(pd.Timestamp(d)) + lag
+            return idx[pos] if pos < len(idx) else None
+        ledger = ledger.assign(date=ledger["date"].map(_shift)).dropna(subset=["date"])
+        print(f"entry lag: +{lag} trading day(s) applied", flush=True)
     if limit:
         ledger = ledger.head(limit)
     rows = [sig for _, sig in ledger.iterrows()]
@@ -78,10 +87,11 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS):
         return
     summary = summarize(rdf)
     run_id = db.save_run(
-        rdf, summary, phase="futures_glbx", universe=[root],
-        start=str(start), end=str(END_DATE),
+        rdf, summary, phase="futures_glbx" + (f"_lag{lag}" if lag else ""),
+        universe=[root], start=str(start), end=str(END_DATE),
         created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        notes=f"GLBX {root} options, Black-76, model-picked 16d, plan-covered ($0)")
+        notes=f"GLBX {root} options, Black-76, model-picked 16d, plan-covered ($0)"
+              + (f", entry lag +{lag}d (D+1 execution)" if lag else ""))
 
     pd.set_option("display.width", 200, "display.max_columns", 30)
     print(f"\n=== {root} futures-options results (run_id={run_id}, $/contract, net) ===\n")
@@ -95,8 +105,11 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS):
 if __name__ == "__main__":
     args = sys.argv[1:]
     limit = start = None
+    lag = 0
     if "--limit" in args:
         i = args.index("--limit"); limit = int(args[i + 1]); args = args[:i] + args[i + 2:]
     if "--start" in args:
         i = args.index("--start"); start = args[i + 1]; args = args[:i] + args[i + 2:]
-    run(args[0] if args else "CL", start=start or GLBX_START, limit=limit)
+    if "--lag" in args:
+        i = args.index("--lag"); lag = int(args[i + 1]); args = args[:i] + args[i + 2:]
+    run(args[0] if args else "CL", start=start or GLBX_START, limit=limit, lag=lag)
