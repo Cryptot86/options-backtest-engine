@@ -59,7 +59,18 @@ def cached(rel_parts: tuple[str, ...], fetch_fn) -> pd.DataFrame:
         return pd.DataFrame()
     with _LOCK:
         STATS["misses"] += 1
-    df = fetch_fn()                       # network call OUTSIDE the lock (concurrent)
+    # network call OUTSIDE the lock; retry transient server errors (504 etc.)
+    import time
+    df = None
+    for attempt in range(3):
+        try:
+            df = fetch_fn()
+            break
+        except Exception as exc:
+            if "Server" in type(exc).__name__ and attempt < 2:
+                time.sleep(5 * (attempt + 1))
+                continue
+            raise
     if df is None:
         df = pd.DataFrame()
     # persist (empty frames get a sentinel column so parquet round-trips).
