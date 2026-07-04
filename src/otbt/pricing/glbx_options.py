@@ -27,14 +27,16 @@ load_dotenv()
 _GLBX = "GLBX.MDP3"
 _local = threading.local()
 
-# product specs: futures root -> options root + contract multiplier
+# product specs: futures root -> options root, contract multiplier, and the
+# option's tick value in $ per contract (slippage = 1 tick per side; a flat
+# price-based slippage x multiplier wildly overcharges big-multiplier products)
 FUT_SPECS = {
-    "CL": {"opt_root": "LO", "mult": 1_000},     # WTI crude, $/bbl x 1000
-    "NG": {"opt_root": "ON", "mult": 10_000},    # natgas, $/MMBtu x 10000
-    "GC": {"opt_root": "OG", "mult": 100},       # gold, $/oz x 100
-    "6E": {"opt_root": "EUU", "mult": 125_000},  # euro FX, $/EUR x 125k
-    "6B": {"opt_root": "GBU", "mult": 62_500},   # british pound, $/GBP x 62.5k
-    "ES": {"opt_root": "ES", "mult": 50},        # e-mini S&P, $50 x index pts
+    "CL": {"opt_root": "LO", "mult": 1_000, "opt_tick_usd": 10.0},    # 0.01 $/bbl
+    "NG": {"opt_root": "ON", "mult": 10_000, "opt_tick_usd": 10.0},   # 0.001 $/MMBtu
+    "GC": {"opt_root": "OG", "mult": 100, "opt_tick_usd": 10.0},      # 0.10 $/oz
+    "6E": {"opt_root": "EUU", "mult": 125_000, "opt_tick_usd": 12.5}, # 0.0001 $/EUR
+    "6B": {"opt_root": "GBU", "mult": 62_500, "opt_tick_usd": 6.25},  # 0.0001 $/GBP
+    "ES": {"opt_root": "ES", "mult": 50, "opt_tick_usd": 12.5},       # 0.25 pt
 }
 
 
@@ -190,9 +192,15 @@ def select_16d_fut(fut_root: str, entry_date, iv_estimate,
     if puts.empty:
         return None
     puts["dte"] = (puts["expiration"].dt.normalize() - entry_date).dt.days
-    puts = puts[(puts["dte"] >= dte_min) & (puts["dte"] <= dte_max)]
-    if puts.empty:
-        return None
+    window = puts[(puts["dte"] >= dte_min) & (puts["dte"] <= dte_max)]
+    if window.empty:
+        # Futures options are monthly: often NO expiry sits in 30-45 DTE.
+        # TJ's rule: fall back to the nearest expiry with DTE >= 40 (never a
+        # shorter-dated one), capped at 75 to stay out of far months.
+        window = puts[(puts["dte"] >= max(dte_min, 40)) & (puts["dte"] <= 75)]
+        if window.empty:
+            return None
+    puts = window
     exp = puts.iloc[(puts["dte"] - dte_target).abs().argsort().iloc[0]]["dte"]
     puts = puts[puts["dte"] == exp]
 
@@ -279,7 +287,7 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
 
     gross_credit = entry_price * mult
     fees = (COST.commission_per_contract + COST.exchange_fees_per_contract)
-    slip = COST.slippage_ticks * mult
+    slip = FUT_SPECS[fut_root].get("opt_tick_usd", 10.0)   # 1 option tick per side
     tp_price = entry_price * (1 - trade.take_profit_pct)
 
     # underlying futures path for expiration intrinsic

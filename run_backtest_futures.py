@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from src.otbt.config import END_DATE
+from src.otbt.config import END_DATE, TradeConfig
 from src.otbt.data import db, store
 from src.otbt.signals.engine import generate_signals, _prep
 from src.otbt.pricing.glbx_options import get_continuous, simulate_fut_trade
