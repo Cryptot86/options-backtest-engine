@@ -260,20 +260,23 @@ class FutTradeResult:
 
 def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
                        invalidation_below_ema100=False, stop_loss_dollars=None,
-                       trade=TRADE) -> FutTradeResult | None:
+                       kind="put", trade=TRADE) -> FutTradeResult | None:
     """Simulate one short futures-option trade off real GLBX daily prices.
 
+    kind='put' (default) or 'call' (H10 call side, downtrends). For calls the
+    thesis-invalidation flips: close back ABOVE the 100-EMA exits.
     cont_df is the prepped continuous frame (close/ema100 columns) used for the
-    trading calendar and the bounce invalidation rule.
+    trading calendar and the invalidation rule.
     """
     mult = FUT_SPECS[fut_root]["mult"]
     entry_date = pd.Timestamp(entry_date).normalize()
     if entry_date not in cont_df.index:
         return None
 
-    sel = select_16d_fut(fut_root, entry_date, iv_proxy,
-                         dte_min=trade.dte_min, dte_max=trade.dte_max,
-                         dte_target=trade.dte_target, target_delta=trade.target_delta)
+    sel = select_delta_option(fut_root, entry_date, iv_proxy, kind=kind,
+                              dte_min=trade.dte_min, dte_max=trade.dte_max,
+                              dte_target=trade.dte_target,
+                              target_delta=trade.target_delta)
     if sel is None:
         return None
 
@@ -292,9 +295,9 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
     T = sel.dte / 365.0
     try:
         entry_iv = brentq(lambda s: b76_price(sel.fut_price, sel.strike, T, s,
-                                              kind="put") - entry_price,
+                                              kind=kind) - entry_price,
                           1e-3, 5.0, maxiter=100)
-        entry_delta = b76_delta(sel.fut_price, sel.strike, T, entry_iv, kind="put")
+        entry_delta = b76_delta(sel.fut_price, sel.strike, T, entry_iv, kind=kind)
     except (ValueError, RuntimeError):
         entry_iv = entry_delta = float("nan")
 
@@ -323,10 +326,13 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
         if stop_loss_dollars is not None and cur_pnl <= -abs(stop_loss_dollars):
             exit_reason, exit_date, exit_opt = "stop_loss", dt, opt
             break
-        if invalidation_below_ema100 and float(cont_df.loc[dt, "close"]) < \
-                float(cont_df.loc[dt, "ema100"]):
-            exit_reason, exit_date, exit_opt = "below_100ema", dt, opt
-            break
+        if invalidation_below_ema100:
+            c, e = float(cont_df.loc[dt, "close"]), float(cont_df.loc[dt, "ema100"])
+            # short put (uptrend thesis): close BELOW ema100 invalidates;
+            # short call (downtrend thesis): close ABOVE ema100 invalidates.
+            if (kind == "put" and c < e) or (kind == "call" and c > e):
+                exit_reason, exit_date, exit_opt = "ema100_invalidation", dt, opt
+                break
         if dte <= trade.manage_dte:
             exit_reason, exit_date, exit_opt = "manage_21dte", dt, opt
             break
@@ -334,7 +340,7 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
     if exit_opt is None:   # expiration -> intrinsic on the underlying future
         fend = get_symbol_daily(sel.underlying, exit_date, exit_date)
         Fx = float(fend.iloc[0]["mid"]) if not fend.empty else float(cont_df.loc[exit_date, "close"])
-        exit_opt = max(sel.strike - Fx, 0.0)
+        exit_opt = max(sel.strike - Fx, 0.0) if kind == "put" else max(Fx - sel.strike, 0.0)
 
     pnl = gross_credit - exit_opt * mult - 2 * slip - 2 * fees
     return FutTradeResult(

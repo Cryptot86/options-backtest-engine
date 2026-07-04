@@ -20,16 +20,17 @@ import pandas as pd
 
 from src.otbt.config import END_DATE, TradeConfig
 from src.otbt.data import db, store
-from src.otbt.signals.engine import generate_signals, _prep
+from src.otbt.signals.engine import generate_signals, generate_call_signals, _prep
 from src.otbt.pricing.glbx_options import get_continuous, simulate_fut_trade
 from src.otbt.reporting.metrics import summarize
 
 GLBX_START = "2012-01-01"            # options ohlcv solid from here
-INVALIDATION = {"bounce_100ema"}
+INVALIDATION = {"bounce_100ema", "bounce_100ema_call"}
 WORKERS = 16
 
 
-def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0):
+def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0,
+        calls=False):
     store.reset_stats()
     cont = get_continuous(root, start, str(END_DATE))
     if cont.empty:
@@ -39,7 +40,7 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0):
           f"({cont.index.min().date()} -> {cont.index.max().date()})", flush=True)
 
     prepped = _prep(cont)
-    ledger = generate_signals({root: cont})
+    ledger = (generate_call_signals if calls else generate_signals)({root: cont})
     ledger = ledger[pd.to_datetime(ledger["date"]) >= start]
     ledger = ledger[ledger["iv_proxy"].notna()]      # drop rvol warmup period
     if lag:
@@ -63,7 +64,8 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0):
             return simulate_fut_trade(
                 root, sig["date"], prepped, sig["signal_type"],
                 float(sig["iv_proxy"]),
-                invalidation_below_ema100=sig["signal_type"] in INVALIDATION)
+                invalidation_below_ema100=sig["signal_type"] in INVALIDATION,
+                kind=sig.get("direction", "put"))
         except Exception as exc:
             print(f"[warn] {sig['date']}: {exc}", flush=True)
             return None
@@ -86,11 +88,13 @@ def run(root: str, start=GLBX_START, limit=None, workers=WORKERS, lag=0):
         print("No trades priced.")
         return
     summary = summarize(rdf)
+    phase = "futures_glbx" + ("_calls" if calls else "") + (f"_lag{lag}" if lag else "")
     run_id = db.save_run(
-        rdf, summary, phase="futures_glbx" + (f"_lag{lag}" if lag else ""),
+        rdf, summary, phase=phase,
         universe=[root], start=str(start), end=str(END_DATE),
         created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         notes=f"GLBX {root} options, Black-76, model-picked 16d, plan-covered ($0)"
+              + (", CALL side (downtrends, H10)" if calls else "")
               + (f", entry lag +{lag}d (D+1 execution)" if lag else ""))
 
     pd.set_option("display.width", 200, "display.max_columns", 30)
@@ -112,4 +116,8 @@ if __name__ == "__main__":
         i = args.index("--start"); start = args[i + 1]; args = args[:i] + args[i + 2:]
     if "--lag" in args:
         i = args.index("--lag"); lag = int(args[i + 1]); args = args[:i] + args[i + 2:]
-    run(args[0] if args else "CL", start=start or GLBX_START, limit=limit, lag=lag)
+    calls = "--calls" in args
+    if calls:
+        args.remove("--calls")
+    run(args[0] if args else "CL", start=start or GLBX_START, limit=limit,
+        lag=lag, calls=calls)

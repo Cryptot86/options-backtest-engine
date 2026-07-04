@@ -164,3 +164,67 @@ def generate_signals(prices: dict[str, pd.DataFrame],
     if not ledger.empty:
         ledger = ledger.sort_values(["symbol", "date"]).reset_index(drop=True)
     return ledger
+
+
+# ---------------------------------------------------------------------------
+# H10 call side: mirrored detectors for DOWNTRENDS (sell calls)
+# ---------------------------------------------------------------------------
+def _bb_2sd_call(symbol: str, df: pd.DataFrame) -> list[dict]:
+    """Mirror of bb_2sd: close at/above upper 2-SD band while in DOWNTREND."""
+    rows = []
+    _, up20, _ = ind.bollinger(df["close"], 20, 2.0)
+    hit = (df["close"] >= up20) & ~df["trend_up"]
+    entry = hit & ~hit.shift(1, fill_value=False)
+    for dt in df.index[entry]:
+        r = df.loc[dt]
+        rows.append(_row(symbol, dt, "bb_2sd_call", "call", r["close"],
+                         r["trend_up"], r["rvol20"], band=float(up20.loc[dt])))
+    return rows
+
+
+def _bounce_100ema_call(symbol: str, df: pd.DataFrame, touch_pct=0.01) -> list[dict]:
+    """Mirror of bounce: price rallies INTO the 100-EMA from below in a
+    downtrend and closes back under it -> sell the call."""
+    rows = []
+    below_prior = df["close"].shift(1) < df["ema100"].shift(1)
+    touch = (df["high"] >= df["ema100"] * (1 - touch_pct)) & (df["close"] <= df["ema100"])
+    hit = below_prior & touch & ~df["trend_up"]
+    entry = hit & ~hit.shift(1, fill_value=False)
+    for dt in df.index[entry]:
+        r = df.loc[dt]
+        rows.append(_row(symbol, dt, "bounce_100ema_call", "call", r["close"],
+                         r["trend_up"], r["rvol20"], ema100=float(r["ema100"])))
+    return rows
+
+
+def _five_day_high_call(symbol: str, df: pd.DataFrame) -> list[dict]:
+    """Mirror of five_day_low: new 5-day closing HIGH while in a downtrend."""
+    rows = []
+    hh = df["close"].rolling(5).max()
+    hit = (df["close"] >= hh) & ~df["trend_up"]
+    entry = hit & ~hit.shift(1, fill_value=False)
+    for dt in df.index[entry]:
+        r = df.loc[dt]
+        rows.append(_row(symbol, dt, "five_day_high_call", "call", r["close"],
+                         r["trend_up"], r["rvol20"]))
+    return rows
+
+
+_CALL_DETECTORS = {
+    "bb_2sd_call": _bb_2sd_call,
+    "bounce_100ema_call": _bounce_100ema_call,
+    "five_day_high_call": _five_day_high_call,
+}
+
+
+def generate_call_signals(prices: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """H10 call side: sell calls only when the 10/100 trend is DOWN."""
+    all_rows: list[dict] = []
+    for symbol, df in prices.items():
+        prepped = _prep(df)
+        for fn in _CALL_DETECTORS.values():
+            all_rows.extend(fn(symbol, prepped))
+    ledger = pd.DataFrame(all_rows, columns=LEDGER_COLUMNS)
+    if not ledger.empty:
+        ledger = ledger.sort_values(["symbol", "date"]).reset_index(drop=True)
+    return ledger
