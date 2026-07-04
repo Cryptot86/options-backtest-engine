@@ -46,7 +46,8 @@ if "proxy" in str(meta["notes"]).lower():
     st.info("⚠️ Realized-vol proxy for IV — **rankings & tails are reliable, "
             "absolute dollars are approximate** (proxy can't see the vol risk premium).")
 
-tab_sum, tab_trades, tab_verify = st.tabs(["📊 Summary", "📋 Trades", "🔎 Verify a trade"])
+tab_sum, tab_trades, tab_verify, tab_lab = st.tabs(
+    ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab"])
 
 # ---- summary --------------------------------------------------------------
 with tab_sum:
@@ -119,3 +120,72 @@ with tab_verify:
     st.plotly_chart(fig, use_container_width=True)
     st.caption("Put strike (dotted) should sit ~16Δ below entry; for bounce, exit "
                "should coincide with a close back below EMA100 if invalidated.")
+
+# ---- strategy lab -----------------------------------------------------------
+with tab_lab:
+    st.subheader("🧪 Strategy Lab — market × method × structure")
+    st.caption("Prices every signal with real CME settlement data (plan-covered, $0). "
+               "First run per combo pulls data (~minutes); re-runs are instant from cache.")
+    from src.otbt.pricing import glbx_options as gx
+    from src.otbt.signals.engine import generate_signals, _prep
+    from src.otbt.signals.baseline import generate_baseline
+    from src.otbt.reporting.metrics import summarize as _summ
+
+    c1, c2, c3, c4 = st.columns(4)
+    root = c1.selectbox("Market", ["CL", "NG", "GC", "6E", "6B", "ES"])
+    method = c2.selectbox("Method (entry)", [
+        "bb_2sd", "bounce_100ema", "bb_20sma", "five_day_low", "rsi_divergence",
+        "vrp_baseline (no direction — Tom style)"])
+    structure = c3.selectbox("Structure", list(gx.STRUCTURES))
+    start_yr = c4.selectbox("From year", [2012, 2015, 2018, 2020, 2022], index=0)
+
+    if st.button("▶ Run backtest", type="primary"):
+        cont = gx.get_continuous(root, f"{start_yr}-01-01", "2025-06-30")
+        if cont.empty:
+            st.error("No continuous data for this market."); st.stop()
+        if method.startswith("vrp_baseline"):
+            led = generate_baseline({root: cont})
+        else:
+            led = generate_signals({root: cont})
+            led = led[led["signal_type"] == method]
+        led = led[led["iv_proxy"].notna()]
+        st.write(f"{len(led)} signals to price…")
+        prog = st.progress(0.0)
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        rows = list(led.iterrows())
+        results = []
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = {ex.submit(
+                gx.simulate_structure, root, sig["date"], cont, structure,
+                float(sig["iv_proxy"]), signal_type=f"{method[:12]}|{structure}"): 1
+                for _, sig in rows}
+            done = 0
+            for f in as_completed(futs):
+                done += 1
+                prog.progress(done / max(len(rows), 1))
+                try:
+                    r = f.result()
+                except Exception:
+                    r = None
+                if r is not None:
+                    results.append(r)
+        prog.empty()
+        if not results:
+            st.warning("No trades priced for this combo."); st.stop()
+        rdf = pd.DataFrame([r.__dict__ for r in results]).sort_values("entry_date")
+        st.success(f"{len(rdf)} trades priced ({len(rows) - len(rdf)} skipped)")
+        st.dataframe(_summ(rdf), use_container_width=True)
+
+        rdf["cum"] = rdf["pnl"].cumsum()
+        fig = go.Figure(go.Scatter(x=rdf["entry_date"], y=rdf["cum"],
+                                   mode="lines+markers", name="cumulative P&L"))
+        fig.update_layout(height=380, title=f"{root} · {method} · {structure} — "
+                          f"cumulative $/1-lot (total ${rdf['pnl'].sum():,.0f})")
+        st.plotly_chart(fig, use_container_width=True)
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Total P&L", f"${rdf['pnl'].sum():,.0f}")
+        m2.metric("Win %", f"{100*(rdf['pnl']>0).mean():.0f}%")
+        m3.metric("Worst trade", f"${rdf['pnl'].min():,.0f}")
+        m4.metric("Worst MAE", f"${rdf['mae'].min():,.0f}")
+        with st.expander("All trades"):
+            st.dataframe(rdf.drop(columns=["cum"]), use_container_width=True)

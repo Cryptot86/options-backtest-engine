@@ -178,17 +178,28 @@ class SelectedFutOption:
 def select_16d_fut(fut_root: str, entry_date, iv_estimate,
                    dte_min=30, dte_max=45, dte_target=40,
                    target_delta=0.16) -> SelectedFutOption | None:
-    """Pick the 16-delta put on the futures option chain, model-placed.
+    """Back-compat wrapper: 16-delta put."""
+    return select_delta_option(fut_root, entry_date, iv_estimate, kind="put",
+                               target_delta=target_delta, dte_min=dte_min,
+                               dte_max=dte_max, dte_target=dte_target)
 
-    Picks the expiry nearest dte_target, reads the option's `underlying`
-    futures contract, pulls THAT future's entry price (plan-covered), and
-    solves the Black-76 16-delta strike -> snap to listed.
+
+def select_delta_option(fut_root: str, entry_date, iv_estimate, kind="put",
+                        target_delta=0.16, dte_min=30, dte_max=45,
+                        dte_target=40) -> SelectedFutOption | None:
+    """Pick a put OR call at any target delta on the futures option chain.
+
+    Picks the expiry nearest dte_target (with the monthly fallback rule),
+    reads the option's `underlying` futures contract, pulls THAT future's
+    entry price (plan-covered), and solves the Black-76 strike -> snap to
+    listed. Used for single legs and multi-leg structures alike.
     """
     entry_date = pd.Timestamp(entry_date).normalize()
     defs = get_option_definitions(fut_root, entry_date)
     if defs.empty:
         return None
-    puts = defs[defs["instrument_class"] == "P"].copy()
+    cls = "P" if kind == "put" else "C"
+    puts = defs[defs["instrument_class"] == cls].copy()
     if puts.empty:
         return None
     puts["dte"] = (puts["expiration"].dt.normalize() - entry_date).dt.days
@@ -214,7 +225,7 @@ def select_16d_fut(fut_root: str, entry_date, iv_estimate,
     if iv_estimate is None or pd.isna(iv_estimate):   # unwarmed rvol -> sane default
         iv_estimate = 0.30
     iv_use = max(iv_estimate * 1.15, 0.10)         # futures vol floor higher
-    K_star = strike_for_delta(F, T, iv_use, target_delta, kind="put", futures=True)
+    K_star = strike_for_delta(F, T, iv_use, target_delta, kind=kind, futures=True)
     r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]
     return SelectedFutOption(str(r["raw_symbol"]), und, float(r["strike_price"]),
                              pd.Timestamp(r["expiration"]).normalize(), int(r["dte"]),
@@ -331,5 +342,104 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
         entry_credit=gross_credit - slip - fees, pnl=pnl,
         pnl_pct_credit=pnl / gross_credit if gross_credit else 0.0,
         mae=worst_pnl, days_held=(pd.Timestamp(exit_date) - entry_date).days,
+        exit_reason=exit_reason,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Multi-leg structures (Strategy Lab)
+# ---------------------------------------------------------------------------
+# legs: (kind, target_delta, side)  side -1 = sell, +1 = buy
+STRUCTURES = {
+    "short_put":         [("put", 0.16, -1)],
+    "short_strangle":    [("put", 0.16, -1), ("call", 0.16, -1)],
+    "iron_butterfly":    [("put", 0.50, -1), ("call", 0.50, -1),
+                          ("put", 0.10, +1), ("call", 0.10, +1)],
+    "put_credit_spread": [("put", 0.16, -1), ("put", 0.08, +1)],
+}
+
+
+def simulate_structure(fut_root, entry_date, cont_df, structure, iv_proxy,
+                       signal_type="lab", trade=TRADE) -> FutTradeResult | None:
+    """Simulate a multi-leg premium structure off real settlement paths.
+
+    Position value V_t = sum(side_i * leg_price_i). P&L_t = (V_0 - V_t) * mult
+    for a net-short (credit) structure. Managed at 50% of net credit / 21 DTE.
+    Every leg's path is a plan-covered settlement pull (cached forever).
+    """
+    mult = FUT_SPECS[fut_root]["mult"]
+    tick = FUT_SPECS[fut_root].get("opt_tick_usd", 10.0)
+    entry_date = pd.Timestamp(entry_date).normalize()
+    if entry_date not in cont_df.index:
+        return None
+
+    legs = []
+    for kind, tgt, side in STRUCTURES[structure]:
+        sel = select_delta_option(fut_root, entry_date, iv_proxy, kind=kind,
+                                  target_delta=tgt, dte_min=trade.dte_min,
+                                  dte_max=trade.dte_max, dte_target=trade.dte_target)
+        if sel is None:
+            return None
+        p = get_option_path(sel.raw_symbol, entry_date, sel.expiration)
+        if p.empty:
+            return None
+        p = p.set_index("date")["mid"].sort_index()
+        if entry_date not in p.index or p.loc[entry_date] <= 0:
+            return None
+        legs.append((sel, p, side, kind))
+
+    expiration = legs[0][0].expiration            # all legs same expiry
+    n_legs = len(legs)
+    fees = (COST.commission_per_contract + COST.exchange_fees_per_contract) * n_legs
+    slip = tick * n_legs                          # 1 tick per leg per side
+
+    def value_on(dt, last_vals):
+        v = 0.0
+        for i, (sel, p, side, kind) in enumerate(legs):
+            if dt in p.index:
+                last_vals[i] = float(p.loc[dt])
+            v += side * last_vals[i]
+        return v
+
+    last_vals = [float(p.loc[entry_date]) for (_, p, _, _) in legs]
+    v0 = sum(side * lv for (_, _, side, _), lv in zip(legs, last_vals))
+    net_credit = -v0 * mult                        # positive for net-short
+    if net_credit <= 0:
+        return None                                # only test credit structures
+    tp_pnl = trade.take_profit_pct * net_credit
+
+    days = cont_df.loc[entry_date:expiration].index
+    worst_pnl = 0.0
+    exit_reason, exit_date, exit_v = "expiration", days[-1], None
+    for dt in days[1:]:
+        v = value_on(dt, last_vals)
+        cur_pnl = (v0 - v) * mult                  # short credit: value down = profit
+        worst_pnl = min(worst_pnl, cur_pnl)
+        dte = (expiration - dt).days
+        if cur_pnl >= tp_pnl:
+            exit_reason, exit_date, exit_v = "take_profit_50", dt, v
+            break
+        if dte <= trade.manage_dte:
+            exit_reason, exit_date, exit_v = "manage_21dte", dt, v
+            break
+
+    if exit_v is None:                             # expiration -> intrinsic per leg
+        und = legs[0][0].underlying
+        fend = get_symbol_daily(und, exit_date, exit_date)
+        Fx = float(fend.iloc[0]["mid"]) if not fend.empty else float(cont_df.loc[exit_date, "close"])
+        exit_v = 0.0
+        for sel, _, side, kind in legs:
+            intr = max(sel.strike - Fx, 0.0) if kind == "put" else max(Fx - sel.strike, 0.0)
+            exit_v += side * intr
+
+    pnl = (v0 - exit_v) * mult - 2 * slip - 2 * fees
+    lead = legs[0][0]
+    return FutTradeResult(
+        symbol=fut_root, signal_type=signal_type, entry_date=entry_date,
+        exit_date=pd.Timestamp(exit_date), strike=lead.strike, dte=lead.dte,
+        entry_iv=float("nan"), entry_delta=float("nan"),
+        entry_credit=net_credit - slip - fees, pnl=pnl,
+        pnl_pct_credit=pnl / net_credit, mae=worst_pnl,
+        days_held=(pd.Timestamp(exit_date) - entry_date).days,
         exit_reason=exit_reason,
     )
