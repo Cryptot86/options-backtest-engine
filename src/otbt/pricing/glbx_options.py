@@ -91,6 +91,47 @@ def get_option_definitions(fut_root: str, day) -> pd.DataFrame:
     return df if "__empty__" not in df.columns else pd.DataFrame()
 
 
+def get_symbol_settlements(raw_symbol: str, start, end) -> pd.DataFrame:
+    """Official daily SETTLEMENT prices for one instrument -> [date, mid].
+
+    CME settles every listed strike daily even when it never trades, so this
+    covers the sparse OTM options that ohlcv-1d (last trade) misses. Source:
+    statistics schema (L0, plan-covered), stat_type 3 = settlement price.
+    """
+    start, end = pd.Timestamp(start).normalize(), pd.Timestamp(end).normalize()
+    key = ("glbx", "settle", f"{raw_symbol}__{start:%Y-%m-%d}__{end:%Y-%m-%d}.parquet")
+
+    def _fetch():
+        s = start.strftime("%Y-%m-%d")
+        e = (end + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        df = client().timeseries.get_range(
+            dataset=_GLBX, symbols=[raw_symbol], stype_in="raw_symbol",
+            schema="statistics", start=s, end=e).to_df()
+        if df.empty:
+            return df
+        df = df.reset_index()
+        df = df[df["stat_type"] == 3]                  # settlement price
+        df = df[pd.notna(df["price"]) & (df["price"] > 0)]
+        if df.empty:
+            return pd.DataFrame()
+        df["date"] = pd.to_datetime(df["ts_ref" if "ts_ref" in df else "ts_event"]) \
+            .dt.tz_localize(None).dt.normalize()
+        df = df.rename(columns={"price": "mid"})
+        return df.groupby("date", as_index=False)["mid"].last()
+
+    df = store.cached(key, _fetch)
+    return df if "__empty__" not in df.columns else pd.DataFrame()
+
+
+def get_option_path(raw_symbol: str, start, end) -> pd.DataFrame:
+    """Best daily price path for an option: settlements first (complete),
+    last-trade bars as fallback."""
+    p = get_symbol_settlements(raw_symbol, start, end)
+    if not p.empty:
+        return p
+    return get_symbol_daily(raw_symbol, start, end)
+
+
 def get_symbol_daily(raw_symbol: str, start, end) -> pd.DataFrame:
     """Daily closes for one GLBX instrument (option or future) -> [date, mid]."""
     start, end = pd.Timestamp(start).normalize(), pd.Timestamp(end).normalize()
@@ -212,7 +253,7 @@ def simulate_fut_trade(fut_root, entry_date, cont_df, signal_type, iv_proxy,
     if sel is None:
         return None
 
-    path = get_symbol_daily(sel.raw_symbol, entry_date, sel.expiration)
+    path = get_option_path(sel.raw_symbol, entry_date, sel.expiration)
     if path.empty:
         return None
     path = path.set_index("date").sort_index()
