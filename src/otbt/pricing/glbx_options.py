@@ -32,6 +32,9 @@ FUT_SPECS = {
     "CL": {"opt_root": "LO", "mult": 1_000},     # WTI crude, $/bbl x 1000
     "NG": {"opt_root": "ON", "mult": 10_000},    # natgas, $/MMBtu x 10000
     "GC": {"opt_root": "OG", "mult": 100},       # gold, $/oz x 100
+    "6E": {"opt_root": "EUU", "mult": 125_000},  # euro FX, $/EUR x 125k
+    "6B": {"opt_root": "GBU", "mult": 62_500},   # british pound, $/GBP x 62.5k
+    "ES": {"opt_root": "ES", "mult": 50},        # e-mini S&P, $50 x index pts
 }
 
 
