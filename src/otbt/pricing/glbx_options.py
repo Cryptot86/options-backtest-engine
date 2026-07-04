@@ -36,7 +36,11 @@ FUT_SPECS = {
     "GC": {"opt_root": "OG", "mult": 100, "opt_tick_usd": 10.0},      # 0.10 $/oz
     "6E": {"opt_root": "EUU", "mult": 125_000, "opt_tick_usd": 12.5}, # 0.0001 $/EUR
     "6B": {"opt_root": "GBU", "mult": 62_500, "opt_tick_usd": 6.25},  # 0.0001 $/GBP
-    "ES": {"opt_root": "ES", "mult": 50, "opt_tick_usd": 12.5},       # 0.25 pt
+    # ES quarterlies live under root ES; the MONTHLY (EOM) series is root EW —
+    # without EW the expiry calendar is quarterly-only and (e.g.) the entire
+    # Feb-2020 crash window has no 30-75 DTE expiry -> crash signals silently
+    # skipped (survivorship). Both roots merged for definitions.
+    "ES": {"opt_root": ["ES", "EW"], "mult": 50, "opt_tick_usd": 12.5},  # 0.25 pt
 }
 
 
@@ -73,27 +77,39 @@ def get_continuous(root: str, start, end) -> pd.DataFrame:
 
 
 def get_option_definitions(fut_root: str, day) -> pd.DataFrame:
-    """Listed options (strikes/expiries/underlying contract) for one day."""
-    opt_root = FUT_SPECS[fut_root]["opt_root"]
+    """Listed options (strikes/expiries/underlying) for one day.
+
+    opt_root may be a list (e.g. ES quarterlies + EW monthlies) — each root is
+    fetched/cached separately and the frames merged.
+    """
+    roots = FUT_SPECS[fut_root]["opt_root"]
+    if isinstance(roots, str):
+        roots = [roots]
     day = pd.Timestamp(day).normalize()
-    key = ("glbx", "definition", opt_root, day.strftime("%Y-%m-%d") + ".parquet")
+    frames = []
+    for opt_root in roots:
+        key = ("glbx", "definition", opt_root, day.strftime("%Y-%m-%d") + ".parquet")
 
-    def _fetch():
-        s = day.strftime("%Y-%m-%d")
-        e = (day + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
-        df = client().timeseries.get_range(
-            dataset=_GLBX, symbols=[f"{opt_root}.OPT"], stype_in="parent",
-            schema="definition", start=s, end=e).to_df()
-        if df.empty:
-            return df
-        cols = ["raw_symbol", "instrument_class", "strike_price", "expiration",
-                "underlying"]
-        df = df[[c for c in cols if c in df.columns]].drop_duplicates("raw_symbol")
-        df["expiration"] = pd.to_datetime(df["expiration"]).dt.tz_localize(None)
-        return df.reset_index(drop=True)
+        def _fetch(opt_root=opt_root):
+            s = day.strftime("%Y-%m-%d")
+            e = (day + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+            df = client().timeseries.get_range(
+                dataset=_GLBX, symbols=[f"{opt_root}.OPT"], stype_in="parent",
+                schema="definition", start=s, end=e).to_df()
+            if df.empty:
+                return df
+            cols = ["raw_symbol", "instrument_class", "strike_price", "expiration",
+                    "underlying"]
+            df = df[[c for c in cols if c in df.columns]].drop_duplicates("raw_symbol")
+            df["expiration"] = pd.to_datetime(df["expiration"]).dt.tz_localize(None)
+            return df.reset_index(drop=True)
 
-    df = store.cached(key, _fetch)
-    return df if "__empty__" not in df.columns else pd.DataFrame()
+        df = store.cached(key, _fetch)
+        if "__empty__" not in df.columns and not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True).drop_duplicates("raw_symbol")
 
 
 def get_symbol_settlements(raw_symbol: str, start, end) -> pd.DataFrame:
