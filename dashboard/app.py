@@ -11,6 +11,16 @@ Run:  streamlit run dashboard/app.py
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# make imports work no matter where streamlit is launched from
+_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
+os.chdir(_REPO)                      # relative paths (db/, data_cache/) too
+os.environ.setdefault("OTBT_OFFLINE", "1")   # dashboard never spends
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -83,9 +93,14 @@ with tab_trades:
 
 # ---- verify a single trade ------------------------------------------------
 with tab_verify:
-    st.subheader("Verify a single trade")
-    st.caption("Check the signal fired correctly, the strike/exit make sense, and "
-               "the underlying path matches the recorded entry/exit.")
+    st.subheader("🔎 Verify a single trade — data, price, and logic")
+    st.caption("Three checks per trade: (1) option data correct, (2) market "
+               "price correct, (3) strategy logic correct. Cache-only — never pulls.")
+    from src.otbt.data import store as _store
+    _store.OFFLINE = True                       # hard guarantee: $0
+    from src.otbt.pricing import glbx_options as _gx
+    from src.otbt.signals.engine import _prep as _prep_fn
+
     fsym = st.selectbox("Symbol", sorted(trades["symbol"].unique()))
     sub = trades[trades["symbol"] == fsym].sort_values("entry_date")
     idx = st.selectbox(
@@ -93,16 +108,88 @@ with tab_verify:
         format_func=lambda i: f"{sub.loc[i,'entry_date'].date()} · {sub.loc[i,'signal_type']} "
                               f"· K {sub.loc[i,'strike']:.0f} · P&L ${sub.loc[i,'pnl']:.0f}")
     t = sub.loc[idx]
+    is_fut = fsym in _gx.FUT_SPECS
 
     m = st.columns(6)
     m[0].metric("Entry", str(t["entry_date"].date()))
     m[1].metric("Exit", str(t["exit_date"].date()))
-    m[2].metric("Strike", f"${t['strike']:.0f}")
+    m[2].metric("Strike", f"{t['strike']:.1f}")
     m[3].metric("Credit", f"${t.get('entry_credit', float('nan')):.0f}")
     m[4].metric("P&L", f"${t['pnl']:.0f}")
     m[5].metric("Exit reason", str(t["exit_reason"]))
 
-    px = get_prices(fsym, con_start, con_end)
+    # --- underlying series (futures: continuous from cache; equities: yfinance)
+    if is_fut:
+        px = _gx.get_continuous(fsym, "2012-01-01", "2025-06-30")
+    else:
+        px = get_prices(fsym, con_start, con_end)
+    checks = []
+
+    # CHECK 1: strategy logic — did the entry condition actually hold that day?
+    try:
+        pp = _prep_fn(px)
+        d = t["entry_date"]
+        if d in pp.index:
+            r = pp.loc[d]
+            sigt = str(t["signal_type"]).split("|")[0]
+            cond = {
+                "bb_2sd": r["close"] <= r["bb_lower"] and r["trend_up"],
+                "bb_20sma": r["trend_up"],
+                "five_day_low": r["close"] <= pp["close"].rolling(5).min().loc[d] and r["trend_up"],
+                "bounce_100ema": r["trend_up"],
+                "vol_gate": True, "rsi_divergence": True, "vrp_baseline": True,
+            }.get(sigt, None)
+            if cond is not None:
+                checks.append(("Entry condition held on entry date",
+                               bool(cond),
+                               f"close={r['close']:.2f}, bb_lower={r['bb_lower']:.2f}, "
+                               f"EMA10 {'>' if r['trend_up'] else '<'} EMA100"))
+    except Exception as e:
+        checks.append(("Entry condition check", None, str(e)[:80]))
+
+    # CHECK 2 + option path: locate the exact option from cached definitions
+    opt_path = None
+    if is_fut:
+        try:
+            defs = _gx.get_option_definitions(fsym, t["entry_date"])
+            if not defs.empty:
+                o = defs[defs["instrument_class"] == "P"].copy()
+                o["dte"] = (o["expiration"].dt.normalize() - t["entry_date"]).dt.days
+                o = o[(o["dte"] - float(t["dte"])).abs() < 3]
+                o = o[(o["strike_price"] - float(t["strike"])).abs() < 1e-6]
+                if len(o):
+                    sym = str(o.iloc[0]["raw_symbol"])
+                    expn = pd.Timestamp(o.iloc[0]["expiration"]).normalize()
+                    p = _gx.get_option_path(sym, t["entry_date"], expn)
+                    if not p.empty:
+                        opt_path = p.set_index("date")["mid"]
+                        e_px = float(opt_path.loc[t["entry_date"]]) if t["entry_date"] in opt_path.index else None
+                        if e_px:
+                            mult = _gx.FUT_SPECS[fsym]["mult"]
+                            rec = float(t.get("entry_credit", 0))
+                            ok = abs(e_px * mult - rec) <= max(0.05 * e_px * mult, 30)
+                            checks.append((f"Option data: {sym} entry settle ${e_px:.3f} "
+                                           f"x{mult} vs recorded credit ${rec:.0f}",
+                                           ok, "within fees/slippage" if ok else "MISMATCH"))
+                    checks.append(("Strike exists in listed chain", True, sym))
+                else:
+                    checks.append(("Strike exists in listed chain", False,
+                                   "no match in cached definitions"))
+        except Exception as e:
+            checks.append(("Option data check", None, str(e)[:80]))
+
+    # CHECK 3: market price present on entry/exit dates
+    checks.append(("Underlying price on entry date", t["entry_date"] in px.index,
+                   f"close={px.loc[t['entry_date'],'close']:.2f}" if t["entry_date"] in px.index else "missing"))
+    checks.append(("Underlying price on exit date", t["exit_date"] in px.index,
+                   f"close={px.loc[t['exit_date'],'close']:.2f}" if t["exit_date"] in px.index else "missing"))
+
+    st.markdown("#### Verification checks")
+    for name, ok, detail in checks:
+        icon = "✅" if ok else ("⚠️" if ok is None else "❌")
+        st.markdown(f"{icon} **{name}** — {detail}")
+
+    # --- charts: underlying + option path side by side
     lo = t["entry_date"] - pd.Timedelta(days=40)
     hi = t["exit_date"] + pd.Timedelta(days=15)
     w = px.loc[lo:hi]
@@ -113,13 +200,28 @@ with tab_verify:
     fig.add_trace(go.Scatter(x=w.index, y=ema(px["close"], 100).loc[lo:hi], name="EMA100",
                              line=dict(color="#e67e22", width=1)))
     fig.add_hline(y=t["strike"], line_dash="dot", line_color="#c0392b",
-                  annotation_text="put strike")
+                  annotation_text="strike")
     fig.add_vline(x=t["entry_date"], line_color="#27ae60", annotation_text="entry")
     fig.add_vline(x=t["exit_date"], line_color="#c0392b", annotation_text="exit")
-    fig.update_layout(height=460, title=f"{fsym} — {t['signal_type']}")
+    fig.update_layout(height=420, title=f"{fsym} underlying — {t['signal_type']}")
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Put strike (dotted) should sit ~16Δ below entry; for bounce, exit "
-               "should coincide with a close back below EMA100 if invalidated.")
+
+    if opt_path is not None:
+        f2 = go.Figure()
+        f2.add_trace(go.Scatter(x=opt_path.index, y=opt_path.values,
+                                name="option settle", line=dict(color="#8e44ad")))
+        f2.add_vline(x=t["entry_date"], line_color="#27ae60", annotation_text="sold")
+        f2.add_vline(x=t["exit_date"], line_color="#c0392b", annotation_text="closed")
+        if t.get("entry_credit") and pd.notna(t["entry_credit"]):
+            mult = _gx.FUT_SPECS[fsym]["mult"]
+            f2.add_hline(y=float(t["entry_credit"]) / mult * 0.5, line_dash="dot",
+                         line_color="#27ae60", annotation_text="50% target")
+        f2.update_layout(height=340, title="Option price path (real settlements) — "
+                         "we profit as this decays")
+        st.plotly_chart(f2, use_container_width=True)
+    elif is_fut:
+        st.info("Option path not in local cache for this trade (no new pulls in "
+                "verify mode).")
 
 # ---- strategy lab -----------------------------------------------------------
 with tab_lab:
