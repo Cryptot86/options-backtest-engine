@@ -27,7 +27,7 @@ from src.otbt.signals.indicators import realized_vol
 OUT_DIR = os.path.join("data_cache", "iv_series")
 
 
-def build(root: str, start="2012-01-01", end="2025-06-30") -> pd.DataFrame:
+def build(root: str, start="2012-01-01", end="2025-06-30", target=40, suffix="") -> pd.DataFrame:
     cont = gx.get_continuous(root, start, end)
     if cont.empty:
         raise SystemExit(f"no continuous data for {root}")
@@ -49,10 +49,10 @@ def build(root: str, start="2012-01-01", end="2025-06-30") -> pd.DataFrame:
             continue
         puts = defs[defs["instrument_class"] == "P"].copy()
         puts["dte"] = (puts["expiration"].dt.normalize() - d0).dt.days
-        puts = puts[(puts["dte"] >= 25) & (puts["dte"] <= 75)]
+        puts = puts[(puts["dte"] >= target - 15) & (puts["dte"] <= target + 35)]
         if puts.empty:
             continue
-        exp = puts.iloc[(puts["dte"] - 40).abs().argsort().iloc[0]]["dte"]
+        exp = puts.iloc[(puts["dte"] - target).abs().argsort().iloc[0]]["dte"]
         pe = puts[puts["dte"] == exp]
         F0 = float(cont.loc[d0, "close"])
         row = pe.iloc[(pe["strike_price"] - F0).abs().argsort().iloc[0]]
@@ -94,12 +94,17 @@ def build(root: str, start="2012-01-01", end="2025-06-30") -> pd.DataFrame:
     s["spread"] = s["iv"] - s["rv20"]
     s["slope5"] = s["iv"].diff(5)
     os.makedirs(OUT_DIR, exist_ok=True)
-    s.reset_index().to_parquet(os.path.join(OUT_DIR, f"{root}.parquet"))
+    s.reset_index().to_parquet(os.path.join(OUT_DIR, f"{root}{suffix}.parquet"))
     print(f"{root}: {len(s)} daily IV points "
           f"({s.index.min().date()} -> {s.index.max().date()}) saved.")
     return s
 
 
 if __name__ == "__main__":
-    for r in (sys.argv[1:] or ["CL"]):
-        build(r)
+    args = sys.argv[1:]
+    target, suffix = 40, ""
+    if "--target" in args:
+        i = args.index("--target"); target = int(args[i + 1])
+        suffix = f"_{target}"; args = args[:i] + args[i + 2:]
+    for r in (args or ["CL"]):
+        build(r, target=target, suffix=suffix)

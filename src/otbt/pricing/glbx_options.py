@@ -380,6 +380,7 @@ STRUCTURES = {
     "iron_butterfly":    [("put", 0.50, -1), ("call", 0.50, -1),
                           ("put", 0.10, +1), ("call", 0.10, +1)],
     "put_credit_spread": [("put", 0.16, -1), ("put", 0.08, +1)],
+    "crisis_fade_spread": [("put", 0.25, -1), ("put", 0.05, +1)],
 }
 
 
