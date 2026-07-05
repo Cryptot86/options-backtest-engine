@@ -12,9 +12,9 @@ where marked D+1 — next-morning-9:30 execution (TJ's real workflow).*
 | 1 | **NG** | bb_2sd_call (upper 2-SD touch in downtrend) | short 16Δ call | **+$297/trade, 93% win, worst −$452 (D+1 ✅)** | worst MAE −$1.7K → 1–2 lots |
 | 2 | **CL** | bb_2sd_call | short 16Δ call | +$126, 90% win (D+1 ✅) | MAE p95 −$2.4K → 1 lot |
 | 3 | **CL** | five_day_low in uptrend | short 16Δ put | +$143, 85% win (D+1 ✅) but worst −$11.4K | tail breaches cap → 1 lot max, gate advised |
-| 4 | **ES** | any with-trend put entry **+ 3-green gate** | short ~25Δ put | gated +$391, worst −$1,552 (D+1 ⚠️ untested) | 1 lot |
-| 5 | **ES** | **gate-only** (no chart signal) | short put | +$308/trade, 91% win, 175 trades (D+1 ⚠️) | worst −$11.9K → 1 lot |
-| 6 | **GC** | bb_2sd put in uptrend (+ gate → +$354) | short 16Δ put | +$321 same-day (D+1 ⚠️ untested) | worst −$1.4K → 1–2 lots |
+| 4 | **ES** | any with-trend put entry **+ 3-green gate** | short ~25Δ put | gated +$391, worst −$1,552; underlying entries D+1 ✅ (ES all methods positive at D+1, run 29) | 1 lot |
+| 5 | **ES** | **gate-only** (no chart signal) | short put | +$308/trade, 91% win, 175 trades; entry basis D+1-robust on ES ✅ | worst −$11.9K → 1 lot |
+| 6 | **GC** | bb_2sd put in uptrend (+ gate → +$354) | short 16Δ put | +$303 at D+1 ✅ (run 30, essentially unchanged from +$321) | worst −$1.4K → 1–2 lots |
 
 **The 3-green gate (apply to everything):** sell only when the market's own IV
 (a) rank ≥ 0.5 vs trailing year, (b) exceeds 20d realized (spread > 0),
@@ -45,7 +45,6 @@ where marked D+1 — next-morning-9:30 execution (TJ's real workflow).*
 
 ## Open items before trading any of this live
 
-- D+1 test for ES puts / ES gate-only / GC (the un-lagged survivors).
 - ES delta runs ~0.25 due to skew (measured, flagged) — decide target.
 - Gated-conjunction n is ~180 across markets — grow via equity universe (~$30–50
   OPRA) before full confidence.
@@ -61,3 +60,8 @@ premium at 2-SD stretches, gated by vol-state (rich+paid+stabilizing), managed
 strangles, against-trend sales, tight stops, oversized rolls. The realized
 edge is real but thin — and it lives in the conjunction of price structure AND
 vol state, not in either alone.
+
+## D+1 final validation (2026-07-05)
+ES run 29: five_day_low +$333, bb_20sma +$328, bb_2sd +$197 — all positive at D+1.
+GC run 30: bb_2sd +$303, bb_20sma +$315 — unchanged/improved at D+1.
+Only D+1 casualty project-wide: CL bb_2sd puts. Playbook is execution-validated.
