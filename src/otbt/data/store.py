@@ -67,7 +67,10 @@ def cached(rel_parts: tuple[str, ...], fetch_fn) -> pd.DataFrame:
             df = fetch_fn()
             break
         except Exception as exc:
-            if "Server" in type(exc).__name__ and attempt < 2:
+            name = type(exc).__name__
+            transient = any(k in name for k in ("Server", "Timeout", "Connection")) \
+                or "timed out" in str(exc).lower() or "connection" in str(exc).lower()
+            if transient and attempt < 2:
                 time.sleep(5 * (attempt + 1))
                 continue
             raise
