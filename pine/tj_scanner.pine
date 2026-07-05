@@ -1,0 +1,89 @@
+//@version=5
+indicator("TJ 3-Line Premium Scanner", overlay=true)
+
+// ============ INPUTS ============
+useSellLine  = input.bool(true,  "Line 1/2: SELL PUT (5-day low / 2-SD dip in uptrend)")
+useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross (ES/GC)")
+showTable    = input.bool(true,  "Show status table")
+dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
+
+// ============ PRICE STRUCTURE (your indicators) ============
+ema10  = ta.ema(close, 10)
+ema100 = ta.ema(close, 100)
+trendUp = ema10 > ema100
+freshCross = trendUp and not trendUp[1]              // 10x100 bullish cross
+
+basis = ta.sma(close, 20)
+dev2  = 2.0 * ta.stdev(close, 20)
+bbLower = basis - dev2
+dip2SD  = close <= bbLower and trendUp               // 2-SD dip in uptrend
+low5    = close <= ta.lowest(close, 5) and trendUp   // 5-day low in uptrend
+
+// ============ GATE 1: TREND (already in the entries) ============
+// ============ GATE 2: VOL GATE (VIX 3-green) ============
+vix   = request.security("CBOE:VIX",   "D", close)
+vix3m = request.security("CBOE:VIX3M", "D", close)
+vixRank  = ta.percentrank(vix, 252)                  // rank vs 1yr
+hv20     = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100
+gRich    = vixRank >= 50
+gPaid    = vix > hv20                                // implied above realized
+gStable  = vix <= vix[5]                             // not rising
+gateGreen = gRich and gPaid and gStable
+
+// ============ GATE 3: CURVE GRADE (VIX / VIX3M) ============
+ratio    = vix / vix3m
+ratioPct = ta.percentrank(ratio, 504)                // vs 2yr
+curveGrade = ratioPct <= 20 ? "A+ STEEP" : ratioPct >= 80 ? "C STRESS" : "B ordinary"
+curveCol   = ratioPct <= 20 ? color.green : ratioPct >= 80 ? color.red : color.gray
+
+// ============ SIGNALS ============
+sellSignal = useSellLine and gateGreen and (dip2SD or low5)
+callSignal = useCallLine and freshCross               // long call: no vol gate needed (long premium)
+
+// 16Δ strike estimate (z=0.994 => Φ(-z)=0.16), vol = max(VIX, HV)
+volUse = math.max(vix, hv20) / 100.0
+k16put = close * (1 - 0.994 * volUse * math.sqrt(dteDays / 365.0))
+
+// ============ CHART MARKS ============
+plotshape(sellSignal, "SELL PUT", shape.triangleup, location.belowbar,
+     color.new(color.green, 0), size=size.small, text="SELL PUT\n(next open)")
+plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
+     color.new(color.aqua, 0), size=size.small, text="BUY CALL\n(next open)")
+plot(ema10,  "EMA10",  color.new(color.blue, 20))
+plot(ema100, "EMA100", color.new(color.orange, 20))
+plot(bbLower, "BB -2SD", color.new(color.red, 60))
+
+// ============ STATUS TABLE ============
+var table tb = table.new(position.top_right, 2, 8, border_width=1)
+if showTable and barstate.islast
+    hdr = color.new(color.purple, 20)
+    okC = color.new(color.green, 70)
+    noC = color.new(color.red, 75)
+    nC  = color.new(color.gray, 80)
+    table.cell(tb, 0, 0, "TJ SCANNER", bgcolor=hdr, text_color=color.white)
+    table.cell(tb, 1, 0, syminfo.ticker, bgcolor=hdr, text_color=color.white)
+    // gate lights
+    table.cell(tb, 0, 1, "Vol gate", bgcolor=nC)
+    table.cell(tb, 1, 1, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
+         + (gateGreen ? "  OPEN" : "  CLOSED"), bgcolor=gateGreen ? okC : noC)
+    table.cell(tb, 0, 2, "Curve grade", bgcolor=nC)
+    table.cell(tb, 1, 2, curveGrade, bgcolor=color.new(curveCol, 70))
+    table.cell(tb, 0, 3, "Trend (10x100)", bgcolor=nC)
+    table.cell(tb, 1, 3, trendUp ? "UP — puts allowed" : "DOWN — no puts",
+         bgcolor=trendUp ? okC : noC)
+    // line states
+    sellState = not useSellLine ? "off" : sellSignal ? "✅ READY — sell tomorrow 9:30" :
+         (dip2SD or low5) ? "signal, gate CLOSED" : "waiting"
+    table.cell(tb, 0, 4, "SELL PUT line", bgcolor=nC)
+    table.cell(tb, 1, 4, sellState, bgcolor=sellSignal ? okC : nC)
+    table.cell(tb, 0, 5, "BUY CALL line", bgcolor=nC)
+    table.cell(tb, 1, 5, callSignal ? "✅ fresh cross — buy tomorrow" : "waiting",
+         bgcolor=callSignal ? okC : nC)
+    table.cell(tb, 0, 6, "Est. 16Δ put strike", bgcolor=nC)
+    table.cell(tb, 1, 6, str.tostring(k16put, format.mintick), bgcolor=nC)
+    table.cell(tb, 0, 7, "Manage", bgcolor=nC)
+    table.cell(tb, 1, 7, "50% profit or 21 DTE · no stops", bgcolor=nC)
+
+// ============ ALERTS (set once via Add Alert -> any alert() call) ============
+alertcondition(sellSignal, "TJ: SELL PUT signal", "Gate green + dip: sell 16d put at tomorrow's open")
+alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow (+100%/-50%/21DTE)")
