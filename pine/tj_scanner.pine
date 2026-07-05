@@ -22,19 +22,18 @@ low5    = close <= ta.lowest(close, 5) and trendUp   // 5-day low in uptrend
 // ============ GATE 1: TREND (already in the entries) ============
 // ============ GATE 2: VOL GATE (VIX 3-green) ============
 vix   = request.security("CBOE:VIX",   "D", close)
-vix3m = request.security("CBOE:VIX3M", "D", close)
 vixRank  = ta.percentrank(vix, 252)                  // rank vs 1yr
-hv20     = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100
+spyC     = request.security("AMEX:SPY", "D", close)
+hv20     = ta.stdev(math.log(spyC / spyC[1]), 20) * math.sqrt(252) * 100  // SPY realized (validated spec)
 gRich    = vixRank >= 50
 gPaid    = vix > hv20                                // implied above realized
 gStable  = vix <= vix[5]                             // not rising
 gateGreen = gRich and gPaid and gStable
 
-// ============ GATE 3: CURVE GRADE (VIX / VIX3M) ============
-ratio    = vix / vix3m
-ratioPct = ta.percentrank(ratio, 504)                // vs 2yr
-curveGrade = ratioPct <= 20 ? "A+ STEEP" : ratioPct >= 80 ? "C STRESS" : "B ordinary"
-curveCol   = ratioPct <= 20 ? color.green : ratioPct >= 80 ? color.red : color.gray
+// NOTE: curve grade (term carry) intentionally NOT in Pine — the VIX/VIX3M
+// proxy FAILED validation vs the tested settlement-IV definition (+$177 vs
+// +$345 on A+ days). The real curve dial ships in the Python scanner /
+// tradewithtitan, computed from CME settlement IV series.
 
 // ============ SIGNALS ============
 sellSignal = useSellLine and gateGreen and (dip2SD or low5)
@@ -66,8 +65,6 @@ if showTable and barstate.islast
     table.cell(tb, 0, 1, "Vol gate", bgcolor=nC)
     table.cell(tb, 1, 1, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
          + (gateGreen ? "  OPEN" : "  CLOSED"), bgcolor=gateGreen ? okC : noC)
-    table.cell(tb, 0, 2, "Curve grade", bgcolor=nC)
-    table.cell(tb, 1, 2, curveGrade, bgcolor=color.new(curveCol, 70))
     table.cell(tb, 0, 3, "Trend (10x100)", bgcolor=nC)
     table.cell(tb, 1, 3, trendUp ? "UP — puts allowed" : "DOWN — no puts",
          bgcolor=trendUp ? okC : noC)
