@@ -65,3 +65,28 @@ vol state, not in either alone.
 ES run 29: five_day_low +$333, bb_20sma +$328, bb_2sd +$197 — all positive at D+1.
 GC run 30: bb_2sd +$303, bb_20sma +$315 — unchanged/improved at D+1.
 Only D+1 casualty project-wide: CL bb_2sd puts. Playbook is execution-validated.
+
+---
+
+# Research Pipeline — next edges to test (agent findings, 2026-07-05)
+
+Full specs + citations: reports/NEW_STRATEGY_CANDIDATES.md. Ranked by evidence × orthogonality × testability.
+
+## Tier 1 — test first
+1. **Crisis-Peak Fade** — sell 25Δ/5Δ put credit spreads AFTER extreme vol confirms its peak (IV rank hit ≥0.90 in last 10 sessions AND 3 straight down-days in IV). Completes our gate map's missing cell. All dials already built.
+2. **Term-Structure Carry** — sell 30-DTE premium when the IV curve is in steep contango (IV30−IV90 pctile ≤ 20th) and not expanding. Strongest published evidence (Vasquez JFQA; Johnson).
+3. **Hedgers' Bid Harvest** — sell the put side when CFTC commercial hedging pressure is extreme (COT net-short ≥ 80th pctile). Flow-based → most orthogonal to everything we trade. Needs one free data pipe (COT).
+
+## Tier 2 — cheap to run, capped expectations
+4. **NG Winter Vol Decay** — Dec–Feb call spreads as winter fear resolves (only 13 winters of data; forever suggestive).
+5. **Weekend Theta** — Friday→Monday short strangles on ES (JF 2018 evidence; likely dies to costs — gross test only).
+
+## Bet-against (build the dial, skip the trade)
+6. **Skew-Richness ratio spreads** — academically self-refuting once variance-hedged; but ADD the skew-percentile dial to the panel.
+
+## Long-side sleeve (validated 2026-07-05, run 33)
+**Buy ATM call on fresh 10×100 bullish cross (D+1)** — ES +$1,248/trade (n=29), GC +$368; capped-loss/positive-skew complement to the short-premium sleeves. Regime-dependent (bull-era result); user's own live strategy, independently confirmed. Avoid on CL/NG.
+
+## Simple cross rules (validated, run 31)
+- Fresh bullish 10×100 cross → sell 16Δ put: ES +$222, GC +$299, CL +$179 (D+1). ~3/yr/market.
+- Fresh bearish cross → sell call: BLACKLISTED (relief bounce, −$244 pooled).
