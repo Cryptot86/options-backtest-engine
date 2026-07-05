@@ -56,6 +56,15 @@ daysLeft  = inPos ? math.max(holdCal - daysHeld, 0) : 0
 timeExit  = inPos and daysHeld >= holdCal
 breached  = inPos and close < posStrike
 
+// ---- HISTORY COUNTERS (price-based estimate: win if price >= sold strike at exit)
+var int totTrades = 0
+var int totWins   = 0
+if timeExit
+    totTrades += 1
+    if close >= posStrike
+        totWins += 1
+    inPos := false          // auto-cycle: tracker frees itself for the next signal
+
 // exit-state message: the anti-panic script (from the backtest evidence)
 posState = not inPos ? "flat — take next signal" :
      timeExit ? "⏰ TIME EXIT TODAY — close at market (21 DTE rule)" :
@@ -84,7 +93,7 @@ plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 
 // ============ STATUS TABLE (high-contrast) ============
-var table tb = table.new(position.top_right, 2, 8, border_width=1,
+var table tb = table.new(position.top_right, 2, 9, border_width=1,
      border_color=color.new(color.white, 60))
 if showTable and barstate.islast
     cHdr = color.rgb(103, 58, 183)
@@ -121,6 +130,12 @@ if showTable and barstate.islast
          bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
+    winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
+    table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 8, str.tostring(totTrades) + " trades · " + str.tostring(totWins)
+         + "W / " + str.tostring(totTrades - totWins) + "L · "
+         + str.tostring(winPct, "#.0") + "% (price-based est.)",
+         bgcolor=cRow, text_color=wht)
 
 // ============ ALERTS ============
 alertcondition(sellSignal and dip2SD, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
