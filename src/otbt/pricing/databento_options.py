@@ -175,8 +175,8 @@ class SelectedOption:
 
 def select_16d_modeled(symbol, entry_date, spot, iv_estimate,
                        dte_min=30, dte_max=45, dte_target=40,
-                       target_delta=0.16) -> SelectedOption | None:
-    """Pick the 16-delta put WITHOUT any quote pulls (cost-minimal).
+                       target_delta=0.16, kind="put") -> SelectedOption | None:
+    """Pick a target-delta option (put OR call) WITHOUT any quote pulls.
 
     Uses only the (cheap, cached) definitions to know listed strikes/expiries,
     then places the strike with the MODEL (proven within ~1 strike of the real
@@ -187,7 +187,8 @@ def select_16d_modeled(symbol, entry_date, spot, iv_estimate,
     defs = get_definitions(symbol, entry_date)
     if defs.empty:
         return None
-    puts = defs[defs["instrument_class"] == "P"].copy()
+    cls = "P" if kind == "put" else "C"
+    puts = defs[defs["instrument_class"] == cls].copy()
     if puts.empty:
         return None
     puts["dte"] = (puts["expiration"] - pd.Timestamp(entry_date)).dt.days
@@ -198,7 +199,7 @@ def select_16d_modeled(symbol, entry_date, spot, iv_estimate,
     puts = puts[puts["dte"] == exp]
     T = int(exp) / 365.0
     iv_use = max(iv_estimate * 1.15, 0.06)         # VRP bump toward real IV
-    K_star = strike_for_delta(spot, T, iv_use, target_delta, kind="put")
+    K_star = strike_for_delta(spot, T, iv_use, target_delta, kind=kind)
     r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]  # snap to listed
     return SelectedOption(int(r["instrument_id"]), str(r["raw_symbol"]),
                           float(r["strike_price"]), pd.Timestamp(r["expiration"]),

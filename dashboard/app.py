@@ -56,8 +56,9 @@ if "proxy" in str(meta["notes"]).lower():
     st.info("⚠️ Realized-vol proxy for IV — **rankings & tails are reliable, "
             "absolute dollars are approximate** (proxy can't see the vol risk premium).")
 
-tab_sum, tab_trades, tab_verify, tab_lab = st.tabs(
-    ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab"])
+tab_sum, tab_trades, tab_verify, tab_lab, tab_cov = st.tabs(
+    ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab",
+     "✅ Coverage"])
 
 # ---- summary --------------------------------------------------------------
 with tab_sum:
@@ -291,3 +292,80 @@ with tab_lab:
         m4.metric("Worst MAE", f"${rdf['mae'].min():,.0f}")
         with st.expander("All trades"):
             st.dataframe(rdf.drop(columns=["cum"]), use_container_width=True)
+
+# ---- coverage validation ----------------------------------------------------
+with tab_cov:
+    st.subheader("✅ Coverage — was EVERY signal actually traded?")
+    st.caption("Independently regenerates the signal set for the selected run "
+               "and joins it against the trades in the DB. Anything unpriced "
+               "is listed — no silent skips.")
+    from src.otbt.pricing import glbx_options as _gxc
+    from src.otbt.signals.engine import (generate_signals as _gs,
+                                         generate_call_signals as _gcs, _prep as _pp)
+
+    phase = str(meta["phase"])
+    uni = str(meta["universe"]).split(",")
+    lag = 1 if "lag1" in phase else 0
+    supported = phase.startswith("futures_glbx") or phase == "phase1_realiv"
+    if not supported:
+        st.info(f"Coverage view supports signal-based runs "
+                f"(futures_glbx*, phase1_realiv). This run's phase: `{phase}`.")
+    else:
+        led_frames = []
+        for u in uni:
+            if u in _gxc.FUT_SPECS:
+                cont = _gxc.get_continuous(u, "2012-01-01", "2025-06-30")
+                if cont.empty:
+                    continue
+                gen = _gcs if "calls" in phase else _gs
+                led_frames.append(gen({u: cont}))
+            else:
+                pxu = get_prices(u, con_start, con_end)
+                led_frames.append(_gs({u: pxu}))
+        if not led_frames:
+            st.warning("Could not regenerate signals.")
+        else:
+            led = pd.concat(led_frames, ignore_index=True)
+            led = led[led["iv_proxy"].notna()]
+            led["date"] = pd.to_datetime(led["date"])
+            led = led[led["date"] >= pd.Timestamp(con_start)]
+            if lag:
+                # shift each signal to the next trading day, per symbol
+                shifted = []
+                for u in uni:
+                    cal = (_gxc.get_continuous(u, "2012-01-01", "2025-06-30").index
+                           if u in _gxc.FUT_SPECS else get_prices(u, con_start, con_end).index)
+                    sub = led[led["symbol"] == u].copy()
+                    pos = cal.searchsorted(sub["date"]) + 1
+                    sub["date"] = [cal[p] if p < len(cal) else pd.NaT for p in pos]
+                    shifted.append(sub.dropna(subset=["date"]))
+                led = pd.concat(shifted, ignore_index=True)
+
+            tkey = trades.assign(k=trades["symbol"].astype(str) + "|"
+                                 + pd.to_datetime(trades["entry_date"]).astype(str) + "|"
+                                 + trades["signal_type"].astype(str))["k"]
+            led["k"] = (led["symbol"].astype(str) + "|" + led["date"].astype(str)
+                        + "|" + led["signal_type"].astype(str))
+            led["priced"] = led["k"].isin(set(tkey))
+
+            cov = led.groupby("signal_type").agg(
+                signals=("priced", "size"), priced=("priced", "sum"))
+            cov["coverage_%"] = (100 * cov["priced"] / cov["signals"]).round(1)
+            tot = pd.DataFrame({"signals": [cov.signals.sum()],
+                                "priced": [cov.priced.sum()],
+                                "coverage_%": [round(100 * cov.priced.sum()
+                                                     / max(cov.signals.sum(), 1), 1)]},
+                               index=["TOTAL"])
+            st.dataframe(pd.concat([cov, tot]), use_container_width=True)
+            pct = float(tot["coverage_%"].iloc[0])
+            (st.success if pct >= 90 else st.warning if pct >= 75 else st.error)(
+                f"Overall coverage: {pct}% "
+                f"({int(tot['priced'].iloc[0])} of {int(tot['signals'].iloc[0])} signals priced)")
+            miss = led[~led["priced"]][["symbol", "date", "signal_type"]] \
+                .sort_values("date")
+            with st.expander(f"⚠️ {len(miss)} unpriced signals — inspect"):
+                st.dataframe(miss, use_container_width=True)
+                st.caption("Common causes: no listed expiry in window (calendar gap), "
+                           "no settlement print on entry day, data-vendor gap. "
+                           "Each one is a potential survivorship bias — check "
+                           "whether misses cluster in crisis periods.")
