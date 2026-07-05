@@ -114,3 +114,25 @@ moderately-rich-and-stable premium pays.
 **Equity suite status: 31/35 names complete ($50 budget), CRM/ORCL/INTC/MU
 skipped by user decision. Signal delivery requirement: finalized rules ship as
 Python scanner / Pine (price half only) / tradewithtitan (full gate).**
+
+---
+
+# PORTFOLIO ALLOCATION MODEL (validated 2026-07-05, "Toyota" config)
+
+Simulated on real trade history 2019-07 -> 2025-06, $50K start, compounding,
+capacity-enforced (margin est.), VIX-banded:
+
+| VIX regime | % equity for SELLING | % for BUYING |
+|-----------|---------------------|--------------|
+| < 25      | **25%**             | 15%          |
+| 25–35     | **50%**             | 15%          |
+| 35+       | **60%** (never 100%)| 15%          |
+
+Book: top-15 gated equities (1-lot) + MES puts (micro ES) + CL/NG bb_2sd calls
+(1-lot) + micro ES/GC long calls on crosses.
+
+**Result: $50K -> $74.3K (+49%, 6.8% CAGR), max drawdown -8.1%, worst year
+-3.0%, MAR 0.85.** User's draft bands (35/40/60) gave same return with -12% DD
+-> adopted 25/50/60. Sweep showed: less in calm markets, more in the 25-35 VIX
+band (the gate's sweet spot). ~20% of signals skipped by capacity = discipline
+by design.
