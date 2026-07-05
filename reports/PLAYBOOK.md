@@ -90,3 +90,27 @@ Full specs + citations: reports/NEW_STRATEGY_CANDIDATES.md. Ranked by evidence �
 ## Simple cross rules (validated, run 31)
 - Fresh bullish 10×100 cross → sell 16Δ put: ES +$222, GC +$299, CL +$179 (D+1). ~3/yr/market.
 - Fresh bearish cross → sell call: BLACKLISTED (relief bounce, −$244 pooled).
+
+---
+
+# CAPSTONE (2026-07-05): the gate is settled law
+
+**31-equity validation (4,364 trades, 2019-2025):** VIX 3-green gate flips the
+pooled book from −$21/trade (−$81.5K total, worst −$22.4K) to **+$88/trade
+(+$44.2K total, worst −$5.8K)**. Every method improves. VIX-rank top quartile
+worst bucket (crisis-in-progress) — identical physics to futures.
+
+**Rule: NEVER sell ungated.** Combined evidence: 4 futures markets (own-IV
+dials) + 31 equities (VIX dials), ~680 gated trades, uniform direction.
+
+**New edge admitted — Term-Structure Carry (run: ES +$317 x130, GC +$91 x144,
+85% win):** sell with-trend 16Δ when (IV40−IV90) percentile ≤ 20th and vol not
+expanding. PENDING: overlap check vs 3-green gate, CL series rebuild.
+
+**Killed: Crisis-Peak Fade** (−$162/trade pooled; echo waves — IV down 3 days
+after a 0.90-rank spike is not a confirmed peak). Gate map complete: only
+moderately-rich-and-stable premium pays.
+
+**Equity suite status: 31/35 names complete ($50 budget), CRM/ORCL/INTC/MU
+skipped by user decision. Signal delivery requirement: finalized rules ship as
+Python scanner / Pine (price half only) / tradewithtitan (full gate).**
