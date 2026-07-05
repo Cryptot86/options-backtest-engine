@@ -56,9 +56,9 @@ if "proxy" in str(meta["notes"]).lower():
     st.info("⚠️ Realized-vol proxy for IV — **rankings & tails are reliable, "
             "absolute dollars are approximate** (proxy can't see the vol risk premium).")
 
-tab_sum, tab_trades, tab_verify, tab_lab, tab_cov = st.tabs(
+tab_sum, tab_trades, tab_verify, tab_lab, tab_cov, tab_port = st.tabs(
     ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab",
-     "✅ Coverage"])
+     "✅ Coverage", "💼 Portfolio Sim"])
 
 # ---- summary --------------------------------------------------------------
 with tab_sum:
@@ -369,3 +369,111 @@ with tab_cov:
                            "no settlement print on entry day, data-vendor gap. "
                            "Each one is a potential survivorship bias — check "
                            "whether misses cluster in crisis periods.")
+
+# ---- portfolio simulator ----------------------------------------------------
+with tab_port:
+    st.subheader("💼 Portfolio Simulator — your allocation rules on real trade history")
+    st.caption("Top-15 gated equities + MES puts + CL/NG calls + micro long calls. "
+               "Compounding, margin-capacity enforced, VIX-banded allocation.")
+    import numpy as np
+    from src.otbt.signals.indicators import realized_vol as _rv
+
+    @st.cache_data(show_spinner=False)
+    def _sim_trades():
+        vixس = get_prices("^VIX", "2017-01-01", "2025-06-30")["close"]
+        spy_ = get_prices("SPY", "2017-01-01", "2025-06-30")["close"]
+        rk = vixس.rolling(252).apply(lambda w: (w.iloc[-1] >= w).mean())
+        gt = (rk >= 0.5) & ((vixس - _rv(spy_, 20).reindex(vixس.index) * 100) > 0) & (vixس.diff(5) <= 0)
+        con2 = db._conn()
+        T15 = ["AAPL","MSFT","NVDA","AMZN","GOOGL","META","TSLA","AMD","NFLX","AVGO",
+               "JPM","COST","LLY","UNH","HD"]
+        rs = db.list_runs()
+        eqr = rs[(rs.phase == "phase1_realiv") & (rs.run_id >= 32)].run_id.tolist()
+        rows = []
+        te = pd.read_sql(f'SELECT symbol,entry_date,exit_date,strike,pnl FROM trades '
+                         f'WHERE run_id IN ({",".join(map(str, eqr))}) '
+                         f'AND signal_type IN ("bb_2sd","five_day_low")', con2)
+        te = te[te.symbol.isin(T15)]
+        for c in ("entry_date", "exit_date"):
+            te[c] = pd.to_datetime(te[c])
+        te = te[te.entry_date.map(lambda d: bool(gt.get(d, False)))]
+        for _, r in te.iterrows():
+            rows.append(dict(d=r.entry_date, x=r.exit_date, pnl=r.pnl,
+                             margin=0.20 * r.strike * 100, book="sell"))
+        t2 = pd.read_sql("SELECT entry_date,exit_date,pnl FROM trades WHERE run_id=66 "
+                         "AND signal_type IN ('bb_2sd','five_day_low')", con2)
+        for c in ("entry_date", "exit_date"):
+            t2[c] = pd.to_datetime(t2[c])
+        for _, r in t2.iterrows():
+            rows.append(dict(d=r.entry_date, x=r.exit_date, pnl=r.pnl / 10.0,
+                             margin=1300.0, book="sell"))
+        for rid, mg in ((28, 3500.0), (27, 2800.0)):
+            t3 = pd.read_sql(f"SELECT entry_date,exit_date,pnl FROM trades WHERE run_id={rid} "
+                             f"AND signal_type='bb_2sd_call'", con2)
+            for c in ("entry_date", "exit_date"):
+                t3[c] = pd.to_datetime(t3[c])
+            for _, r in t3.iterrows():
+                rows.append(dict(d=r.entry_date, x=r.exit_date, pnl=r.pnl, margin=mg, book="sell"))
+        t4 = pd.read_sql("SELECT entry_date,exit_date,entry_credit,pnl FROM trades "
+                         "WHERE run_id=33 AND symbol IN ('ES','GC')", con2)
+        for c in ("entry_date", "exit_date"):
+            t4[c] = pd.to_datetime(t4[c])
+        for _, r in t4.iterrows():
+            rows.append(dict(d=r.entry_date, x=r.exit_date, pnl=r.pnl / 10.0,
+                             margin=abs(r.entry_credit) / 10.0, book="buy"))
+        return pd.DataFrame(rows), vixس
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+    eq0   = c1.number_input("Start equity $", 10_000, 1_000_000, 50_000, step=5_000)
+    aBase = c2.slider("Sell % (VIX<25)", 10, 60, 25, 5) / 100
+    aMid  = c3.slider("Sell % (VIX 25-35)", 20, 80, 50, 5) / 100
+    aHigh = c4.slider("Sell % (VIX 35+)", 20, 90, 60, 5) / 100
+    aBuy  = c5.slider("Buy %", 0, 30, 15, 5) / 100
+    start = st.date_input("Start date", pd.Timestamp("2019-07-01"))
+
+    if st.button("▶ Run simulation", type="primary"):
+        Tt, vixx = _sim_trades()
+        Tt = Tt[Tt.d >= pd.Timestamp(start)].sort_values("d")
+        days = pd.date_range(pd.Timestamp(start), "2025-06-30", freq="D")
+        vd = vixx.reindex(days, method="ffill").fillna(20.0)
+        byd = {d: g for d, g in Tt.groupby("d")}
+        equity, open_pos, taken, skipped = float(eq0), [], 0, 0
+        curve = np.empty(len(days))
+        for i, day in enumerate(days):
+            for p in [p for p in open_pos if p["x"] <= day]:
+                equity += p["pnl"]; open_pos.remove(p)
+            v = vd.iloc[i]
+            capS = (aBase if v < 25 else aMid if v < 35 else aHigh) * equity
+            capB = aBuy * equity
+            uS = sum(p["margin"] for p in open_pos if p["book"] == "sell")
+            uB = sum(p["margin"] for p in open_pos if p["book"] == "buy")
+            if day in byd:
+                for _, r in byd[day].iterrows():
+                    cap, used = (capS, uS) if r.book == "sell" else (capB, uB)
+                    if used + r.margin <= cap:
+                        open_pos.append(dict(r)); taken += 1
+                        if r.book == "sell": uS += r.margin
+                        else: uB += r.margin
+                    else:
+                        skipped += 1
+            curve[i] = equity
+        for p in open_pos:
+            equity += p["pnl"]
+        cv = pd.Series(curve, index=days)
+        yrs = max((days[-1] - days[0]).days / 365.25, 0.5)
+        cagr = (equity / eq0) ** (1 / yrs) - 1
+        ddpc = ((cv - cv.cummax()) / cv.cummax()).min()
+        m = st.columns(5)
+        m[0].metric("Final equity", f"${equity:,.0f}", f"{(equity/eq0-1)*100:+.0f}%")
+        m[1].metric("CAGR", f"{cagr*100:.1f}%")
+        m[2].metric("Max drawdown", f"{ddpc*100:.1f}%")
+        m[3].metric("MAR", f"{(cagr/abs(ddpc)):.2f}" if ddpc < 0 else "∞")
+        m[4].metric("Taken / skipped", f"{taken} / {skipped}")
+        figp = go.Figure(go.Scatter(x=cv.index, y=cv.values, name="equity",
+                                    line=dict(color="#27ae60", width=2)))
+        figp.update_layout(height=380, title="Equity curve")
+        st.plotly_chart(figp, use_container_width=True)
+        yr = cv.resample("YE").last()
+        st.dataframe(pd.DataFrame({"year-end equity": yr.round(0),
+                                   "yearly %": (yr.pct_change() * 100).round(1)}),
+                     use_container_width=True)
