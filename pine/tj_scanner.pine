@@ -7,6 +7,7 @@ useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
+armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
 
 // ============ PRICE STRUCTURE (your indicators) ============
 ema10  = ta.ema(close, 10)
@@ -46,7 +47,7 @@ var int   posEntryT  = na
 holdCal = dteDays - 21                                  // calendar days until 21-DTE exit
 if posClosed
     inPos := false
-if sellSignal and not inPos and not posClosed
+if sellSignal and not inPos and not posClosed and time >= armFrom
     inPos     := true
     posStrike := k16put
     posSpot   := close
@@ -125,9 +126,13 @@ if showTable and barstate.islast
          bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 5, posState,
          bgcolor=timeExit ? cNo : breached ? cWn : inPos ? cOk : cRow, text_color=wht)
-    table.cell(tb, 0, 6, inPos ? "Sold strike" : "Est. 16Δ put strike", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 6, str.tostring(inPos ? posStrike : k16put, format.mintick),
-         bgcolor=cRow, text_color=wht)
+    cushion   = inPos ? close - posStrike : close - k16put
+    cushionPc = 100.0 * cushion / close
+    table.cell(tb, 0, 6, inPos ? "Strike / cushion" : "Est. 16Δ strike / cushion", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 6, str.tostring(inPos ? posStrike : k16put, format.mintick)
+         + "  (" + (cushion >= 0 ? "+" : "") + str.tostring(cushion, format.mintick)
+         + " / " + str.tostring(cushionPc, "#.0") + "%)",
+         bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
