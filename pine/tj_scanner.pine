@@ -74,8 +74,12 @@ p100 = plot(ema100, "EMA100", color=color.new(color.orange, 0), linewidth=2)
 fill(p10, p100, color = trendUp ? color.new(color.green, 78) : color.new(color.red, 78))
 plot(bbLower, "BB -2SD", color=color.new(color.red, 40))
 
-plotshape(sellSignal, "SELL PUT", shape.triangleup, location.belowbar,
-     color.new(color.lime, 0), size=size.small, text="SELL PUT", textcolor=color.lime)
+sell2SD = sellSignal and dip2SD
+sell5DL = sellSignal and low5 and not dip2SD
+plotshape(sell2SD, "SELL PUT (2SD)", shape.triangleup, location.belowbar,
+     color.new(color.lime, 0), size=size.small, text="SELL PUT\n2-SD", textcolor=color.lime)
+plotshape(sell5DL, "SELL PUT (5DL)", shape.triangleup, location.belowbar,
+     color.new(color.green, 0), size=size.small, text="SELL PUT\n5-day low", textcolor=color.green)
 plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 
@@ -97,10 +101,11 @@ if showTable and barstate.islast
     table.cell(tb, 0, 2, "Trend (10x100)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 2, trendUp ? "UP — puts allowed" : "DOWN — no puts",
          bgcolor=trendUp ? cOk : cNo, text_color=wht)
+    trig = dip2SD ? "2-SD dip" : low5 ? "5-day low" : ""
     sellState = not useSellLine ? "off" :
          inPos ? "⛔ position open — skip new signals" :
-         sellSignal ? "✅ READY — sell tomorrow 9:30" :
-         (dip2SD or low5) ? "signal, gate CLOSED" : "waiting"
+         sellSignal ? "✅ READY (" + trig + ") — sell tomorrow 9:30" :
+         (dip2SD or low5) ? trig + " fired, gate CLOSED" : "waiting"
     table.cell(tb, 0, 3, "SELL PUT line",  bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 3, sellState, bgcolor=sellSignal and not inPos ? cOk : cRow, text_color=wht)
     table.cell(tb, 0, 4, "BUY CALL line",  bgcolor=cRow, text_color=wht)
@@ -118,7 +123,8 @@ if showTable and barstate.islast
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
 
 // ============ ALERTS ============
-alertcondition(sellSignal, "TJ: SELL PUT signal", "Gate green + dip: sell 16d put at tomorrow's open")
+alertcondition(sellSignal and dip2SD, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
+alertcondition(sellSignal and low5 and not dip2SD, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
 alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
