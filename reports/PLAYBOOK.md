@@ -167,3 +167,11 @@ liquid stocks — pooled 121 trades, +$281/trade, +$33,947. NEVER on GC/NG
 (cheap carry-market vol stays cheap: -$14.7K combined). Hybrid (cross+cheap)
 arm KILLED (2-for-13 ex-ES). Role: positive-carry crash insurance
 complementing the short-premium sleeves. Paper-trade with the rest.
+
+## H14 CLOSED — calendars rejected (2026-07-06); charter fully adjudicated
+Calendars (sell 30DTE/buy 90DTE ATM put, cheap-vol entries): futures KILLED
+(-$20.4K/142: ES -$287, CL -$243, GC control -$79 — movement destroys the
+short front leg); stocks marginal (+$34/tr x35, pinners +, movers -) — below
+deployment threshold. THE LESSON: TJ's cheap-vol timing instinct was RIGHT;
+the straddle is the correct vehicle for it (+$281/trade on identical days).
+All fourteen charter hypotheses (H1-H14) now tested and ruled.
