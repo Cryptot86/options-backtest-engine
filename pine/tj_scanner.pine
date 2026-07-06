@@ -55,6 +55,9 @@ gStable  = vix <= vix[5]
 gateGreen = gRich and gPaid and gStable
 // Line 6: INVERSE gate — vol cheap => long-vol sleeve (buy ATM straddle 40DTE, +50%/-40%/21DTE)
 cheapDay  = useStraddle and vixRank <= 30 and vix < hv20
+var int stCount = 0
+if cheapDay and not cheapDay[1]
+    stCount += 1
 rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stocks only)
 
 // ============ SIGNALS ============
@@ -169,7 +172,8 @@ if showTable and barstate.islast
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 9, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 9, cheapDay ? "🟣 VIX CHEAP — buy ATM straddle" : "VIX not cheap — off",
+    table.cell(tb, 1, 9, (cheapDay ? "🟣 VIX CHEAP — buy ATM straddle" : "VIX not cheap — off")
+         + "  ·  " + str.tostring(stCount) + " signals (P&L: dashboard)",
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
     table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
