@@ -136,3 +136,19 @@ Book: top-15 gated equities (1-lot) + MES puts (micro ES) + CL/NG bb_2sd calls
 -> adopted 25/50/60. Sweep showed: less in calm markets, more in the 25-35 VIX
 band (the gate's sweet spot). ~20% of signals skipped by capacity = discipline
 by design.
+
+---
+
+# OUT-OF-SAMPLE VALIDATION (Jul 2025 - Jun 2026, rules frozen on data <= 2025-06)
+
+**PASS.** 72 trades, 86% win (identical to in-sample), +$2,711 raw; with the
+playbook's own concurrency rules enforced (one position per name — bb_2sd and
+five_day_low firing together on the same stock = ONE trade; max 2 new equity
+entries/day): **+$6,778 (~$565/mo), worst month -$5,370.**
+
+Per line OOS: MES puts +$4,554 | NG calls +$1,504 | CL calls +$366 | long call
++$705 | equities -$350 (rules-enforced; raw -$4,418 was one stock, META,
+double-entered on one day losing -$9,041 combined).
+
+**NEW HARD RULE (learned OOS): dedupe same-name same-day signals — multiple
+triggers on one underlying = one position, never stacked.**
