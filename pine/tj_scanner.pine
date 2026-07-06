@@ -6,6 +6,7 @@ useSellLine  = input.bool(true,  "Line 1/2: SELL PUT (5-day low / 2-SD dip in up
 useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross (ES/GC)")
 useSellCall  = input.bool(true,  "Line 4: SELL CALL — 2-SD rally in downtrend (AUTO: NG/CL charts only)")
 useRsiDiv    = input.bool(true,  "Line 5: RSI DIVERGENCE put (bonus, rare — STOCKS ONLY)")
+useStraddle  = input.bool(true,  "Line 6: STRADDLE DAY light — cheap vol (buy ATM straddle; ES/stocks)")
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
@@ -52,6 +53,8 @@ gRich    = vixRank >= 50
 gPaid    = vix > hv20
 gStable  = vix <= vix[5]
 gateGreen = gRich and gPaid and gStable
+// Line 6: INVERSE gate — vol cheap => long-vol sleeve (buy ATM straddle 40DTE, +50%/-40%/21DTE)
+cheapDay  = useStraddle and vixRank <= 30 and vix < hv20
 rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stocks only)
 
 // ============ SIGNALS ============
@@ -120,9 +123,11 @@ plotshape(sellCallSig, "SELL CALL (NG/CL)", shape.triangledown, location.aboveba
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
 plotshape(rsiDivSig, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
      color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
+plotshape(cheapDay and not cheapDay[1], "STRADDLE DAY", shape.circle, location.abovebar,
+     color.new(color.purple, 0), size=size.tiny, text="STRADDLE\nvol cheap", textcolor=color.purple)
 
 // ============ STATUS TABLE (high-contrast) ============
-var table tb = table.new(position.top_right, 2, 9, border_width=1,
+var table tb = table.new(position.top_right, 2, 10, border_width=1,
      border_color=color.new(color.white, 60))
 if showTable and barstate.islast
     cHdr = color.rgb(103, 58, 183)
@@ -163,6 +168,9 @@ if showTable and barstate.islast
          bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 0, 9, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 9, cheapDay ? "🟣 VOL CHEAP — buy ATM straddle" : "vol not cheap — off",
+         bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
     table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 8, str.tostring(totTrades) + " trades · " + str.tostring(totWins)
@@ -176,6 +184,8 @@ alertcondition(sellSignal and low5 and not dip2SD, "TJ: SELL PUT (5-day low)", "
 alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
 alertcondition(sellCallSig, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
 alertcondition(rsiDivSig, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
+alertcondition(cheapDay and not cheapDay[1], "TJ: STRADDLE DAY (vol cheap)",
+     "Vol cheap (rank<=30 & IV<realized): buy ATM 40DTE straddle — exits +50%/-40%/21DTE (ES/stocks/CL only, never GC/NG)")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
      "Strike breached — rules: HOLD to 21 DTE, no panic exit (tested: stops doubled losses)")
