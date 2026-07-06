@@ -5,7 +5,7 @@ indicator("TJ 3-Line Premium Scanner", overlay=true)
 useSellLine  = input.bool(true,  "Line 1/2: SELL PUT (5-day low / 2-SD dip in uptrend)")
 useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross (ES/GC)")
 useSellCall  = input.bool(true,  "Line 4: SELL CALL — 2-SD rally in downtrend (AUTO: NG/CL charts only)")
-useRsiDiv    = input.bool(true,  "Line 5: RSI DIVERGENCE put (bonus, rare — excluded on NG/CL/6E)")
+useRsiDiv    = input.bool(true,  "Line 5: RSI DIVERGENCE put (bonus, rare — STOCKS ONLY)")
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
@@ -41,8 +41,8 @@ if not na(pl)
     curPL   := pl
     curRSI  := rsi14[3]
 rsiDivRaw = not na(pl) and not na(prevPL) and curPL < prevPL and curRSI > prevRSI and trendUp
-rsiExcl   = syminfo.root == "NG" or syminfo.root == "CL" or syminfo.root == "6E"
-rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and not rsiExcl
+isStock   = syminfo.type == "stock"                 // futures/forex/crypto: signal cannot exist
+rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock
 
 // ============ GATE: VOL GATE (VIX 3-green, validated spec) ============
 vix   = request.security("CBOE:VIX",   "D", close)
