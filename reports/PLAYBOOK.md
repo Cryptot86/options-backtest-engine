@@ -159,3 +159,11 @@ same-name dedupe enforced: caps REDUCE MAR (0.75-0.82 vs 0.91) without
 improving worst-month (~-4.9% at every level). **Verdict: the dedupe rule IS
 the cluster fix; no equity cap needed.** 7yr incl OOS: $50K -> $81,090
 (7.2% CAGR, maxDD -7.8%, MAR 0.91) — best configuration found to date.
+
+## LONG-VOL SLEEVE ADMITTED (book strategy, tested 2026-07-06, 11 instruments)
+**Buy ATM ~40DTE straddle when vol is CHEAP** (own-IV rank<=0.3 & IV<RV for
+futures; VIX equivalents for stocks), exits +50%/-40%/21DTE. Habitat: ES, CL,
+liquid stocks — pooled 121 trades, +$281/trade, +$33,947. NEVER on GC/NG
+(cheap carry-market vol stays cheap: -$14.7K combined). Hybrid (cross+cheap)
+arm KILLED (2-for-13 ex-ES). Role: positive-carry crash insurance
+complementing the short-premium sleeves. Paper-trade with the rest.
