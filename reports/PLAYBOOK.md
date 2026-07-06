@@ -175,3 +175,10 @@ short front leg); stocks marginal (+$34/tr x35, pinners +, movers -) — below
 deployment threshold. THE LESSON: TJ's cheap-vol timing instinct was RIGHT;
 the straddle is the correct vehicle for it (+$281/trade on identical days).
 All fourteen charter hypotheses (H1-H14) now tested and ruled.
+
+## FINAL PORTFOLIO CONFIG (2026-07-06): straddle sleeve folded in
+Sleeve 3 (micro straddles: MES/MCL + stocks, cheap-vol entries, 21d spacing)
+added to the buy bucket: 7yr $50K -> **$93,625 (9.4% CAGR, maxDD -8.0%,
+MAR 1.17)** vs 0.91 without. Buy-cap sweep 15/20/25%: identical (bucket never
+binds) -> **15% stays**. Sleeve is episodic: zero entries Jul-2024..Jun-2026
+(no cheap-vol days) — judge it by regimes, not quarters.
