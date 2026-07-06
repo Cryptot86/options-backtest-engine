@@ -61,7 +61,11 @@ if cheapDay and not cheapDay[1]
 rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stocks only)
 
 // ============ SIGNALS ============
-sellSignal = useSellLine and gateGreen and (dip2SD or low5)
+// Gate applies to STOCKS (validated: -$21 ungated -> +$88 gated). The ES/MES
+// futures put line was validated UNGATED (+$4,554 OOS) — matching the sim.
+needGate   = syminfo.type == "stock"
+gateOK     = needGate ? gateGreen : true
+sellSignal = useSellLine and gateOK and (dip2SD or low5)
 callSignal = useCallLine and freshCross
 sellCallSig = useSellCall and rally2SD    // NG/CL only; IV gate lives in dashboard — verify before entry
 
@@ -151,7 +155,7 @@ if showTable and barstate.islast
     sellState = not useSellLine ? "off" :
          inPos ? "⛔ position open — skip new signals" :
          sellSignal ? "✅ READY (" + trig + ") — sell tomorrow 9:30" :
-         (dip2SD or low5) ? trig + " fired, gate CLOSED" : "waiting"
+         (dip2SD or low5) and needGate ? trig + " fired, gate CLOSED" : "waiting"
     table.cell(tb, 0, 3, "SELL PUT line",  bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 3, sellState, bgcolor=sellSignal and not inPos ? cOk : cRow, text_color=wht)
     table.cell(tb, 0, 4, "BUY CALL line",  bgcolor=cRow, text_color=wht)
