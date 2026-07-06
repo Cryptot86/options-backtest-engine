@@ -43,7 +43,7 @@ def long_call(root, entry_date, cont, iv):
 
 rows = []
 for root in ["ES", "GC", "CL", "NG", "6B", "6E"]:
-    cont = gx.get_continuous(root, "2012-01-01", "2025-06-30")
+    cont = gx.get_continuous(root, "2012-01-01", "2026-06-30")
     if cont.empty: continue
     pp = _prep(cont)
     up = pp["trend_up"]; idx = pp.index

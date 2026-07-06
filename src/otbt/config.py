@@ -34,7 +34,7 @@ DEFAULT_FUTURES_ROOTS: list[str] = [
 
 # Backtest window — must include the 2020 and 2022 vol events.
 START_DATE = date(2015, 1, 1)
-END_DATE = date(2025, 6, 30)
+END_DATE = date(2026, 6, 30)   # extended 2026-07 for OOS year (rules frozen on data <= 2025-06)
 
 
 # ---------------------------------------------------------------------------
