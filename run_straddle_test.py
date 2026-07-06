@@ -102,7 +102,14 @@ def run(sym, fut, start):
                         start=start, end="2025-06-30",
                         created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                         notes=f"long ATM straddle {label}, +50/-40/21DTE")
-for sym, fut, st in (("ES",True,"2012-01-01"),("GC",True,"2012-01-01"),
-                     ("MSFT",False,"2019-01-01"),("TSLA",False,"2019-01-01")):
+import sys
+UNIV = {"core": (("ES",True,"2012-01-01"),("GC",True,"2012-01-01"),
+                 ("MSFT",False,"2019-01-01"),("TSLA",False,"2019-01-01")),
+        "ext":  (("CL",True,"2012-01-01"),("NG",True,"2012-01-01"),
+                 ("NVDA",False,"2019-01-01"),("AMZN",False,"2019-01-01"),
+                 ("META",False,"2019-01-01"),("GOOGL",False,"2019-01-01"),
+                 ("AAPL",False,"2019-01-01"))}
+which = sys.argv[1] if len(sys.argv) > 1 else "core"
+for sym, fut, st in UNIV[which]:
     run(sym, fut, st)
-print("STRADDLE TEST DONE")
+print(f"STRADDLE {which.upper()} DONE")
