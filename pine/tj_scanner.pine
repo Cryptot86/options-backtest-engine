@@ -138,7 +138,7 @@ if showTable and barstate.islast
     wht  = color.white
     table.cell(tb, 0, 0, "TJ SCANNER",     bgcolor=cHdr, text_color=wht)
     table.cell(tb, 1, 0, syminfo.ticker,   bgcolor=cHdr, text_color=wht)
-    table.cell(tb, 0, 1, "Vol gate",       bgcolor=cRow, text_color=wht)
+    table.cell(tb, 0, 1, "VIX gate",       bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 1, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
          + (gateGreen ? "  OPEN" : "  CLOSED"), bgcolor=gateGreen ? cOk : cNo, text_color=wht)
     table.cell(tb, 0, 2, "Trend (10x100)", bgcolor=cRow, text_color=wht)
@@ -169,7 +169,7 @@ if showTable and barstate.islast
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 9, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 9, cheapDay ? "🟣 VOL CHEAP — buy ATM straddle" : "vol not cheap — off",
+    table.cell(tb, 1, 9, cheapDay ? "🟣 VIX CHEAP — buy ATM straddle" : "VIX not cheap — off",
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
     table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
