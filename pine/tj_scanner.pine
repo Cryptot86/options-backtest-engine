@@ -54,10 +54,19 @@ gPaid    = vix > hv20
 gStable  = vix <= vix[5]
 gateGreen = gRich and gPaid and gStable
 // Line 6: INVERSE gate — vol cheap => long-vol sleeve (buy ATM straddle 40DTE, +50%/-40%/21DTE)
-// VIX-based light is valid ONLY for equity-linked charts (stocks, ES/SPX).
-// Futures (CL/NG/GC) need their OWN IV dials -> dashboard.
-vixValid  = syminfo.type == "stock" or syminfo.root == "ES" or syminfo.root == "MES"
-cheapDay  = useStraddle and vixValid and vixRank <= 30 and vix < hv20
+// Per-market vol gauge for the straddle light:
+//   stocks/ES -> VIX (validated) | CL -> OVX (validated 2026-07: corr .94,
+//   OVX-cheap days averaged +$272/tr) | NG -> no public index; GC -> straddles
+//   banned there anyway. NG/GC defer to dashboard.
+ovx      = request.security("CBOE:OVX", "D", close)
+isEq     = syminfo.type == "stock" or syminfo.root == "ES" or syminfo.root == "MES"
+isCL     = syminfo.root == "CL" or syminfo.root == "MCL"
+volIdx   = isCL ? ovx : vix
+volRank  = ta.percentrank(volIdx, 252)
+hvChart  = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100  // chart's own RV
+hvRef    = isCL ? hvChart : hv20                    // CL: crude RV; equities: SPY RV (validated spec)
+cheapOK  = isEq or isCL
+cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef
 var int stCount = 0
 if cheapDay and not cheapDay[1]
     stCount += 1
@@ -179,9 +188,10 @@ if showTable and barstate.islast
     table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 9, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 9, (not vixValid ? "futures: check own-IV dials in dashboard" :
-          cheapDay ? "🟣 VIX CHEAP — buy ATM straddle" : "VIX not cheap — off")
-         + (vixValid ? "  ·  " + str.tostring(stCount) + " signals" : ""),
+    table.cell(tb, 1, 9, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
+          cheapDay ? ("🟣 " + (isCL ? "OVX" : "VIX") + " CHEAP — buy ATM straddle") :
+          (isCL ? "OVX" : "VIX") + " not cheap — off")
+         + (cheapOK ? "  ·  " + str.tostring(stCount) + " signals" : ""),
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
     table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
