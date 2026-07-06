@@ -4,6 +4,7 @@ indicator("TJ 3-Line Premium Scanner", overlay=true)
 // ============ INPUTS ============
 useSellLine  = input.bool(true,  "Line 1/2: SELL PUT (5-day low / 2-SD dip in uptrend)")
 useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross (ES/GC)")
+useSellCall  = input.bool(true,  "Line 4: SELL CALL — 2-SD rally in downtrend (AUTO: NG/CL charts only)")
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
@@ -20,6 +21,11 @@ dev2  = 2.0 * ta.stdev(close, 20)
 bbLower = basis - dev2
 dip2SD  = close <= bbLower and trendUp               // 2-SD dip in uptrend
 low5    = close <= ta.lowest(close, 5) and trendUp   // 5-day low in uptrend
+bbUpper = basis + dev2
+// SELL CALL is validated ONLY on NG/CL futures -> symbol-aware: the signal
+// cannot exist on any other chart (no memory required).
+isNGCL   = syminfo.root == "NG" or syminfo.root == "CL"
+rally2SD = close >= bbUpper and not trendUp and isNGCL
 
 // ============ GATE: VOL GATE (VIX 3-green, validated spec) ============
 vix   = request.security("CBOE:VIX",   "D", close)
@@ -34,6 +40,7 @@ gateGreen = gRich and gPaid and gStable
 // ============ SIGNALS ============
 sellSignal = useSellLine and gateGreen and (dip2SD or low5)
 callSignal = useCallLine and freshCross
+sellCallSig = useSellCall and rally2SD    // NG/CL only; IV gate lives in dashboard — verify before entry
 
 volUse = math.max(vix, hv20) / 100.0
 k16put = close * (1 - 0.994 * volUse * math.sqrt(dteDays / 365.0))
@@ -92,6 +99,8 @@ plotshape(sell5DL, "SELL PUT (5DL)", shape.triangleup, location.belowbar,
      color.new(color.green, 0), size=size.small, text="SELL PUT\n5-day low", textcolor=color.green)
 plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
+plotshape(sellCallSig, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
+     color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
 
 // ============ STATUS TABLE (high-contrast) ============
 var table tb = table.new(position.top_right, 2, 9, border_width=1,
@@ -146,6 +155,7 @@ if showTable and barstate.islast
 alertcondition(sellSignal and dip2SD, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
 alertcondition(sellSignal and low5 and not dip2SD, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
 alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
+alertcondition(sellCallSig, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
      "Strike breached — rules: HOLD to 21 DTE, no panic exit (tested: stops doubled losses)")
