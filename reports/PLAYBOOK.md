@@ -152,3 +152,10 @@ double-entered on one day losing -$9,041 combined).
 
 **NEW HARD RULE (learned OOS): dedupe same-name same-day signals — multiple
 triggers on one underlying = one position, never stacked.**
+
+## Cluster-risk resolution (2026-07-06, swept incl. OOS year)
+Equity-sleeve caps (30-60% of selling capacity) tested vs uncapped, all with
+same-name dedupe enforced: caps REDUCE MAR (0.75-0.82 vs 0.91) without
+improving worst-month (~-4.9% at every level). **Verdict: the dedupe rule IS
+the cluster fix; no equity cap needed.** 7yr incl OOS: $50K -> $81,090
+(7.2% CAGR, maxDD -7.8%, MAR 0.91) — best configuration found to date.
