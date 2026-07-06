@@ -182,3 +182,9 @@ added to the buy bucket: 7yr $50K -> **$93,625 (9.4% CAGR, maxDD -8.0%,
 MAR 1.17)** vs 0.91 without. Buy-cap sweep 15/20/25%: identical (bucket never
 binds) -> **15% stays**. Sleeve is episodic: zero entries Jul-2024..Jun-2026
 (no cheap-vol days) — judge it by regimes, not quarters.
+
+## Sleeve-3 DTE spec (swept 2026-07-06)
+ES: 60-90 DTE (monotonic: 40->+$60, 60->+$400, 90->+$675/tr, win% 41->53 —
+equity vol storms need runway). CL: 40-60 DTE only (peaks at 60 +$129; 90 DTE
+-$230 — crude spikes round-trip inside a quarter). Micro sizing mandatory
+(90-DTE ES worst -$8.5K full-size -> MES -$850).
