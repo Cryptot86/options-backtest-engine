@@ -42,7 +42,6 @@ if not na(pl)
     curRSI  := rsi14[3]
 rsiDivRaw = not na(pl) and not na(prevPL) and curPL < prevPL and curRSI > prevRSI and trendUp
 isStock   = syminfo.type == "stock"                 // futures/forex/crypto: signal cannot exist
-rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock
 
 // ============ GATE: VOL GATE (VIX 3-green, validated spec) ============
 vix   = request.security("CBOE:VIX",   "D", close)
@@ -53,6 +52,7 @@ gRich    = vixRank >= 50
 gPaid    = vix > hv20
 gStable  = vix <= vix[5]
 gateGreen = gRich and gPaid and gStable
+rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stocks only)
 
 // ============ SIGNALS ============
 sellSignal = useSellLine and gateGreen and (dip2SD or low5)
