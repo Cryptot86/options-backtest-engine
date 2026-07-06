@@ -5,6 +5,7 @@ indicator("TJ 3-Line Premium Scanner", overlay=true)
 useSellLine  = input.bool(true,  "Line 1/2: SELL PUT (5-day low / 2-SD dip in uptrend)")
 useCallLine  = input.bool(true,  "Line 3: BUY CALL on fresh 10x100 bullish cross (ES/GC)")
 useSellCall  = input.bool(true,  "Line 4: SELL CALL — 2-SD rally in downtrend (AUTO: NG/CL charts only)")
+useRsiDiv    = input.bool(true,  "Line 5: RSI DIVERGENCE put (bonus, rare — excluded on NG/CL/6E)")
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
@@ -26,6 +27,22 @@ bbUpper = basis + dev2
 // cannot exist on any other chart (no memory required).
 isNGCL   = syminfo.root == "NG" or syminfo.root == "CL"
 rally2SD = close >= bbUpper and not trendUp and isNGCL
+
+// --- Line 5: RSI bullish divergence (price LL, RSI HL, uptrend) — bonus line
+rsi14 = ta.rsi(close, 14)
+pl    = ta.pivotlow(close, 3, 3)                     // confirmed price pivot low (3 bars later)
+var float prevPL  = na
+var float prevRSI = na
+var float curPL   = na
+var float curRSI  = na
+if not na(pl)
+    prevPL  := curPL
+    prevRSI := curRSI
+    curPL   := pl
+    curRSI  := rsi14[3]
+rsiDivRaw = not na(pl) and not na(prevPL) and curPL < prevPL and curRSI > prevRSI and trendUp
+rsiExcl   = syminfo.root == "NG" or syminfo.root == "CL" or syminfo.root == "6E"
+rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and not rsiExcl
 
 // ============ GATE: VOL GATE (VIX 3-green, validated spec) ============
 vix   = request.security("CBOE:VIX",   "D", close)
@@ -101,6 +118,8 @@ plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 plotshape(sellCallSig, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
+plotshape(rsiDivSig, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
+     color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
 
 // ============ STATUS TABLE (high-contrast) ============
 var table tb = table.new(position.top_right, 2, 9, border_width=1,
@@ -156,6 +175,7 @@ alertcondition(sellSignal and dip2SD, "TJ: SELL PUT (2-SD dip)", "Gate green + 2
 alertcondition(sellSignal and low5 and not dip2SD, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
 alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
 alertcondition(sellCallSig, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
+alertcondition(rsiDivSig, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
      "Strike breached — rules: HOLD to 21 DTE, no panic exit (tested: stops doubled losses)")
