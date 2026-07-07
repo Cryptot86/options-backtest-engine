@@ -188,3 +188,12 @@ ES: 60-90 DTE (monotonic: 40->+$60, 60->+$400, 90->+$675/tr, win% 41->53 —
 equity vol storms need runway). CL: 40-60 DTE only (peaks at 60 +$129; 90 DTE
 -$230 — crude spikes round-trip inside a quarter). Micro sizing mandatory
 (90-DTE ES worst -$8.5K full-size -> MES -$850).
+
+## Put-ratio 1x2 test (2026-07-07): GC upgrade candidate, ES declined
+Buy ~30D / sell 2x 16D, same signals D+1, 50%-credit/21DTE: ES +$316x537
+(worst -$13.0K) vs single put +$396x439 (worst -$15.7K) -> single put stays
+(simpler, richer; micros handle the tail). GC: ratio +$108x149 worst -$1,760
+vs single +$143x277 worst -$8,232 -> **tail cut 78% for 24% expectancy: ratio
+is the better GC line by MAR. Status: candidate — confirm 3-leg slippage in
+paper before law.** Forecast miss logged: the long leg's crash cushion beat
+the second short's tail add — structure was put-spread + naked, not 2x naked.
