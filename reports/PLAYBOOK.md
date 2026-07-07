@@ -197,3 +197,10 @@ vs single +$143x277 worst -$8,232 -> **tail cut 78% for 24% expectancy: ratio
 is the better GC line by MAR. Status: candidate — confirm 3-leg slippage in
 paper before law.** Forecast miss logged: the long leg's crash cushion beat
 the second short's tail add — structure was put-spread + naked, not 2x naked.
+
+## ZB (30yr T-bond) tested (2026-07-07): puts REJECTED, calls candidate
+Put-selling all lines negative (-$34/tr x475, worst -$4,517): bond IV ~10%
+pays pennies vs rate-shock dollars; 2022-24 bear faked out the trend filter.
+Forecast miss logged (predicted ES/GC-like). bb_2sd_call: +$152 x33, 91% win,
+worst -$673 — same fade-the-hope-rally physics as NG/CL; thin n -> paper-trade
+candidate only. ZB does NOT enter the put book.
