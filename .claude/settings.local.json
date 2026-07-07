@@ -8,7 +8,8 @@
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/otbt/pricing/rolling.py'\\).read\\(\\)\\); print\\('rolling syntax OK'\\)\")",
       "Bash(awk '/### GC ###/,/### ES ###/' output/futures_suite.log)",
       "Bash(awk '/### ES ###/,0' output/futures_suite.log)",
-      "WebSearch"
+      "WebSearch",
+      "Skill(artifact-design)"
     ]
   }
 }
