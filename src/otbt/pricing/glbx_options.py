@@ -41,6 +41,8 @@ FUT_SPECS = {
     # Feb-2020 crash window has no 30-75 DTE expiry -> crash signals silently
     # skipped (survivorship). Both roots merged for definitions.
     "ES": {"opt_root": ["ES", "EW"], "mult": 50, "opt_tick_usd": 12.5},  # 0.25 pt
+    # ZB 30-yr T-bond (CBOT): options root OZB (serials+quarterlies), 1/64 tick
+    "ZB": {"opt_root": "OZB", "mult": 1_000, "opt_tick_usd": 15.625},
 }
 
 
