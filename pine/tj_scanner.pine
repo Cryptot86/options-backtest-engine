@@ -79,7 +79,10 @@ rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stock
 // HABITAT WHITELIST — only markets with validated backtest receipts may signal.
 // Puts: ES/MES + GC + stocks. Calls: NG/CL (handled by isNGCL). Everything else
 // (RTY/M2K, ZB, NQ, forex, crypto, untested stocks...) gets a NO-GO banner.
-validPutMkt = syminfo.type == "stock" or syminfo.root == "ES" or syminfo.root == "MES"
+// EQUITIES: signals show on ALL stocks/ADRs (edge validated as a class; the
+// user judges names). FUTURES: whitelist stays hard — ZB/RTY-class receipts.
+isEquity   = syminfo.type == "stock" or syminfo.type == "dr"
+validPutMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
 needGate   = syminfo.type == "stock"
 gateOK     = needGate ? gateGreen : true

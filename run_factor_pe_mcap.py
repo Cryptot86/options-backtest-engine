@@ -27,9 +27,12 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timezone
 
+from types import SimpleNamespace
+
 from src.otbt.data import db
 from src.otbt.reporting.metrics import summarize
 from src.otbt.pricing import databento_options as dbo
+from src.otbt.pricing.blackscholes import strike_for_delta
 
 UNIV = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD",
         "NFLX", "AVGO", "JPM", "COST", "LLY", "UNH", "HD"]
@@ -171,16 +174,43 @@ for m in months:
 FB_CUTOVER = pd.Timestamp("2022-06-09")  # Facebook options rooted FB before this
 
 
+def select_atm(osym, d, spot, iv, kind):
+    """Model-placed ~50-delta strike at the 2nd-monthly expiry (dte 30-75,
+    target 50), snapped to the listed ladder. Local copy of the library's
+    select_16d_modeled WITHOUT its split-scale heuristic: we pass the ACTUAL
+    raw-terms spot, and that heuristic misreads crash regimes (post-crash
+    ladders have median ~2x spot, e.g. NFLX/META 2022) as split mismatches."""
+    defs = dbo.get_definitions(osym, d)
+    if defs.empty:
+        return None
+    cls = "P" if kind == "put" else "C"
+    df = defs[defs["instrument_class"] == cls].copy()
+    if df.empty:
+        return None
+    df["dte"] = (df["expiration"] - pd.Timestamp(d)).dt.days
+    df = df[(df["dte"] >= 30) & (df["dte"] <= 75)]
+    if df.empty:
+        return None
+    exp = df.iloc[(df["dte"] - 50).abs().argsort().iloc[0]]["dte"]
+    df = df[df["dte"] == exp]
+    T = int(exp) / 365.0
+    iv_use = max(iv * 1.15, 0.06)
+    K_star = strike_for_delta(spot, T, iv_use, 0.50, kind=kind)
+    r = df.iloc[(df["strike_price"] - K_star).abs().argsort().iloc[0]]
+    return SimpleNamespace(raw_symbol=str(r["raw_symbol"]),
+                           strike=float(r["strike_price"]),
+                           expiration=pd.Timestamp(r["expiration"]),
+                           dte=int(r["dte"]))
+
+
 def price_straddle(sym, d, exit_date):
     """One ATM straddle priced LONG (multiplier 1). Returns dict or None."""
     spot = actual_spot(sym, d)
     iv = float(rvol[sym].loc[:d].iloc[-1])
     # pre-2022-06 "META.OPT" resolves to Metamaterial Inc; Facebook was FB
     osym = "FB" if sym == "META" and d < FB_CUTOVER else sym
-    cS = dbo.select_16d_modeled(osym, d, spot, iv, dte_min=30, dte_max=75,
-                                dte_target=50, target_delta=0.50, kind="call")
-    pS = dbo.select_16d_modeled(osym, d, spot, iv, dte_min=30, dte_max=75,
-                                dte_target=50, target_delta=0.50, kind="put")
+    cS = select_atm(osym, d, spot, iv, kind="call")
+    pS = select_atm(osym, d, spot, iv, kind="put")
     if cS is None or pS is None:
         print(f"    {sym} {d.date()}: no option selected, skip", flush=True)
         return None
@@ -251,6 +281,21 @@ if os.path.exists(CKPT):
         print(f"scrubbing {int(drop.sum())} contaminated rows (2022-01..05)", flush=True)
         prev = prev[~drop]
         prev.to_parquet(CKPT)
+    # one-shot: redo dates priced with the library's split-scale heuristic,
+    # which skipped crash-regime names (NFLX/META 2022). Re-doing a date is
+    # ~free (paths cached); marker prevents rescrub of legit partial dates.
+    marker = os.path.join(CACHE, "scrub_incomplete.done")
+    if not os.path.exists(marker):
+        ed = pd.to_datetime(prev["entry_date"])
+        counts = ed.value_counts()
+        redo = set(counts[counts < 16].index)
+        if redo:
+            print(f"re-doing {len(redo)} incomplete rebalances: "
+                  f"{sorted(str(x.date()) for x in redo)}", flush=True)
+            prev = prev[~ed.isin(redo)]
+            prev.to_parquet(CKPT)
+        with open(marker, "w") as f:
+            f.write("done")
     all_rows = prev.to_dict("records")
     done_dates = set(pd.to_datetime(prev["entry_date"]).unique())
     print(f"resuming: {len(done_dates)} rebalances already done", flush=True)
