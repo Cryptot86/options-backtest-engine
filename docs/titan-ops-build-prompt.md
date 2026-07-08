@@ -58,6 +58,24 @@ ALLOCATION (VIX-banded, % of current equity, SELLING bucket): VIX<25 → 25%;
 25-35 → 50%; 35+ → 60% (never 100%). BUYING bucket: 15% flat.
 Block entries exceeding a bucket; render "SKIP — capacity" as a correct outcome,
 celebrated not hidden, and write the skipped-signal row.
+POSITION SIZING (hard requirements — enforce at trade creation, not advisory):
+1. BUY-SIDE CEILING MONITOR: total debit tied up in ALL long-option positions
+   (trend-model calls, straddles) may NEVER exceed 15% of current equity.
+   Pre-trade check blocks any entry that would breach it; a persistent meter
+   shows usage and turns amber at 12% (warning) — this is a monitored limit,
+   not a guideline. Trend-model BUY CALL signals that don't fit -> logged as
+   skipped(capacity), never squeezed in.
+2. PER-POSITION 2% MAX-LOSS SIZING: each stock position must be sized so its
+   worst-case loss <= 2% of current equity.
+   - Long options/spreads: max loss = debit -> debit <= 2% of equity.
+   - Shares (trend rides): share count = (2% of equity) / stop-distance
+     (entry price minus trend-invalidation level).
+   - Short premium: use the line's historical worst loss per contract (from
+     the backtest reference table I will provide) as the max-loss estimate;
+     contracts sized so that estimate <= 2% of equity. Tom's 5-7% undefined-
+     risk cap remains the OUTER bound; 2% is the per-name target.
+   The entry form COMPUTES the allowed size and pre-fills it; typing a bigger
+   size requires an explicit override note (flagged in process score).
 HARD RULES at trade creation:
 - DEDUPE: same symbol + same signal_date = ONE trade max (block, log the skip).
 - Capacity-conflict hint: NEW symbol beats re-entry in a held symbol

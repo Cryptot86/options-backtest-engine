@@ -213,3 +213,11 @@ Evidence (39 gated trades w/ IV): rich kept 18 -> +$203/tr, 100% win, worst
 Day-matched same-regime cross-section confirms (+$112 vs -$240). THIN SAMPLE
 -> checklist rule for paper, promote to law if live agrees. Delivery: manual
 at entry / Python scanner — NOT Pine (no options data there).
+
+## POSITION SIZING LAW (TJ, 2026-07-08)
+1. Buy-side ceiling: ALL long-option debit combined <= 15% of equity — hard
+   monitored limit (amber at 12%); unfitting buy signals = skipped(capacity).
+2. Per-position 2% max-loss: every stock position sized so worst case <= 2%
+   of equity (long: debit; shares: 2% / stop-distance; short premium: line's
+   historical worst loss per contract as the estimate). Tom's 5-7% undefined
+   cap = outer bound; 2% = per-name target.
