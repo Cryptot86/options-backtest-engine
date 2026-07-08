@@ -37,3 +37,11 @@ deadline, not before.
 - The floor is real: system ≈ $500/mo ≈ small-town India survival. The fall
   does not kill. Negotiate and wait like it.
 - No monetizing anything until work authorization is structured (attorney).
+
+## Parked lane: quant-tooling freelancing (decided 2026-07-08)
+Shape: fixed-scope gigs (backtest audits ~$2K, data-pipeline setups ~$3K,
+dashboards ~$4K) for small CTAs / prop / funded traders; 5-10 hrs/wk max.
+TRIGGER CONDITIONS (do not start before one of): Dubai freelance permit |
+relocation to India | US EAD/green card. H1B (even employed) = no US
+freelancing, ever. The LinkedIn series doubles as this lane's future lead-gen
+— no extra action needed now.
