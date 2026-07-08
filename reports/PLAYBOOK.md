@@ -204,3 +204,12 @@ pays pennies vs rate-shock dollars; 2022-24 bear faked out the trend filter.
 Forecast miss logged (predicted ES/GC-like). bb_2sd_call: +$152 x33, 91% win,
 worst -$673 — same fade-the-hope-rally physics as NG/CL; thin n -> paper-trade
 candidate only. ZB does NOT enter the put book.
+
+## NAME-LEVEL RICHNESS CHECK (TJ+Tom, tested offline 2026-07-08) — checklist rule
+On gated equity entries, the NAME must also pay: entry IV >= ~35% (Tom's
+threshold; tasty-chain glance at entry) or IV above the stock's own 20d RV.
+Evidence (39 gated trades w/ IV): rich kept 18 -> +$203/tr, 100% win, worst
++$22; quiet dropped 21 -> -$103/tr incl the book's only -$4.5K disaster.
+Day-matched same-regime cross-section confirms (+$112 vs -$240). THIN SAMPLE
+-> checklist rule for paper, promote to law if live agrees. Delivery: manual
+at entry / Python scanner — NOT Pine (no options data there).
