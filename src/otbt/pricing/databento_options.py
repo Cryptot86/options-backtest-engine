@@ -197,14 +197,28 @@ def select_16d_modeled(symbol, entry_date, spot, iv_estimate,
         return None
     exp = puts.iloc[(puts["dte"] - dte_target).abs().argsort().iloc[0]]["dte"]
     puts = puts[puts["dte"] == exp]
+    # SPLIT-SCALE GUARD: caller's spot is split-ADJUSTED (yfinance) but listed
+    # strikes are RAW. Pre-split eras (GOOGL/AMZN 20:1, NVDA 40x cum, AAPL/TSLA)
+    # would otherwise snap to the wrong strike entirely. Infer the scale from
+    # the strike ladder's median vs spot and place the strike on the RAW scale.
+    med = float(puts["strike_price"].median())
+    scale = 1.0
+    if spot > 0 and (med / spot > 1.6 or med / spot < 0.625):
+        for f in (2, 3, 4, 5, 10, 15, 20, 40):
+            if 0.625 <= med / (spot * f) <= 1.6:
+                scale = float(f); break
+        else:
+            return None                      # unrecognizable ladder — refuse, don't guess
     T = int(exp) / 365.0
     iv_use = max(iv_estimate * 1.15, 0.06)         # VRP bump toward real IV
-    K_star = strike_for_delta(spot, T, iv_use, target_delta, kind=kind)
+    K_star = strike_for_delta(spot * scale, T, iv_use, target_delta, kind=kind)
     r = puts.iloc[(puts["strike_price"] - K_star).abs().argsort().iloc[0]]  # snap to listed
-    return SelectedOption(int(r["instrument_id"]), str(r["raw_symbol"]),
+    sel = SelectedOption(int(r["instrument_id"]), str(r["raw_symbol"]),
                           float(r["strike_price"]), pd.Timestamp(r["expiration"]),
                           int(r["dte"]), price=float("nan"), iv=float("nan"),
                           delta=float("nan"))
+    sel.scale = scale        # raw-per-adjusted factor; divide strike/premiums by this
+    return sel
 
 
 def select_16delta_put(symbol, entry_date, underlying_px, iv_estimate,
