@@ -84,7 +84,7 @@ rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stock
 isEquity   = syminfo.type == "stock" or syminfo.type == "dr"
 validPutMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
-needGate   = syminfo.type == "stock"
+needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the gate
 gateOK     = needGate ? gateGreen : true
 sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5)
 callSignal = useCallLine and freshCross
