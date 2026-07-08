@@ -168,16 +168,25 @@ for m in months:
 
 
 # ------------------------------------------------------------- straddle P&L
+FB_CUTOVER = pd.Timestamp("2022-06-09")  # Facebook options rooted FB before this
+
+
 def price_straddle(sym, d, exit_date):
     """One ATM straddle priced LONG (multiplier 1). Returns dict or None."""
     spot = actual_spot(sym, d)
     iv = float(rvol[sym].loc[:d].iloc[-1])
-    cS = dbo.select_16d_modeled(sym, d, spot, iv, dte_min=30, dte_max=75,
+    # pre-2022-06 "META.OPT" resolves to Metamaterial Inc; Facebook was FB
+    osym = "FB" if sym == "META" and d < FB_CUTOVER else sym
+    cS = dbo.select_16d_modeled(osym, d, spot, iv, dte_min=30, dte_max=75,
                                 dte_target=50, target_delta=0.50, kind="call")
-    pS = dbo.select_16d_modeled(sym, d, spot, iv, dte_min=30, dte_max=75,
+    pS = dbo.select_16d_modeled(osym, d, spot, iv, dte_min=30, dte_max=75,
                                 dte_target=50, target_delta=0.50, kind="put")
     if cS is None or pS is None:
         print(f"    {sym} {d.date()}: no option selected, skip", flush=True)
+        return None
+    if abs(cS.strike / spot - 1) > 0.25 or abs(pS.strike / spot - 1) > 0.25:
+        print(f"    {sym} {d.date()}: strike {cS.strike}/{pS.strike} far from "
+              f"spot {spot:.1f} (symbology collision?), skip", flush=True)
         return None
     cp = dbo.get_symbol_daily(cS.raw_symbol, d, exit_date)
     pq = dbo.get_symbol_daily(pS.raw_symbol, d, exit_date)
@@ -232,6 +241,16 @@ done_dates = set()
 all_rows = []
 if os.path.exists(CKPT):
     prev = pd.read_parquet(CKPT)
+    # scrub rebalances contaminated by the META/Metamaterial symbology collision
+    # (2022-01..05 priced Facebook exposure off the wrong options root); they
+    # get re-done below with the FB mapping. Idempotent: keyed on the bad row.
+    ed = pd.to_datetime(prev["entry_date"])
+    bad = ((prev["symbol"] == "META") & (prev["strike"] < prev["spot"] * 0.5)).any()
+    if bad:
+        drop = (ed >= "2022-01-01") & (ed <= "2022-05-31")
+        print(f"scrubbing {int(drop.sum())} contaminated rows (2022-01..05)", flush=True)
+        prev = prev[~drop]
+        prev.to_parquet(CKPT)
     all_rows = prev.to_dict("records")
     done_dates = set(pd.to_datetime(prev["entry_date"]).unique())
     print(f"resuming: {len(done_dates)} rebalances already done", flush=True)
