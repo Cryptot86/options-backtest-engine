@@ -221,3 +221,11 @@ at entry / Python scanner — NOT Pine (no options data there).
    of equity (long: debit; shares: 2% / stop-distance; short premium: line's
    historical worst loss per contract as the estimate). Tom's 5-7% undefined
    cap = outer bound; 2% = per-name target.
+
+## GAP CLAMP amendment (2026-07-08, found via live LYFT sizing)
+Stop-distance sizing alone is unsafe on single names: a fresh cross = tiny
+stop = huge authorized notional, but equities GAP through stops. Second
+clamp: **single-name share notional <= 10% of equity** (20% gap x 10% = the
+2% law preserved under stress). Futures keep pure stop-based sizing
+(continuous session). Example: LYFT 7/8: formula said 1,978 sh ($30K);
+clamped answer 330 sh ($5K).
