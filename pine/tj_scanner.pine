@@ -9,6 +9,7 @@ useRsiDiv    = input.bool(true,  "Line 5: RSI DIVERGENCE put (bonus, rare — ST
 useStraddle  = input.bool(true,  "Line 6: STRADDLE DAY light — cheap vol (buy ATM straddle; ES/stocks)")
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
+iHold        = input.bool(false, "☑ I HAVE an open position (track it)")
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
 armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
 
@@ -98,7 +99,7 @@ var int   posEntryT  = na
 holdCal = dteDays - 21                                  // calendar days until 21-DTE exit
 if posClosed
     inPos := false
-if sellSignal and not inPos and not posClosed and time >= armFrom
+if iHold and sellSignal and not inPos and not posClosed and time >= armFrom
     inPos     := true
     posStrike := k16put
     posSpot   := close
@@ -118,7 +119,8 @@ if timeExit
     inPos := false          // auto-cycle: tracker frees itself for the next signal
 
 // exit-state message: the anti-panic script (from the backtest evidence)
-posState = not inPos ? "flat — take next signal" :
+posState = not iHold ? "not tracking — tick 'I HAVE a position' after you enter" :
+     not inPos ? "armed — will track from your next signal" :
      timeExit ? "⏰ TIME EXIT TODAY — close at market (21 DTE rule)" :
      breached ? "⚠️ strike breached — rules say HOLD to 21 DTE (stops lose: −$27K vs −$49K tested)" :
      close < posSpot ? "📉 underwater — NORMAL. Median winner dipped first. HOLD." :
@@ -150,8 +152,22 @@ plotshape(rsiDivSig, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
 plotshape(cheapDay and not cheapDay[1], "STRADDLE DAY", shape.circle, location.abovebar,
      color.new(color.purple, 0), size=size.tiny, text="STRADDLE\nvol cheap", textcolor=color.purple)
 
+// ============ ACTION VERDICT (one instruction, no ambiguity) ============
+// Decision uses YESTERDAY'S CLOSED bar (D+1 discipline): signal at yesterday's
+// close -> enter THIS morning. A triangle on today's forming bar is only a
+// "forming" notice — it can vanish by 4pm and is never actionable same-day.
+sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine
+sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
+actTxt    = not validPutMkt and not isNGCL ? "⛔ NOTHING — untested market" :
+     iHold and inPos ? "🟦 HOLD your position — no new entries (see POSITION row)" :
+     sigConf ? "✅ ACT NOW: sell 16Δ put this morning (signal confirmed at yesterday's close)" :
+     sigForm ? "🕐 FORMING today — only real if it holds at 4pm close; then act TOMORROW 9:30" :
+     "⬜ NOTHING today — wait"
+actCol    = sigConf and not (iHold and inPos) ? color.new(#0E6B4F, 0) :
+     sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
+
 // ============ STATUS TABLE (high-contrast) ============
-var table tb = table.new(position.top_right, 2, 11, border_width=1,
+var table tb = table.new(position.top_right, 2, 12, border_width=1,
      border_color=color.new(color.white, 60))
 if showTable and barstate.islast
     cHdr = color.rgb(103, 58, 183)
@@ -161,12 +177,14 @@ if showTable and barstate.islast
     cRow = color.rgb(38, 45, 60)
     wht  = color.white
     table.cell(tb, 0, 0, "TJ SCANNER",     bgcolor=cHdr, text_color=wht)
+    table.cell(tb, 0, 1, "▶ ACTION",       bgcolor=cHdr, text_color=wht)
+    table.cell(tb, 1, 1, actTxt,           bgcolor=actCol, text_color=wht)
     table.cell(tb, 1, 0, syminfo.ticker,   bgcolor=cHdr, text_color=wht)
-    table.cell(tb, 0, 1, "VIX gate",       bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 1, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
+    table.cell(tb, 0, 2, "VIX gate",       bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 2, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
          + (gateGreen ? "  OPEN" : "  CLOSED"), bgcolor=gateGreen ? cOk : cNo, text_color=wht)
-    table.cell(tb, 0, 2, "Trend (10x100)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 2, trendUp ? "UP — puts allowed" : "DOWN — no puts",
+    table.cell(tb, 0, 3, "Trend (10x100)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 3, trendUp ? "UP — puts allowed" : "DOWN — no puts",
          bgcolor=trendUp ? cOk : cNo, text_color=wht)
     trig = dip2SD ? "2-SD dip" : low5 ? "5-day low" : ""
     sellState = not useSellLine ? "off" :
@@ -174,42 +192,42 @@ if showTable and barstate.islast
          inPos ? "⛔ position open — skip new signals" :
          sellSignal ? "✅ READY (" + trig + ") — sell tomorrow 9:30" :
          (dip2SD or low5) and needGate ? trig + " fired, gate CLOSED" : "waiting"
-    table.cell(tb, 0, 3, "SELL PUT line",  bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 3, sellState, bgcolor=sellSignal and not inPos ? cOk : cRow, text_color=wht)
-    table.cell(tb, 0, 4, "BUY CALL line",  bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 4, callSignal ? "✅ fresh cross — buy tomorrow" : "waiting",
+    table.cell(tb, 0, 4, "SELL PUT line",  bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 4, sellState, bgcolor=sellSignal and not inPos ? cOk : cRow, text_color=wht)
+    table.cell(tb, 0, 5, "BUY CALL line",  bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 5, callSignal ? "✅ fresh cross — buy tomorrow" : "waiting",
          bgcolor=callSignal ? cOk : cRow, text_color=wht)
     // POSITION / EXIT DISCIPLINE row
-    table.cell(tb, 0, 5, inPos ? "POSITION (day " + str.tostring(daysHeld) + ")" : "Position",
+    table.cell(tb, 0, 6, inPos ? "POSITION (day " + str.tostring(daysHeld) + ")" : "Position",
          bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 5, posState,
+    table.cell(tb, 1, 6, posState,
          bgcolor=timeExit ? cNo : breached ? cWn : inPos ? cOk : cRow, text_color=wht)
     cushion   = inPos ? close - posStrike : close - k16put
     cushionPc = 100.0 * cushion / close
-    table.cell(tb, 0, 6, inPos ? "Strike / cushion" : "Est. 16Δ strike / cushion", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 6, str.tostring(inPos ? posStrike : k16put, format.mintick)
+    table.cell(tb, 0, 7, inPos ? "Strike / cushion" : "Est. 16Δ strike / cushion", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 7, str.tostring(inPos ? posStrike : k16put, format.mintick)
          + "  (" + (cushion >= 0 ? "+" : "") + str.tostring(cushion, format.mintick)
          + " / " + str.tostring(cushionPc, "#.0") + "%)",
          bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
-    table.cell(tb, 0, 7, "Exit rules",     bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 7, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 0, 9, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 9, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
+    table.cell(tb, 0, 8, "Exit rules",     bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 8, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 0, 10, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 10, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
           cheapDay ? ("🟣 " + (isCL ? "OVX" : "VIX") + " CHEAP — buy ATM straddle") :
           (isCL ? "OVX" : "VIX") + " not cheap — off")
          + (cheapOK ? "  ·  " + str.tostring(stCount) + " signals" : ""),
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     slope5 = vix - vix[5]
-    table.cell(tb, 0, 10, "VIX dials (live)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 10,
+    table.cell(tb, 0, 11, "VIX dials (live)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 11,
          "VIX " + str.tostring(vix, "#.#") + "  ·  pctile " + str.tostring(vixRank, "#") + "%"
          + "  ·  vs RV " + (vix > hv20 ? "+" : "") + str.tostring(vix - hv20, "#.#")
          + "  ·  5d " + (slope5 > 0 ? "+" : "") + str.tostring(slope5, "#.#")
          + (isCL ? "  ·  OVX " + str.tostring(ovx, "#.#") : ""),
          bgcolor=cRow, text_color=wht)
     winPct = totTrades > 0 ? 100.0 * totWins / totTrades : 0.0
-    table.cell(tb, 0, 8, "History (this chart)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 8, str.tostring(totTrades) + " trades · " + str.tostring(totWins)
+    table.cell(tb, 0, 9, "History (this chart)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 9, str.tostring(totTrades) + " trades · " + str.tostring(totWins)
          + "W / " + str.tostring(totTrades - totWins) + "L · "
          + str.tostring(winPct, "#.0") + "% (price-based est.)",
          bgcolor=cRow, text_color=wht)
