@@ -229,3 +229,11 @@ clamp: **single-name share notional <= 10% of equity** (20% gap x 10% = the
 2% law preserved under stress). Futures keep pure stop-based sizing
 (continuous session). Example: LYFT 7/8: formula said 1,978 sh ($30K);
 clamped answer 330 sh ($5K).
+
+## RTY tested (2026-07-09): real edge, NOT licensed (dominated by ES)
+Puts: five_day_low +$103x198 (79%), bb_2sd +$102x39 — a THIRD of ES's rate
+with W/L 0.35 (winners ~$550, losers ~$1,500-2,250) and worst -$5.6K/contract.
+Calls: ALL negative (squeeze index — bear rallies don't fade; same physics
+as stock call-selling). Verdict: correlated ~0.9 with ES, pays 1/3 as much,
+tails worse -> every RTY slot is a worse ES slot. Whitelist stays ES/MES.
+Revisit only when capital saturates ES capacity.
