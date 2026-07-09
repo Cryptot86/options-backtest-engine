@@ -202,3 +202,13 @@ prompt "trim SGOV to free BP" sized to the band's requirement; re-sweep when
 the band steps back down. Start size $10K (collision-free at all bands);
 scale to $20-25K only with the trim rule live. Show SGOV's BP consumption on
 the bucket meters.
+
+== FIXED-INCOME SLEEVE IS PERMANENT (executed 2026-07-09) ==
+User holds SGOV from day one ($10K opening tranche, scaling to $20-25K with
+the trim rule). Requirements: (1) SGOV/T-bills render as a PERMANENT portfolio
+line on every portfolio view — never hidden as "cash equivalents"; (2) its
+monthly dividends post to a dedicated "collateral yield" P&L line (MTD/YTD);
+(3) the bucket meters show its BP consumption explicitly; (4) journal records
+sweep/trim actions as portfolio events (not trades) with the VIX band at the
+time; (5) the Today screen surfaces the trim prompt whenever VIX band steps
+up while SGOV BP consumption would block full sell-bucket deployment.
