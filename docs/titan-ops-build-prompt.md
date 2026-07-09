@@ -76,6 +76,11 @@ POSITION SIZING (hard requirements — enforce at trade creation, not advisory):
      risk cap remains the OUTER bound; 2% is the per-name target.
    The entry form COMPUTES the allowed size and pre-fills it; typing a bigger
    size requires an explicit override note (flagged in process score).
+3. GAP CLAMP (single-name shares): stop-distance sizing alone is unsafe on
+   equities (fresh trend cross = tiny stop = huge authorized notional, and
+   stocks GAP through stops). Additional hard cap: single-name share notional
+   <= 10% of current equity. Apply min(2%-rule size, gap-clamp size); show
+   which clamp bound. Futures keep pure stop-based sizing.
 HARD RULES at trade creation:
 - DEDUPE: same symbol + same signal_date = ONE trade max (block, log the skip).
 - Capacity-conflict hint: NEW symbol beats re-entry in a held symbol
@@ -125,3 +130,14 @@ this app exists to be the opposite). Mobile-usable at 9:30am.
 5. Rules reference page
 Ask me for: stack details, playbook content, the drawdown reference table,
 and gauge/gate feed format when you reach those steps.
+
+== FUTURE DIAL (record from day one, activate after validation) ==
+Per-name IV three-dial treatment (TJ, 2026-07-09): the name-richness check is
+currently LEVEL-only (IV >= ~35% / IV > own RV). The name's IV *slope* likely
+matters for the same reason VIX slope does (rich-and-rising = name-level
+crisis-in-progress). We lack per-name IV history to test it. Therefore: the
+app/scanner must SNAPSHOT every watched name's ATM IV daily from day one
+(tastytrade API), building the series for free. Once ~6 months exist, test
+slope as a 5th filter; until then, earnings-date check + market slope cover
+most rising-name-IV cases. Interim entry checklist stays: gate green + signal
++ name IV >= 35% + no earnings inside DTE window.
