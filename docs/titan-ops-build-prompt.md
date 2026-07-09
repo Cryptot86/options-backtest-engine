@@ -141,3 +141,17 @@ app/scanner must SNAPSHOT every watched name's ATM IV daily from day one
 slope as a 5th filter; until then, earnings-date check + market slope cover
 most rising-name-IV cases. Interim entry checklist stays: gate green + signal
 + name IV >= 35% + no earnings inside DTE window.
+
+== STRADDLE SLEEVE — CONTROL-CENTER RULES (per portfolio) ==
+Habitat (hard-block elsewhere): ES/MES (60-90 DTE), CL/MCL (40-60 DTE),
+liquid large-cap stocks (~40-45 DTE). BANNED: GC, NG (-$14.7K in test —
+carry-market calm persists). Entry ONLY on the cheap-vol light (own-market
+gauge pctile <= 30 AND IV < realized) — snapshot the light state into the
+trade row.
+Exits, first-hit-wins: TP at +50% of debit | SL at -40% of debit | 21 DTE
+remaining. SET EXPECTATIONS IN THE UI: in testing only ~28% of straddles
+reached +50%; 72% exited on the calendar (median hold ~18-21d) and the line
+still earned +$281-341/trade — show "time exit is the normal outcome" on the
+position card so the user doesn't read a non-TP exit as failure. Note the SL
+exists here (unlike short premium) because long premium bleeds theta — it's
+a bleed circuit-breaker, not a panic exit.

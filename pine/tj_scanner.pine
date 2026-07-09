@@ -10,6 +10,9 @@ useStraddle  = input.bool(true,  "Line 6: STRADDLE DAY light — cheap vol (buy 
 showTable    = input.bool(true,  "Show status table")
 dteDays      = input.int(40, "Target DTE for 16Δ strike estimate", minval=20, maxval=60)
 iHold        = input.bool(false, "☑ I HAVE an open position (track it)")
+iStrad       = input.bool(false, "☑ I hold a STRADDLE here (show exit card)")
+stradDebit   = input.float(0.0, "  straddle debit paid (per share/point)", minval=0)
+stradExpiry  = input.time(timestamp("2026-12-18"), "  straddle expiry date")
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
 armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
 
@@ -219,7 +222,7 @@ if showTable and barstate.islast
          bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
     table.cell(tb, 0, 8, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 8, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 0, 10, "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 0, 10, iStrad ? "MY STRADDLE (exit card)" : "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 10, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
           cheapDay ? ("🟣 " + (isCL ? "OVX" : "VIX") + " CHEAP — buy ATM straddle") :
           (isCL ? "OVX" : "VIX") + " not cheap — off")
