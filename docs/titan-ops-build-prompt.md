@@ -192,3 +192,13 @@ T-bills per the cash-management rule (bills also serve as collateral; the
 Dashboard: four meters (three buckets + reserve), each showing used/cap;
 any entry that would push a bucket past cap or the reserve below 10% is
 BLOCKED with skip_reason=capacity.
+
+== CASH MGMT ADDENDUM: SGOV BP-COLLISION RULE (2026-07-09) ==
+SGOV consumes BP at 50% (stock-ETF treatment at tasty), so large bill
+positions collide with the sell bucket's expansion bands: at $25K SGOV on a
+$50K account, option BP (~$17.6K) < mid-band need ($25K). RULE: bills are
+CALM-REGIME parking — when VIX crosses into the 25-35 band, the app must
+prompt "trim SGOV to free BP" sized to the band's requirement; re-sweep when
+the band steps back down. Start size $10K (collision-free at all bands);
+scale to $20-25K only with the trim rule live. Show SGOV's BP consumption on
+the bucket meters.
