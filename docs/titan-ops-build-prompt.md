@@ -155,3 +155,16 @@ still earned +$281-341/trade — show "time exit is the normal outcome" on the
 position card so the user doesn't read a non-TP exit as failure. Note the SL
 exists here (unlike short premium) because long premium bleeds theta — it's
 a bleed circuit-breaker, not a panic exit.
+
+== HABITAT REGISTRY UPDATE (2026-07-09, applies to rules engine + journal) ==
+RTY/M2K (Russell 2000): TESTED AND REJECTED — hard-block in the rules engine
+with reason "tested: real but dominated (1/3 of ES expectancy, W/L 0.35,
+worst -$5.6K/contract; call side toxic — squeeze index)". Distinct from
+"untested": the block message must say WHICH it is; the journal's skip_reason
+gains value "habitat_rejected" (vs "habitat_untested"). Current registry:
+- Puts: ES/MES (ungated), GC/MGC (ungated), stocks/ADRs (gate + name-IV>=35%
+  + no earnings in window; basket = user judgment, class-validated)
+- Calls: NG, CL only. ZB = paper-trade candidate (thin n=33). RTY = rejected.
+- Straddles: ES/MES 60-90 DTE, CL/MCL 40-60, liquid large-caps ~40-45;
+  GC/NG banned.
+- Trend rides: ES/GC micros + stocks (shares primary, gap clamp 10%).
