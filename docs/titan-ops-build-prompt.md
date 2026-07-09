@@ -176,3 +176,19 @@ Treasuries (SGOV or direct bills — nothing longer, no credit risk). Bills
 remain options collateral (broker haircut applies). Dashboard shows: cash
 buffer %, bills balance, collateral-yield earned MTD/YTD as its own P&L line
 (it is real return; ~+2%/yr on typical idle levels). Rebalance monthly.
+
+== BUCKET ARCHITECTURE (final formulation, 2026-07-09) ==
+Three trading buckets + one reserve; the reserve is NOT a trading bucket.
+1. SELL bucket (short premium margin): VIX-banded cap — 25% (VIX<25),
+   50% (25-35), 60% (VIX>=35). Never more.
+2. BUY bucket (long-option debit: trend calls + straddles): 15% flat.
+3. TREND/SHARES bucket (aggregate share notional across all trend rides):
+   15% cap, with the existing 10%-per-name gap clamp inside it.
+RESERVE: >=10% pure cash at ALL times (the VIX-35 margin-expansion reserve).
+Check: worst-case commitment 60+15+15 = 90%, reserve = 10%. At calm regimes
+(VIX<25) commitment caps at 25+15+15 = 55% -> the ~45% idle sweeps to 0-3mo
+T-bills per the cash-management rule (bills also serve as collateral; the
+10% reserve stays pure cash, unswept).
+Dashboard: four meters (three buckets + reserve), each showing used/cap;
+any entry that would push a bucket past cap or the reserve below 10% is
+BLOCKED with skip_reason=capacity.
