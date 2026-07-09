@@ -142,17 +142,22 @@ plot(bbLower, "BB -2SD", color=color.new(color.red, 40))
 
 sell2SD = sellSignal and dip2SD
 sell5DL = sellSignal and low5 and not dip2SD
-plotshape(sell2SD, "SELL PUT (2SD)", shape.triangleup, location.belowbar,
+// Signals PAINT and ALERT only on FINAL bars — a mark on the chart is always
+// real. The forming (intraday, could-still-vanish) state exists ONLY in the
+// ACTION row's 🕐, checked at the 3:45pm decision window.
+fin = barstate.isconfirmed or barstate.ishistory
+
+plotshape((sell2SD) and fin, "SELL PUT (2SD)", shape.triangleup, location.belowbar,
      color.new(color.lime, 0), size=size.small, text="SELL PUT\n2-SD", textcolor=color.lime)
-plotshape(sell5DL, "SELL PUT (5DL)", shape.triangleup, location.belowbar,
+plotshape((sell5DL) and fin, "SELL PUT (5DL)", shape.triangleup, location.belowbar,
      color.new(color.green, 0), size=size.small, text="SELL PUT\n5-day low", textcolor=color.green)
-plotshape(callSignal, "BUY CALL", shape.diamond, location.belowbar,
+plotshape((callSignal) and fin, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
-plotshape(sellCallSig, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
+plotshape((sellCallSig) and fin, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
-plotshape(rsiDivSig, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
+plotshape((rsiDivSig) and fin, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
      color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
-plotshape(cheapDay and not cheapDay[1], "STRADDLE DAY", shape.circle, location.abovebar,
+plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, location.abovebar,
      color.new(color.purple, 0), size=size.tiny, text="STRADDLE\nvol cheap", textcolor=color.purple)
 
 // ============ ACTION VERDICT (one instruction, no ambiguity) ============
@@ -236,12 +241,12 @@ if showTable and barstate.islast
          bgcolor=cRow, text_color=wht)
 
 // ============ ALERTS ============
-alertcondition(sellSignal and dip2SD, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
-alertcondition(sellSignal and low5 and not dip2SD, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
-alertcondition(callSignal, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
-alertcondition(sellCallSig, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
-alertcondition(rsiDivSig, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
-alertcondition(cheapDay and not cheapDay[1], "TJ: STRADDLE DAY (vol cheap)",
+alertcondition((sellSignal and dip2SD) and fin, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
+alertcondition((sellSignal and low5 and not dip2SD) and fin, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
+alertcondition((callSignal) and fin, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
+alertcondition((sellCallSig) and fin, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
+alertcondition((rsiDivSig) and fin, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
+alertcondition((cheapDay and not cheapDay[1]) and fin, "TJ: STRADDLE DAY (vol cheap)",
      "Vol cheap (rank<=30 & IV<realized): buy ATM 40DTE straddle — exits +50%/-40%/21DTE (ES/stocks/CL only, never GC/NG)")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
