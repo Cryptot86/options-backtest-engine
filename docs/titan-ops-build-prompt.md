@@ -168,3 +168,11 @@ gains value "habitat_rejected" (vs "habitat_untested"). Current registry:
 - Straddles: ES/MES 60-90 DTE, CL/MCL 40-60, liquid large-caps ~40-45;
   GC/NG banned.
 - Trend rides: ES/GC micros + stocks (shares primary, gap clamp 10%).
+
+== CASH MANAGEMENT (TJ, 2026-07-09) ==
+Idle-collateral sweep: keep a 10%-of-equity PURE CASH buffer (sacred — it is
+the VIX-35 margin-expansion reserve); sweep idle cash above it into 0-3 month
+Treasuries (SGOV or direct bills — nothing longer, no credit risk). Bills
+remain options collateral (broker haircut applies). Dashboard shows: cash
+buffer %, bills balance, collateral-yield earned MTD/YTD as its own P&L line
+(it is real return; ~+2%/yr on typical idle levels). Rebalance monthly.
