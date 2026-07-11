@@ -1,0 +1,56 @@
+{
+ "SHORT_PUT_ES": {
+  "n": 439,
+  "worst": -15689.0,
+  "p95_loss": -1266.0,
+  "avg": 396.0
+ },
+ "SHORT_PUT_MES": {
+  "n": 439,
+  "worst": -1569.0,
+  "p95_loss": -127.0,
+  "avg": 40.0
+ },
+ "SHORT_PUT_GC": {
+  "n": 277,
+  "worst": -8232.0,
+  "p95_loss": -1150.0,
+  "avg": 143.0
+ },
+ "SHORT_CALL_NG": {
+  "n": 48,
+  "worst": -451.0,
+  "p95_loss": -204.0,
+  "avg": 304.0
+ },
+ "SHORT_CALL_CL": {
+  "n": 32,
+  "worst": -2902.0,
+  "p95_loss": -1114.0,
+  "avg": 126.0
+ },
+ "SHORT_CALL_ZB_candidate": {
+  "n": 33,
+  "worst": -673.0,
+  "p95_loss": -251.0,
+  "avg": 152.0
+ },
+ "SHORT_PUT_STOCK_ungated_class": {
+  "n": 1805,
+  "worst": -17986.0,
+  "p95_loss": -462.0,
+  "avg": 8.0
+ },
+ "LONG_STRADDLE_ref": {
+  "n": 217,
+  "worst": -6522.0,
+  "p95_loss": -2562.0,
+  "avg": 89.0
+ },
+ "LONG_CALL_micro_ES_GC": {
+  "n": 65,
+  "worst": -373.0,
+  "p95_loss": -307.0,
+  "avg": 86.0
+ }
+}
