@@ -237,3 +237,11 @@ Calls: ALL negative (squeeze index — bear rallies don't fade; same physics
 as stock call-selling). Verdict: correlated ~0.9 with ES, pays 1/3 as much,
 tails worse -> every RTY slot is a worse ES slot. Whitelist stays ES/MES.
 Revisit only when capital saturates ES capacity.
+
+## Covered-PEAD final verdict (2026-07-11, split-corrected + benchmarked)
+Beat-arm (buy shares + sell ~30d call D+1 after an earnings BEAT, ~25 DTE to
+expiry): +$639/tr x99 vs +$171 shares-only — the OPTION LEG added +$469/tr
+(post-earnings premium harvest, hedged; NOT beta). Miss-arm: killed (-$172).
+STATUS: PARKED CANDIDATE — capital-heavy ($20-45K/position; fits the $350K
+trend book better than the $50K options account), 5 mega-caps, one era.
+Spread-PEAD remains killed (-$188/tr corrected). Vol-ramp: breakeven, killed.
