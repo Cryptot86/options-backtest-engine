@@ -235,3 +235,18 @@ used only to pick the sizing formula. Two fields, two jobs — direction picks
 the bucket, risk class picks the size.
 Structure enum defaults: SHORT_PUT/SHORT_CALL/PUT_RATIO_1x2/PUT_CREDIT_SPREAD
 -> SELL · LONG_CALL/LONG_STRADDLE -> BUY · LONG_SHARES/COVERED_CALL -> SHARES.
+
+== SUMMARY TABLE SPEC (TJ, 2026-07-11) — the performance roll-up ==
+A summary table grouped BY TRADE TYPE (structure), with a second grouping
+option BY LINE (signal_type). Columns, in this order (matches the backtest
+report format the user reads):
+  trade_type | total_trades | wins | losses | win_% |
+  winning_amount (sum of winners' pnl) | losing_amount (sum of losers') |
+  avg_win | avg_loss | win_loss_ratio (avg_win/|avg_loss|) |
+  total_pnl | worst_loss | avg_days_held
+Plus a TOTAL row across all types. Filters: date range, mode (paper/live),
+symbol, direction. Numbers net of fees, tabular monospace. Open trades are
+EXCLUDED from this table (closed-trade stats only) with a separate one-line
+"open positions: N, unrealized $X" beneath it. This table must visually match
+the backtest reference tables so live-vs-backtest comparison per line is a
+side-by-side read, not an interpretation exercise.
