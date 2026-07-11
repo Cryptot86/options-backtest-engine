@@ -212,3 +212,13 @@ monthly dividends post to a dedicated "collateral yield" P&L line (MTD/YTD);
 sweep/trim actions as portfolio events (not trades) with the VIX band at the
 time; (5) the Today screen surfaces the trim prompt whenever VIX band steps
 up while SGOV BP consumption would block full sell-bucket deployment.
+
+== RISK-CLASS / BUCKET INVARIANT (TJ's catch, 2026-07-11) ==
+There is deliberately NO separate defined-vs-undefined BPR split today because
+the mapping is 1:1: UNDEFINED -> SELL bucket (banded 25/50/60%), DEFINED ->
+BUY (15%), LINEAR -> TREND (15%). The bucket caps ARE the risk-class caps.
+INVARIANT + TRIPWIRE: the rules engine must ASSERT this 1:1 mapping at trade
+creation. If a defined-risk SELLING structure is ever activated (e.g. put
+credit spreads), the assert fires and a sub-limit must be designed first
+(e.g. undefined-risk BPR alone <= the banded cap; defined-selling tracked
+separately) — do not silently mix risk classes inside one bucket.
