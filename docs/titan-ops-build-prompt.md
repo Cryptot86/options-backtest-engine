@@ -222,3 +222,16 @@ creation. If a defined-risk SELLING structure is ever activated (e.g. put
 credit spreads), the assert fires and a sub-limit must be designed first
 (e.g. undefined-risk BPR alone <= the banded cap; defined-selling tracked
 separately) — do not silently mix risk classes inside one bucket.
+
+== EXPLICIT DIRECTION FIELD (TJ, 2026-07-11) ==
+Every structure and every trade row carries an explicit field:
+  trade_direction: SELL (net credit) | BUY (net debit) | SHARES (linear)
+Bucket assignment is DERIVED from this field only — never inferred from the
+structure's name: SELL -> sell bucket (banded), BUY -> buy bucket (15%),
+SHARES -> trend bucket (15%). All bucket meters and capacity checks SUM BY
+trade_direction (sell: sum of BPR; buy: sum of debit; shares: sum of
+notional). risk_class (DEFINED/UNDEFINED/LINEAR) remains a separate field
+used only to pick the sizing formula. Two fields, two jobs — direction picks
+the bucket, risk class picks the size.
+Structure enum defaults: SHORT_PUT/SHORT_CALL/PUT_RATIO_1x2/PUT_CREDIT_SPREAD
+-> SELL · LONG_CALL/LONG_STRADDLE -> BUY · LONG_SHARES/COVERED_CALL -> SHARES.
