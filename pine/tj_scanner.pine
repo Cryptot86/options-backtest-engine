@@ -255,6 +255,8 @@ if showTable and barstate.islast
     table.cell(tb, 0, 11, "VIX dials (live)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 11,
          "VIX " + str.tostring(vix, "#.#") + "  ·  pctile " + str.tostring(vixRank, "#") + "%"
+         + (isEquity ? "  |  name RV " + str.tostring(nRV, "#.#") + " · pct " + str.tostring(nRank, "#")
+         + "% · 5d " + (nSlope > 0 ? "+" : "") + str.tostring(nSlope, "#.#") : "")
          + "  ·  vs RV " + (vix > hv20 ? "+" : "") + str.tostring(vix - hv20, "#.#")
          + "  ·  5d " + (slope5 > 0 ? "+" : "") + str.tostring(slope5, "#.#")
          + (isCL ? "  ·  OVX " + str.tostring(ovx, "#.#") : ""),
