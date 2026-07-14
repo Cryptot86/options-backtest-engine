@@ -98,7 +98,7 @@ needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the g
 nRV    = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
 nRank  = ta.percentrank(nRV, 252)
 nSlope = nRV - nRV[5]
-useNameGate = input.bool(false, "Line 1b: NAME-GATE puts (candidate — enable after paper confidence)")
+useNameGate = input.bool(true, "Line 1b: NAME-GATE puts (candidate — journal separately)")
 nameStorm = useNameGate and isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
 var int ngCount = 0
 if nameStorm and (dip2SD or low5) and (barstate.isconfirmed or barstate.ishistory)
