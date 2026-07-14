@@ -48,6 +48,8 @@ FUT_SPECS = {
     # Treasury curve: 10yr note (most liquid) and 2yr note
     "ZN": {"opt_root": "OZN", "mult": 1_000, "opt_tick_usd": 15.625},
     "ZT": {"opt_root": "OZT", "mult": 2_000, "opt_tick_usd": 15.625},
+    # Silver (COMEX): options root SO, 5000 oz, $0.005 tick = $25
+    "SI": {"opt_root": "SO", "mult": 5_000, "opt_tick_usd": 25.0},
 }
 
 
