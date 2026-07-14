@@ -276,6 +276,8 @@ alertcondition((sellCallSig) and fin, "TJ: SELL CALL (NG/CL)", "2-SD rally in do
 alertcondition((rsiDivSig) and fin, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
 alertcondition((cheapDay and not cheapDay[1]) and fin, "TJ: STRADDLE DAY (vol cheap)",
      "Vol cheap (rank<=30 & IV<realized): buy ATM 40DTE straddle — exits +50%/-40%/21DTE (ES/stocks/CL only, never GC/NG)")
+alertcondition(nameStorm and (dip2SD or low5) and fin, "TJ: NAME-GATE candidate",
+     "VIX flat, but THIS stock's own vol was high and is now falling + dip signal confirmed. VALID ONLY IF chain IV > the name RV in the dials row — check the chain, then enter (journal as name-gate line)")
 alertcondition(timeExit,   "TJ: TIME EXIT (21 DTE)", "Close the short put today — 21 DTE rule")
 alertcondition(breached and not breached[1], "TJ: strike breached",
      "Strike breached — rules: HOLD to 21 DTE, no panic exit (tested: stops doubled losses)")

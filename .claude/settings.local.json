@@ -15,7 +15,8 @@
       "Bash(git commit -q -m 'Pine: MCL/MNG recognized as CL/NG; ACTION row gains call-side verdicts; NG/CL put row says '\\\\''call-selling market'\\\\'' not '\\\\''untested'\\\\'' *)",
       "Bash(git commit -q -m 'Pine: BUY CALL line habitat-gated \\(stocks/ES/GC\\) — no diamonds on CL/NG/other futures *)",
       "Bash(git commit -q -m 'Pine: NAME-GATE prompt in ACTION row \\(2 price lights + displayed RV threshold for the manual 3rd light\\) *)",
-      "Bash(git commit -q -m 'Pine: name-level RV dials visible in dials row on stock charts \\(watch the storm build\\) *)"
+      "Bash(git commit -q -m 'Pine: name-level RV dials visible in dials row on stock charts \\(watch the storm build\\) *)",
+      "Bash(git commit -q -m 'Pine: NAME-GATE alert — name vol high->falling + 2SD/5DL confirmed; manual chain-IV check in message *)"
     ]
   }
 }
