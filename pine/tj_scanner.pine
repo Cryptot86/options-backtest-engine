@@ -92,6 +92,14 @@ validPutMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
 validTrendMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
 needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the gate
+// NAME-GATE pathway (validated 2026-07-14): single-name storm cresting while
+// VIX flat. Two price lights here; 3rd light (chain IV > shown RV) is checked
+// by hand at entry — it removed the -$13K tail in testing.
+nRV    = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
+nRank  = ta.percentrank(nRV, 252)
+nSlope = nRV - nRV[5]
+nameStorm = isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
+
 gateOK     = needGate ? gateGreen : true
 sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5)
 callSignal = useCallLine and freshCross and validTrendMkt
@@ -162,6 +170,9 @@ plotshape((callSignal) and fin, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 plotshape((sellCallSig) and fin, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
+plotshape(nameStorm and (dip2SD or low5) and fin, "NAME-GATE put (check IV)", shape.triangleup,
+     location.belowbar, color.new(color.yellow, 0), size=size.small,
+     text="NAME-GATE\nSELL PUT\n(check IV)", textcolor=color.yellow)
 plotshape((rsiDivSig) and fin, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
      color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
 plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, location.abovebar,
@@ -173,13 +184,6 @@ plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, 
 // "forming" notice — it can vanish by 4pm and is never actionable same-day.
 sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine
 sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
-// NAME-GATE pathway (validated 2026-07-14): single-name storm cresting while
-// VIX flat. Two price lights here; 3rd light (chain IV > shown RV) is checked
-// by hand at entry — it removed the -$13K tail in testing.
-nRV    = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
-nRank  = ta.percentrank(nRV, 252)
-nSlope = nRV - nRV[5]
-nameStorm = isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
 cConf     = sellCallSig[1]
 cForm     = sellCallSig and barstate.isrealtime
 actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse tails. Trade MES." :
