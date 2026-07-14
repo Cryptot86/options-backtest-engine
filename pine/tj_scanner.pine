@@ -170,7 +170,8 @@ plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, 
 // "forming" notice — it can vanish by 4pm and is never actionable same-day.
 sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine
 sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
-actTxt    = not validPutMkt and not isNGCL ? "⛔ NOTHING — untested market" :
+actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse tails. Trade MES." :
+     not validPutMkt and not isNGCL ? "⛔ NOTHING — untested market" :
      iHold and inPos ? "🟦 HOLD your position — no new entries (see POSITION row)" :
      sigConf ? "✅ ACT NOW: sell 16Δ put this morning (signal confirmed at yesterday's close)" :
      sigForm ? "🕐 FORMING today — only real if it holds at 4pm close; then act TOMORROW 9:30" :

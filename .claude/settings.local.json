@@ -9,7 +9,9 @@
       "Bash(awk '/### GC ###/,/### ES ###/' output/futures_suite.log)",
       "Bash(awk '/### ES ###/,0' output/futures_suite.log)",
       "WebSearch",
-      "Skill(artifact-design)"
+      "Skill(artifact-design)",
+      "Bash(python3 -)",
+      "Bash(git commit -q -m 'Pine fix: ACTION row RTY branch actually applied this time \\(prior replace silently missed; asserts added\\) *)"
     ]
   }
 }
