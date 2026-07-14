@@ -11,7 +11,8 @@
       "WebSearch",
       "Skill(artifact-design)",
       "Bash(python3 -)",
-      "Bash(git commit -q -m 'Pine fix: ACTION row RTY branch actually applied this time \\(prior replace silently missed; asserts added\\) *)"
+      "Bash(git commit -q -m 'Pine fix: ACTION row RTY branch actually applied this time \\(prior replace silently missed; asserts added\\) *)",
+      "Bash(git commit -q -m 'Pine: MCL/MNG recognized as CL/NG; ACTION row gains call-side verdicts; NG/CL put row says '\\\\''call-selling market'\\\\'' not '\\\\''untested'\\\\'' *)"
     ]
   }
 }
