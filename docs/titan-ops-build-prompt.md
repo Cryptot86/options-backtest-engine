@@ -250,3 +250,17 @@ EXCLUDED from this table (closed-trade stats only) with a separate one-line
 "open positions: N, unrealized $X" beneath it. This table must visually match
 the backtest reference tables so live-vs-backtest comparison per line is a
 side-by-side read, not an interpretation exercise.
+
+== NAME-GATE LINE (candidate, validated first-pass 2026-07-14) ==
+New entry pathway #1b in the rules engine, signal_type "name_gate_put":
+On days the MARKET VIX gate is CLOSED, a stock put entry (2SD or 5-day-low,
+trend up) is VALID iff the NAME's own dials are green:
+  (a) name 20d realized vol percentile (252d) >= 50   [price-computable]
+  (b) name RV 5-day slope <= 0                        [price-computable]
+  (c) chain IV > the name's RV at entry               [manual/tasty now;
+      native in scanner+app via recorded IV]
+Evidence: 89 trades/8yr, 87% win, +$67/tr, worst -$2,796; light (c) is
+LOAD-BEARING (-$13K tail without it). STATUS: CANDIDATE — journal line tag
+"name_gate", same sizing/exits as the main put line, same dedupe/capacity;
+promote to law after live sample. UI: show name RV dials beside VIX dials on
+every stock; alert on (a)+(b)+signal with the (c) check in the message.
