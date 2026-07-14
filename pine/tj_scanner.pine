@@ -26,7 +26,7 @@ basis = ta.sma(close, 20)
 dev2  = 2.0 * ta.stdev(close, 20)
 bbLower = basis - dev2
 dip2SD  = close <= bbLower and trendUp               // 2-SD dip in uptrend
-low5    = close <= ta.lowest(close, 5) and trendUp   // 5-day low in uptrend
+low5    = close <= ta.lowest(close, 5)[1] and trendUp  // breaks the PRIOR 5-day low (backtest-exact)
 bbUpper = basis + dev2
 // SELL CALL is validated ONLY on NG/CL futures -> symbol-aware: the signal
 // cannot exist on any other chart (no memory required).
@@ -98,7 +98,8 @@ needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the g
 nRV    = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
 nRank  = ta.percentrank(nRV, 252)
 nSlope = nRV - nRV[5]
-nameStorm = isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
+useNameGate = input.bool(false, "Line 1b: NAME-GATE puts (candidate — enable after paper confidence)")
+nameStorm = useNameGate and isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
 var int ngCount = 0
 if nameStorm and (dip2SD or low5) and (barstate.isconfirmed or barstate.ishistory)
     ngCount += 1
@@ -260,7 +261,8 @@ if showTable and barstate.islast
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     slope5 = vix - vix[5]
     table.cell(tb, 0, 12, "NAME-GATE (this chart)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 12, str.tostring(ngCount) + " signals · backtest +$67/tr, 87% — real only if chain IV > RV at entry",
+    table.cell(tb, 1, 12, not useNameGate ? "off — candidate line (Toyota: main gate first); enable in settings" :
+         str.tostring(ngCount) + " signals · backtest 77W/12L (+$67/tr) — real only if chain IV > RV at entry",
          bgcolor=cRow, text_color=color.new(color.yellow, 20))
     table.cell(tb, 0, 11, "VIX dials (live)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 11,
