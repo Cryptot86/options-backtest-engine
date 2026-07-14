@@ -88,10 +88,12 @@ rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stock
 isEquity   = syminfo.type == "stock" or syminfo.type == "dr"
 validPutMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
+validTrendMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
+     or syminfo.root == "GC" or syminfo.root == "MGC"
 needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the gate
 gateOK     = needGate ? gateGreen : true
 sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5)
-callSignal = useCallLine and freshCross
+callSignal = useCallLine and freshCross and validTrendMkt
 sellCallSig = useSellCall and rally2SD    // NG/CL only; IV gate lives in dashboard — verify before entry
 
 volUse = math.max(vix, hv20) / 100.0
@@ -215,7 +217,8 @@ if showTable and barstate.islast
     table.cell(tb, 0, 4, "SELL PUT line",  bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 4, sellState, bgcolor=sellSignal and not inPos ? cOk : cRow, text_color=wht)
     table.cell(tb, 0, 5, "BUY CALL line",  bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 5, callSignal ? "✅ fresh cross — buy tomorrow" : "waiting",
+    table.cell(tb, 1, 5, not validTrendMkt ? "— not licensed here (trend rides: stocks/ES/GC)" :
+         callSignal ? "✅ fresh cross — buy tomorrow" : "waiting",
          bgcolor=callSignal ? cOk : cRow, text_color=wht)
     // POSITION / EXIT DISCIPLINE row
     table.cell(tb, 0, 6, inPos ? "POSITION (day " + str.tostring(daysHeld) + ")" : "Position",
