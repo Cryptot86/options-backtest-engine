@@ -65,6 +65,7 @@ gateGreen = gRich and gPaid and gStable
 ovx      = request.security("CBOE:OVX", "D", close)
 isEq     = syminfo.type == "stock" or syminfo.root == "ES" or syminfo.root == "MES"
 isCL     = syminfo.root == "CL" or syminfo.root == "MCL"
+isRTY    = syminfo.root == "RTY" or syminfo.root == "M2K"
 volIdx   = isCL ? ovx : vix
 volRank  = ta.percentrank(volIdx, 252)
 hvChart  = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100  // chart's own RV
@@ -199,6 +200,7 @@ if showTable and barstate.islast
          bgcolor=trendUp ? cOk : cNo, text_color=wht)
     trig = dip2SD ? "2-SD dip" : low5 ? "5-day low" : ""
     sellState = not useSellLine ? "off" :
+         isRTY ? "⛔ TESTED & REJECTED — 13yr backtest says trade MES instead" :
          not validPutMkt and not isNGCL ? "⛔ UNTESTED MARKET — no playbook, no trade" :
          inPos ? "⛔ position open — skip new signals" :
          sellSignal ? "✅ READY (" + trig + ") — sell tomorrow 9:30" :
