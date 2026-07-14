@@ -99,6 +99,9 @@ nRV    = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
 nRank  = ta.percentrank(nRV, 252)
 nSlope = nRV - nRV[5]
 nameStorm = isEquity and not gateGreen and nRank >= 50 and nSlope <= 0
+var int ngCount = 0
+if nameStorm and (dip2SD or low5) and (barstate.isconfirmed or barstate.ishistory)
+    ngCount += 1
 
 gateOK     = needGate ? gateGreen : true
 sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5)
@@ -202,7 +205,7 @@ actCol    = sigConf and not (iHold and inPos) ? color.new(#0E6B4F, 0) :
      sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
 
 // ============ STATUS TABLE (high-contrast) ============
-var table tb = table.new(position.top_right, 2, 12, border_width=1,
+var table tb = table.new(position.top_right, 2, 13, border_width=1,
      border_color=color.new(color.white, 60))
 if showTable and barstate.islast
     cHdr = color.rgb(103, 58, 183)
@@ -256,6 +259,9 @@ if showTable and barstate.islast
          + (cheapOK ? "  ·  " + str.tostring(stCount) + " signals" : ""),
          bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
     slope5 = vix - vix[5]
+    table.cell(tb, 0, 12, "NAME-GATE (this chart)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 12, str.tostring(ngCount) + " signals · backtest +$67/tr, 87% — real only if chain IV > RV at entry",
+         bgcolor=cRow, text_color=color.new(color.yellow, 20))
     table.cell(tb, 0, 11, "VIX dials (live)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 11,
          "VIX " + str.tostring(vix, "#.#") + "  ·  pctile " + str.tostring(vixRank, "#") + "%"
