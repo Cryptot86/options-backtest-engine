@@ -257,3 +257,8 @@ The IV>RV light is LOAD-BEARING (without it: +$38/tr, worst -$13,248) ->
 delivery = Pine shows 2 price lights + displayed RV; human completes light 3
 on the chain. STATUS: candidate — paper-trade alongside the book; scanner
 implements all 3 lights natively; promote after live sample.
+NAME-GATE sweep addendum (2026-07-14): 3x3 parameter sweep (rank 40/50/60 x
+slope 3/5/7d, IV>RV held) = FULL PLATEAU, all cells +$40..+$106/tr, chosen
+(50,5d) mid-plateau. Time-split both halves positive. Remaining gaps: no true
+OOS (rule designed on full data) + search multiplicity -> candidate until
+~20-30 live/paper entries confirm.

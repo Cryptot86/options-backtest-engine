@@ -18,7 +18,9 @@
       "Bash(git commit -q -m 'Pine: name-level RV dials visible in dials row on stock charts \\(watch the storm build\\) *)",
       "Bash(git commit -q -m 'Pine: NAME-GATE alert — name vol high->falling + 2SD/5DL confirmed; manual chain-IV check in message *)",
       "Bash(git commit -q -m 'Pine: dials row reordered — complete VIX block first, NAME block clearly separated after *)",
-      "Bash(git commit -q -m 'Pine: NAME-GATE paints a yellow triangle on chart \\(like main line, distinct color, IV-check reminder\\) *)"
+      "Bash(git commit -q -m 'Pine: NAME-GATE paints a yellow triangle on chart \\(like main line, distinct color, IV-check reminder\\) *)",
+      "Bash(git commit -q -m 'Pine: nameStorm defined before all uses; yellow NAME-GATE triangle paints on chart *)",
+      "Bash(git commit -q -m 'Pine: separate NAME-GATE footnote row — signal count + backtest stats + IV-check reminder *)"
     ]
   }
 }
