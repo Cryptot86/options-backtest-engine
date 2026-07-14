@@ -45,6 +45,9 @@ FUT_SPECS = {
     "ZB": {"opt_root": "OZB", "mult": 1_000, "opt_tick_usd": 15.625},
     # RTY E-mini Russell 2000: quarterly options root RTO + EOM monthlies RTM
     "RTY": {"opt_root": ["RTO", "RTM"], "mult": 50, "opt_tick_usd": 5.0},
+    # Treasury curve: 10yr note (most liquid) and 2yr note
+    "ZN": {"opt_root": "OZN", "mult": 1_000, "opt_tick_usd": 15.625},
+    "ZT": {"opt_root": "OZT", "mult": 2_000, "opt_tick_usd": 15.625},
 }
 
 
