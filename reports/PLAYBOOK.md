@@ -245,3 +245,15 @@ expiry): +$639/tr x99 vs +$171 shares-only — the OPTION LEG added +$469/tr
 STATUS: PARKED CANDIDATE — capital-heavy ($20-45K/position; fits the $350K
 trend book better than the $50K options account), 5 mega-caps, one era.
 Spread-PEAD remains killed (-$188/tr corrected). Vol-ramp: breakeven, killed.
+
+## NAME-GATE PATHWAY (TJ's hypothesis, tested 2026-07-14) — candidate line
+Single-name vol storm cresting while VIX flat: on VIX-gate-CLOSED days, take
+the dip/5DL signal IF the NAME's own dials are green: RV pctile >= 50 AND RV
+5d slope <= 0 AND (at entry, from the chain) IV > the name's RV.
+Evidence: 89 trades across 8 yrs / 11 of 13 names positive: 87% win, +$67/tr,
+worst -$2,796 — vs the +$9/tr, -$18K wasteland it filters. Max 2 entries/day
+(name storms don't cluster — smooths deal flow between market-gate windows).
+The IV>RV light is LOAD-BEARING (without it: +$38/tr, worst -$13,248) ->
+delivery = Pine shows 2 price lights + displayed RV; human completes light 3
+on the chain. STATUS: candidate — paper-trade alongside the book; scanner
+implements all 3 lights natively; promote after live sample.
