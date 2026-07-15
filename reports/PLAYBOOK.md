@@ -262,3 +262,13 @@ slope 3/5/7d, IV>RV held) = FULL PLATEAU, all cells +$40..+$106/tr, chosen
 (50,5d) mid-plateau. Time-split both halves positive. Remaining gaps: no true
 OOS (rule designed on full data) + search multiplicity -> candidate until
 ~20-30 live/paper entries confirm.
+
+## Treasury curve + silver verdicts (2026-07-14)
+ZN (10yr): REJECTED both sides (puts all negative, IV 5.4% pennies-vs-tails;
+calls n=3 noise). ZT (2yr): REJECTED — avg credit $7, IV 1.6%: no premium
+exists to sell. Treasury family: only ZB 2SD-rally calls remain (paper cand).
+SI (silver): SPLIT — bb_2sd puts CANDIDATE (+$413/tr x35, 89%, worst -$2,651;
+better than GC per-trade, thin n) · five_day_low puts REJECTED (-$57, worst
+-$8.3K: squeeze grinds) · ALL calls REJECTED (worst -$13.7K — squeeze metal).
+First market where the two put entries disagree. SI stays OFF Pine signals;
+bb_2sd entries = manual/journal candidate like ZB calls.

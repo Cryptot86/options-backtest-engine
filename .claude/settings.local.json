@@ -20,7 +20,8 @@
       "Bash(git commit -q -m 'Pine: dials row reordered — complete VIX block first, NAME block clearly separated after *)",
       "Bash(git commit -q -m 'Pine: NAME-GATE paints a yellow triangle on chart \\(like main line, distinct color, IV-check reminder\\) *)",
       "Bash(git commit -q -m 'Pine: nameStorm defined before all uses; yellow NAME-GATE triangle paints on chart *)",
-      "Bash(git commit -q -m 'Pine: separate NAME-GATE footnote row — signal count + backtest stats + IV-check reminder *)"
+      "Bash(git commit -q -m 'Pine: separate NAME-GATE footnote row — signal count + backtest stats + IV-check reminder *)",
+      "Bash(git commit -q -m 'Pine CRITICAL: low5 excluded today'\\\\''s bar \\(backtest-exact\\) — was over-firing since v1; name-gate now opt-in default OFF per Toyota *)"
     ]
   }
 }
