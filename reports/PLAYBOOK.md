@@ -295,3 +295,17 @@ a 3-day buffer (~27d for 45-DTE entries), not the full option life. The
 backtest's clean +$108/tr set was defined on the hold window; the stricter
 full-DTE check was over-conservative. MRVL-class setups (earnings ~40+ days
 out) are eligible via normal tenor.
+
+# FINAL CONFIGURATION v2 (2026-07-15) — the complete book
+30-name equity universe, BOTH stock gates (VIX-gate + name-gate, earnings law
+on hold-window basis), MES puts, NG/CL calls, straddle sleeve, micro long
+calls, T-bill sweep on idle collateral. $50K, 2019-07..2026-06, capacity/
+dedupe/compounding enforced:
+  RAW SIM: $50,000 -> $111,861 | CAGR 12.2% | maxDD -7.0% | MAR 1.75
+  RATE-HONEST (bills ~0-2% pre-2022): ~$104-106K | ~11% | MAR ~1.5-1.6
+Sleeve P&L: T-bills ~$18.0K(raw)/~$11K(honest) > MES $12.4K > NG calls $11.1K
+> straddles $8.1K > EQ name-gate $6.4K > long calls $3.0K > EQ vixgate $2.5K
+> CL calls $0.4K. No sleeve dominant; worst DD -7%. The 30-name universe
+un-crowds the buckets (name-gate ADDS at this width vs displacing at 15).
+Caveats: in-sample majority (OOS = final yr only), sim fills at settlement,
+name-gate still candidate pending live sample.
