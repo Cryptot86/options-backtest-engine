@@ -182,9 +182,9 @@ plotshape((callSignal) and fin, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 plotshape((sellCallSig) and fin, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
-plotshape(nameStorm and (dip2SD or low5) and fin, "NAME-GATE put (check IV)", shape.triangleup,
-     location.belowbar, color.new(color.yellow, 0), size=size.small,
-     text="NAME-GATE\nSELL PUT\n(check IV)", textcolor=color.yellow)
+plotshape(nameStorm and (dip2SD or low5) and fin, "NAME-GATE put (check IV)", shape.circle,
+     location.belowbar, color.new(color.lime, 0), size=size.small,
+     text="NAME-GATE\nSELL PUT\n(check IV)", textcolor=color.lime)
 plotshape((rsiDivSig) and fin, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
      color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
 plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, location.abovebar,
