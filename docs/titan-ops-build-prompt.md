@@ -264,3 +264,18 @@ LOAD-BEARING (-$13K tail without it). STATUS: CANDIDATE — journal line tag
 "name_gate", same sizing/exits as the main put line, same dedupe/capacity;
 promote to law after live sample. UI: show name RV dials beside VIX dials on
 every stock; alert on (a)+(b)+signal with the (c) check in the message.
+
+== FINAL CONFIGURATION v2 (2026-07-15) — reference numbers for the app ==
+Canonical book: 30-name equity universe with BOTH stock gates (VIX-gate +
+NAME-gate 4-light incl. earnings hold-window law) + MES puts + NG/CL calls +
+straddle sleeve + micro long calls + T-bill sweep. Benchmark sim ($50K,
+2019-07..2026-06, compounding, capacity/dedupe enforced):
+  raw (flat 4% bills): $111,861 | CAGR 12.2% | maxDD -7.0% | MAR 1.75
+  rate-honest (historical bill rates): ~$104-106K | ~11% | MAR ~1.5-1.6
+Sleeve P&L order: T-bills > MES > NG calls > straddles > EQ name-gate >
+long calls > EQ vixgate > CL calls — no sleeve dominant. The app's simulator
+must reproduce these (see simulator requirements); dashboards should show
+the -7% maxDD reference line and per-sleeve contribution in this order.
+Compounding model: equity compounds daily (P&L + interest); bucket CAPACITY
+scales with live equity; per-trade SIZE stays 1-lot until the 2% rule
+authorizes more (2nd MES contract ≈ at $157K equity).
