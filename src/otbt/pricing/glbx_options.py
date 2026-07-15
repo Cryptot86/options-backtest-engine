@@ -50,6 +50,10 @@ FUT_SPECS = {
     "ZT": {"opt_root": "OZT", "mult": 2_000, "opt_tick_usd": 15.625},
     # Silver (COMEX): options root SO, 5000 oz, $0.005 tick = $25
     "SI": {"opt_root": "SO", "mult": 5_000, "opt_tick_usd": 25.0},
+    # Grains (CBOT): 5000 bu, quoted cents/bu -> $50 per point(cent); tick 1/8c=$6.25
+    "ZC": {"opt_root": "OZC", "mult": 50, "opt_tick_usd": 6.25},
+    "ZW": {"opt_root": "OZW", "mult": 50, "opt_tick_usd": 6.25},
+    "ZS": {"opt_root": "OZS", "mult": 50, "opt_tick_usd": 6.25},
 }
 
 

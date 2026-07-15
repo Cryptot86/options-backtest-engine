@@ -68,6 +68,7 @@ isCL     = syminfo.root == "CL" or syminfo.root == "MCL"
 isRTY    = syminfo.root == "RTY" or syminfo.root == "M2K"
 isZB     = syminfo.root == "ZB"
 isSI     = syminfo.root == "SI"
+isFX     = syminfo.root == "6E" or syminfo.root == "6B"
 volIdx   = isCL ? ovx : vix
 volRank  = ta.percentrank(volIdx, 252)
 hvChart  = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100  // chart's own RV
@@ -194,6 +195,7 @@ cForm     = sellCallSig and barstate.isrealtime
 actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse tails. Trade MES." :
      isZB ? "⛔ puts TESTED & REJECTED · 2-SD-rally CALLS = paper candidate (journal only)" :
      isSI ? "⛔ 5DL & calls REJECTED · bb_2sd puts = paper candidate (+$413/tr x35, journal only)" :
+     isFX ? "⛔ TESTED: marginal (tiny credits/tails, ~flat) — not licensed; an MES slot pays more" :
      isNGCL and cConf ? "✅ ACT NOW: sell 16Δ CALL this morning (2-SD rally confirmed at yesterday's close)" :
      isNGCL and cForm ? "🕐 CALL signal FORMING — real only if it holds at the close; then act tomorrow" :
      isNGCL ? "⬜ NOTHING today — call-side market, wait for a 2-SD rally in the downtrend" :
