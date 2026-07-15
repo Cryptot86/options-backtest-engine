@@ -103,7 +103,9 @@ nSlope = nRV - nRV[5]
 useNameGate = input.bool(true, "Line 1b: NAME-GATE puts (candidate — journal separately)")
 // light 4 automated from TradingView earnings data (na -> verify manually)
 earnT   = earnings.future_time
-earnIn  = not na(earnT) and earnT >= time and (earnT - time) <= dteDays * 86400000
+// tested basis: only the HOLD matters (exit at 21 DTE) -> horizon = DTE-21 (+3d buffer)
+earnHzn = (dteDays - 21 + 3) * 86400000
+earnIn  = not na(earnT) and earnT >= time and (earnT - time) <= earnHzn
 earnUnk = na(earnT)
 nameStorm = useNameGate and isEquity and not gateGreen and nRank >= 50 and nSlope <= 0 and not earnIn
 var int ngCount = 0

@@ -289,3 +289,9 @@ inflates chain IV above RV — light 3 turns green FOR A POISONED REASON; the
 "overpayment" is binary-event pricing, not fading-storm mispricing. The
 crush arrives only after the gap has had its chance. Therefore the earnings
 check OUTRANKS the IV check: earnings in window = NO, even at fat IV.
+Earnings-window refinement (TJ decision 2026-07-15): the enforced horizon is
+the TESTED basis — earnings blocked only within the HOLD window (DTE-21) plus
+a 3-day buffer (~27d for 45-DTE entries), not the full option life. The
+backtest's clean +$108/tr set was defined on the hold window; the stricter
+full-DTE check was over-conservative. MRVL-class setups (earnings ~40+ days
+out) are eligible via normal tenor.

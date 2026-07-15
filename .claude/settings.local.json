@@ -21,7 +21,10 @@
       "Bash(git commit -q -m 'Pine: NAME-GATE paints a yellow triangle on chart \\(like main line, distinct color, IV-check reminder\\) *)",
       "Bash(git commit -q -m 'Pine: nameStorm defined before all uses; yellow NAME-GATE triangle paints on chart *)",
       "Bash(git commit -q -m 'Pine: separate NAME-GATE footnote row — signal count + backtest stats + IV-check reminder *)",
-      "Bash(git commit -q -m 'Pine CRITICAL: low5 excluded today'\\\\''s bar \\(backtest-exact\\) — was over-firing since v1; name-gate now opt-in default OFF per Toyota *)"
+      "Bash(git commit -q -m 'Pine CRITICAL: low5 excluded today'\\\\''s bar \\(backtest-exact\\) — was over-firing since v1; name-gate now opt-in default OFF per Toyota *)",
+      "Bash(git commit -q -m 'Pine: earnings light automated via earnings.future_time — NAME gate = 3 dots, only chain-IV check left to human *)",
+      "Bash(cat)",
+      "Bash(git commit -q -m 'Earnings horizon = tested hold-window basis \\(DTE-21+3d\\) — TJ'\\\\''s precision question; MRVL-class setups eligible *)"
     ]
   }
 }
