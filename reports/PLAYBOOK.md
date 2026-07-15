@@ -309,3 +309,13 @@ Sleeve P&L: T-bills ~$18.0K(raw)/~$11K(honest) > MES $12.4K > NG calls $11.1K
 un-crowds the buckets (name-gate ADDS at this width vs displacing at 15).
 Caveats: in-sample majority (OOS = final yr only), sim fills at settlement,
 name-gate still candidate pending live sample.
+
+## SIZE-STEPS VALIDATED AT SCALE (2026-07-15)
+$150K sim, qty = clamp(floor(2% x equity / line worst-loss anchor), 1, 3):
+$313,741 | CAGR 11.1% | maxDD -3.2% | MAR 3.44 — vs 1-lot $242K/7.1%/-2.2%/
+3.15. Drawdown rises slightly, return rises faster -> MAR IMPROVES. The rule
+sizes intelligently: NG calls 3 lots (worst -$451), MES 2 (-$1,569), stock
+puts STAY 1 (anchor -$4,520; 2nd contract only at ~$226K equity). 2% max-loss
+applies to EVERY position (not just stocks); anchors = backtest worst per
+line (docs/worst-loss-reference.json); Tom's 5-7% outer bound stands behind;
+concentration cap 3 lots until live data blesses more.
