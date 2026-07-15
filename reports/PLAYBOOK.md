@@ -280,3 +280,12 @@ trades were net losers (-$119/tr x16) holding ALL the line's tail; clean line
 = 73 trades, 88%, +$108/tr, worst -$843 — per-trade the strongest equity line
 in the book. RULE CONFIRMED: no entry with earnings inside the DTE window
 (and name-gate stats updated to the clean basis).
+Earnings-rule addendum (2026-07-15): the filter RAISES TOTAL profit, not just
+per-trade — the 16 earnings-held trades were collectively -$1,904, so the
+clean book keeps MORE dollars (~$7,850 vs $5,946) with the tail cut 3x
+(-$2,796 -> -$843). Scope: pooled across all 15 names 2019-2026, not
+name-specific. MECHANISM (live QCOM specimen): pre-earnings event premium
+inflates chain IV above RV — light 3 turns green FOR A POISONED REASON; the
+"overpayment" is binary-event pricing, not fading-storm mispricing. The
+crush arrives only after the gap has had its chance. Therefore the earnings
+check OUTRANKS the IV check: earnings in window = NO, even at fat IV.
