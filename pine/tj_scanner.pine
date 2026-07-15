@@ -266,7 +266,7 @@ if showTable and barstate.islast
     slope5 = vix - vix[5]
     table.cell(tb, 0, 12, "NAME-GATE (this chart)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 12, not useNameGate ? "off — candidate line (Toyota: main gate first); enable in settings" :
-         str.tostring(ngCount) + " signals · backtest 77W/12L (+$67/tr) — real only if chain IV > RV at entry",
+         str.tostring(ngCount) + " signals · backtest 64W/9L (+$108/tr, no-earnings) — needs chain IV > RV + no earnings in window",
          bgcolor=cRow, text_color=color.new(color.yellow, 20))
     table.cell(tb, 0, 11, "VIX dials (live)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 11,

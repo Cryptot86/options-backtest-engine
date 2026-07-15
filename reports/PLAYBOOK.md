@@ -272,3 +272,11 @@ better than GC per-trade, thin n) · five_day_low puts REJECTED (-$57, worst
 -$8.3K: squeeze grinds) · ALL calls REJECTED (worst -$13.7K — squeeze metal).
 First market where the two put entries disagree. SI stays OFF Pine signals;
 bb_2sd entries = manual/journal candidate like ZB calls.
+
+## EARNINGS RULE: doctrine -> MEASURED LAW (tested 2026-07-15)
+The backtest never enforced no-earnings-holds; splitting by it: VIX-gate book
+held through earnings ZERO times (naturally clean). NAME-GATE: earnings-held
+trades were net losers (-$119/tr x16) holding ALL the line's tail; clean line
+= 73 trades, 88%, +$108/tr, worst -$843 — per-trade the strongest equity line
+in the book. RULE CONFIRMED: no entry with earnings inside the DTE window
+(and name-gate stats updated to the clean basis).
