@@ -279,3 +279,17 @@ the -7% maxDD reference line and per-sleeve contribution in this order.
 Compounding model: equity compounds daily (P&L + interest); bucket CAPACITY
 scales with live equity; per-trade SIZE stays 1-lot until the 2% rule
 authorizes more (2nd MES contract ≈ at $157K equity).
+
+== VRP INSTRUMENTATION (adopted 2026-07-17; from TJ's builder-session idea) ==
+Every options trade row stores THREE vol numbers: forecast_rv (our RV20 at
+entry — the naive comparator, deliberately), chain_iv (the traded option's IV
+at entry), realized_after (annualized realized vol over the actual hold —
+auto-computed at exit). Analytics gains a VRP report: avg(chain_iv −
+realized_after) per line = the harvested premium, and forecast-vs-actual
+error. IMPORTANT CONTEXT FOR THE BUILDER: do NOT build an RV-forecast gating
+engine — the research system tested EWMA/GARCH-style and horizon-matched
+forecasts as filters and they UNDERPERFORMED the naive RV20 comparator
+(+$64/tr 86% vs +$49/81%): the naive bar's post-storm upward bias is a
+conservatism feature. The validated rules in this spec already implement the
+Sinclair IV-vs-RV discipline; forecasting modules are display/telemetry only,
+never gates, unless a future test with receipts says otherwise.

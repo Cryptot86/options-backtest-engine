@@ -328,3 +328,9 @@ resurrect globally). NQ CALLS: BANNED — five_day_high_call -$1,266/tr, worst
 -$43,171 = worst result in project history (momentum index squeezes).
 HG (copper): REJECTED both sides (5dl -$71 worst -$16K; calls negative).
 Registry now covers every liquid CME/CBOT/COMEX/NYMEX market TJ charts.
+Forecast-upgrade test (2026-07-17, Sinclair question): EWMA(0.94) is the more
+ACCURATE RV forecaster (err .123 vs .136) yet a WORSE trading filter (+$49/81%
+vs naive RV20's +$64/86%) — RV20's post-storm upward bias = a stricter,
+conservative bar that selects only deeply-overpaid entries. Light 3 stays
+naive by evidence. Adopted: 3-number VRP instrumentation per trade
+(forecast_rv / chain_iv / realized_after).
