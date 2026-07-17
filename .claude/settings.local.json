@@ -25,7 +25,8 @@
       "Bash(git commit -q -m 'Pine: earnings light automated via earnings.future_time — NAME gate = 3 dots, only chain-IV check left to human *)",
       "Bash(cat)",
       "Bash(git commit -q -m 'Earnings horizon = tested hold-window basis \\(DTE-21+3d\\) — TJ'\\\\''s precision question; MRVL-class setups eligible *)",
-      "Bash(git commit -q -m 'Pine: name-gate mark = green dot per TJ \\(he always checks IV; circle keeps it distinct from main-line triangles\\) *)"
+      "Bash(git commit -q -m 'Pine: name-gate mark = green dot per TJ \\(he always checks IV; circle keeps it distinct from main-line triangles\\) *)",
+      "WebFetch(domain:www.ivolatility.com)"
     ]
   }
 }

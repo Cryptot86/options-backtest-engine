@@ -319,3 +319,12 @@ puts STAY 1 (anchor -$4,520; 2nd contract only at ~$226K equity). 2% max-loss
 applies to EVERY position (not just stocks); anchors = backtest worst per
 line (docs/worst-loss-reference.json); Tom's 5-7% outer bound stands behind;
 concentration cap 3 lots until live data blesses more.
+
+## NQ + HG verdicts — the futures map is COMPLETE (2026-07-17)
+NQ PUTS LICENSED (MNQ micro): five_day_low +$498x340 (84%), bb_2sd +$544x65
+(91%) — richest put market tested; MNQ worst ~-$2,253 (sizing anchor). NQ
+bb_20sma +$580x120 = NQ-specific candidate (line dead elsewhere; don't
+resurrect globally). NQ CALLS: BANNED — five_day_high_call -$1,266/tr, worst
+-$43,171 = worst result in project history (momentum index squeezes).
+HG (copper): REJECTED both sides (5dl -$71 worst -$16K; calls negative).
+Registry now covers every liquid CME/CBOT/COMEX/NYMEX market TJ charts.

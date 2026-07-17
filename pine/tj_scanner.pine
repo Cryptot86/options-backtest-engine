@@ -91,6 +91,7 @@ rsiDivSig = useRsiDiv and rsiDivRaw and gateGreen and isStock   // line 5 (stock
 isEquity   = syminfo.type == "stock" or syminfo.type == "dr"
 validPutMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
+     or syminfo.root == "NQ" or syminfo.root == "MNQ"
 validTrendMkt = isEquity or syminfo.root == "ES" or syminfo.root == "MES"
      or syminfo.root == "GC" or syminfo.root == "MGC"
 needGate   = isEquity        // ALL equity-likes (stocks AND ADRs) require the gate
@@ -202,6 +203,7 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
      isZB ? "⛔ puts TESTED & REJECTED · 2-SD-rally CALLS = paper candidate (journal only)" :
      isSI ? "⛔ 5DL & calls REJECTED · bb_2sd puts = paper candidate (+$413/tr x35, journal only)" :
      isFX ? "⛔ TESTED: marginal (tiny credits/tails, ~flat) — not licensed; an MES slot pays more" :
+     syminfo.root == "HG" or syminfo.root == "MHG" ? "⛔ TESTED & REJECTED (copper: 5DL puts -$71/tr, calls toxic)" :
      isNGCL and cConf ? "✅ ACT NOW: sell 16Δ CALL this morning (2-SD rally confirmed at yesterday's close)" :
      isNGCL and cForm ? "🕐 CALL signal FORMING — real only if it holds at the close; then act tomorrow" :
      isNGCL ? "⬜ NOTHING today — call-side market, wait for a 2-SD rally in the downtrend" :

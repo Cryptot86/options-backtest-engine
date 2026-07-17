@@ -52,5 +52,17 @@
   "worst": -373.0,
   "p95_loss": -307.0,
   "avg": 86.0
+ },
+ "SHORT_PUT_NQ_full": {
+  "n": 405,
+  "worst": -22526.0,
+  "p95_loss": -7130.0,
+  "avg": 510.0
+ },
+ "SHORT_PUT_MNQ_micro": {
+  "n": 405,
+  "worst": -2253.0,
+  "p95_loss": -713.0,
+  "avg": 51.0
  }
 }
