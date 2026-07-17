@@ -334,3 +334,12 @@ vs naive RV20's +$64/86%) — RV20's post-storm upward bias = a stricter,
 conservative bar that selects only deeply-overpaid entries. Light 3 stays
 naive by evidence. Adopted: 3-number VRP instrumentation per trade
 (forecast_rv / chain_iv / realized_after).
+
+## TREND-EXIT SWEEP CLOSED (2026-07-18): 10x100 = law, moated both sides
+Faster exits (10x50, ATR trails 3-8x): killed — whipsaws amputate monsters
+(trailing 3xATR earns 1/4 of base). Slower (10x150/200): shine ONLY in a
+survivor momo universe (+7,840% artifact); on the neutral 31-name universe
+10x100 wins (+8.3%/ride, SUM 5,319% vs 7.0-7.5%) with the shallowest worst
+ride. Parabolic/retest call-sell triggers: killed (retests = continuation,
+fwd +8.2% vs +4.0%). Elliott Wave: rejected untestable. TJ's lived exit
+choice re-validated with 851 rides of receipts.
