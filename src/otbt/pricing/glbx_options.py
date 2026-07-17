@@ -54,6 +54,10 @@ FUT_SPECS = {
     "ZC": {"opt_root": "OZC", "mult": 50, "opt_tick_usd": 6.25},
     "ZW": {"opt_root": "OZW", "mult": 50, "opt_tick_usd": 6.25},
     "ZS": {"opt_root": "OZS", "mult": 50, "opt_tick_usd": 6.25},
+    # NQ: quarterlies root NQ + end-of-month QNE (same survivorship fix as ES/EW)
+    "NQ": {"opt_root": ["NQ", "QNE"], "mult": 20, "opt_tick_usd": 5.0},
+    # Copper (COMEX): options root HX
+    "HG": {"opt_root": "HXE", "mult": 25_000, "opt_tick_usd": 12.5},
 }
 
 
