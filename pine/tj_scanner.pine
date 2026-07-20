@@ -13,6 +13,7 @@ iHold        = input.bool(false, "☑ I HAVE an open position (track it)")
 iStrad       = input.bool(false, "☑ I hold a STRADDLE here (show exit card)")
 stradDebit   = input.float(0.0, "  straddle debit paid (per share/point)", minval=0)
 stradExpiry  = input.time(timestamp("2026-12-18"), "  straddle expiry date")
+lastChainIV  = input.float(0.0, "Chain IV you last saw (0=off) — enables convergence countdown", minval=0)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
 armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
 
@@ -109,6 +110,20 @@ earnHzn = (dteDays - 21 + 3) * 86400000
 earnIn  = not na(earnT) and earnT >= time and (earnT - time) <= earnHzn
 earnUnk = na(earnT)
 nameStorm = useNameGate and isEquity and not gateGreen and nRank >= 50 and nSlope <= 0 and not earnIn
+// CONVERGENCE COUNTDOWN: RV20's window still holds the storm; each calm day
+// evicts one storm day on a knowable schedule. Given the user's last chain IV,
+// project the session where decaying RV crosses under it (calm assumed).
+r2   = math.pow(math.log(close/close[1]), 2)
+qd   = math.pow(lastChainIV/100/math.sqrt(252), 2)   // future days at the IV's own calm rate
+convK = -1
+if lastChainIV > 0 and nRV > lastChainIV
+    for k = 1 to 10
+        rem = 0.0
+        for i = 0 to 19 - k
+            rem := rem + r2[i]
+        proj = math.sqrt((rem + k*qd)/20) * math.sqrt(252) * 100
+        if proj < lastChainIV and convK < 0
+            convK := k
 var int ngCount = 0
 if nameStorm and (dip2SD or low5) and (barstate.isconfirmed or barstate.ishistory)
     ngCount += 1
@@ -241,6 +256,9 @@ if showTable and barstate.islast
     table.cell(tb, 1, 3, not isEquity ? "—" :
          (ng1 ? "🟢" : "🔴") + (ng2 ? "🟢" : "🔴") + (earnIn ? "🔴" : earnUnk ? "⚪" : "🟢") +
          (earnIn ? "  earnings in window — BLOCKED" :
+          ng1 and ng2 and lastChainIV > 0 and nRV > lastChainIV and convK > 0 ?
+          "  CONVERGING — IV " + str.tostring(lastChainIV, "#.#") + " < RV; entry likely in ~" +
+          str.tostring(convK) + " calm session(s)" :
           ng1 and ng2 ? "  OPEN — one check left: chain IV > " + str.tostring(nRV, "#.#") + "% → open the trade"
           + (earnUnk ? " (⚪ verify earnings)" : "")
           : ng1 ? "  storm still building — wait" : "  quiet — no storm to sell"),
