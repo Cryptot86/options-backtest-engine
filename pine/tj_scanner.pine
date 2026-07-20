@@ -198,9 +198,12 @@ plotshape((callSignal) and fin, "BUY CALL", shape.diamond, location.belowbar,
      color.new(color.aqua, 0), size=size.small, text="BUY CALL", textcolor=color.aqua)
 plotshape((sellCallSig) and fin, "SELL CALL (NG/CL)", shape.triangledown, location.abovebar,
      color.new(color.red, 0), size=size.small, text="SELL CALL\n(check IV gate)", textcolor=color.red)
-plotshape(nameStorm and (dip2SD or low5) and fin, "NAME-GATE put (check IV)", shape.circle,
+plotshape(nameStorm and dip2SD and fin, "NAME-GATE 2SD put (check IV)", shape.circle,
      location.belowbar, color.new(color.lime, 0), size=size.small,
-     text="NAME-GATE\nSELL PUT\n(check IV)", textcolor=color.lime)
+     text="NAME-GATE 2SD\nSELL PUT (check IV)", textcolor=color.lime)
+plotshape(nameStorm and low5 and not dip2SD and fin, "NAME-GATE 5DL put (check IV)", shape.circle,
+     location.belowbar, color.new(color.lime, 0), size=size.small,
+     text="NAME-GATE 5DL\nSELL PUT (check IV)", textcolor=color.lime)
 plotshape((rsiDivSig) and fin, "RSI DIV put (bonus)", shape.labelup, location.belowbar,
      color.new(color.fuchsia, 0), size=size.tiny, text="RSI DIV\nSELL PUT", textcolor=color.white)
 plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, location.abovebar,
@@ -226,7 +229,7 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
      iHold and inPos ? "🟦 HOLD your position — no new entries (see POSITION row)" :
      sigConf ? "✅ ACT NOW: sell 16Δ put this morning (signal confirmed at yesterday's close)" :
      sigForm ? "🕐 FORMING today — only real if it holds at 4pm close; then act TOMORROW 9:30" :
-     nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE ready — ONE check: chain IV > "
+     nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE " + (dip2SD[1] ? "2SD" : "5DL") + " ready — ONE check: chain IV > "
          + str.tostring(nRV, "#.#") + "% → open (earnings already cleared)" :
      "⬜ NOTHING today — wait"
 actCol    = sigConf and not (iHold and inPos) ? color.new(#0E6B4F, 0) :
