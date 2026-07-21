@@ -343,3 +343,11 @@ survivor momo universe (+7,840% artifact); on the neutral 31-name universe
 ride. Parabolic/retest call-sell triggers: killed (retests = continuation,
 fwd +8.2% vs +4.0%). Elliott Wave: rejected untestable. TJ's lived exit
 choice re-validated with 851 rides of receipts.
+
+## Time-conditional TP tested (2026-07-21): 50% law re-moated
+TJ's hypothesis "bank 40% if hit within 5 days" vs flat-50: fast-40 costs
+-$50/tr (-$26,813 over 542 ES trades, 13yr); flat-40 costs -$71/tr. Worst
+case IDENTICAL across all three (third confirmation: targets never touch
+tails). Win% rises as you bank earlier (comfort signature) while money falls.
+Hold-leg 40->50 = positive-EV; retrace fear overpriced. Velocity/recycling
+counter-argument quantified and insufficient. Exit law stays 50%/21DTE.
