@@ -360,3 +360,8 @@ exactly during clustered same-regime bursts = the most redundant trades).
 Raising caps buys more of the same bet, not more edge. Bands stay 25/50/60.
 (Also: fast-40+recycling sim: skipped=0 on MES line — nothing to recycle
 into; -$2,681 pure deficit. Exit law 50%/21 final.)
+EGARCH(1,1) tested as light-3 comparator (2026-07-21, TJ's pre-set kill bar =
+filter P&L vs naive): FAILED — +$45/tr on 145 trades vs naive's +$67 on 89
+(model discounts the spent storm -> lower bar -> marginal admits). Forecast
+trilogy complete: EWMA, RV45, EGARCH all lose to naive RV20. The comparator
+is SETTLED LAW: the naive bar's storm-memory is the filter.
