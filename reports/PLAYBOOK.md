@@ -351,3 +351,12 @@ case IDENTICAL across all three (third confirmation: targets never touch
 tails). Win% rises as you bank earlier (comfort signature) while money falls.
 Hold-leg 40->50 = positive-EV; retrace fear overpriced. Velocity/recycling
 counter-argument quantified and insufficient. Exit law stays 50%/21DTE.
+
+## Calm-band re-sweep on modern book (2026-07-21): 25% re-confirmed
+25/35/45% calm caps on the v2 sell book: 25% wins ALL metrics ($99.7K, MAR
+1.52 vs 1.31/1.39). KEY INSIGHT: 35% took 17 MORE trades and made $4K LESS —
+capacity scarcity acts as an implicit CORRELATION FILTER (skips arrive
+exactly during clustered same-regime bursts = the most redundant trades).
+Raising caps buys more of the same bet, not more edge. Bands stay 25/50/60.
+(Also: fast-40+recycling sim: skipped=0 on MES line — nothing to recycle
+into; -$2,681 pure deficit. Exit law 50%/21 final.)
