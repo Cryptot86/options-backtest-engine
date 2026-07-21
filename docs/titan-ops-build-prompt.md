@@ -293,3 +293,14 @@ forecasts as filters and they UNDERPERFORMED the naive RV20 comparator
 conservatism feature. The validated rules in this spec already implement the
 Sinclair IV-vs-RV discipline; forecasting modules are display/telemetry only,
 never gates, unless a future test with receipts says otherwise.
+
+== GREEKS LEDGER (position cards, adopted from Sinclair's format 2026-07-22) ==
+Every open option position's card shows the daily ledger: Delta, Gamma,
+Theta, Vega (computed via BSM from spot/strike/DTE/IV — the research repo's
+pricing module is the reference implementation), capital haircut (BPR), Daily
+P&L, Total P&L — the exact table from Volatility Trading's AAPL case study.
+Portfolio view aggregates the same greeks across positions (net delta/theta/
+vega of the whole book) so the user sees, in one row, how directional and how
+short-vol the book currently is. Display only — NO hedging automation; the
+system's edge is path+skew and deliberately unhedged (receipt: name-level
+VRP measured at +0.7pt; hedging would isolate ~nothing).
