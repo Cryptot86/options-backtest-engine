@@ -29,7 +29,7 @@ population; kill bar: per-BPR efficiency must beat naked by >=3x with
 per-trade >= $50. Pre-registered: licensed only as capacity variant.
 
 ## Study 5 — pure VRP-gap indicator (TJ, 2026-07-22)
-Entries: gap = chainIV - RV20 >= {5,10,15} pts, variants {alone, +trend,
+UNIVERSE: the FULL 35-stock list (TJ 2026-07-22). Entries: gap = chainIV - RV20 >= {5,10,15} pts, variants {alone, +trend,
 +storm lights, +earnings filter}; structure fixed (16d put, 50%/21DTE,
 dedupe). Benchmark: name-gate clean (+$108/tr, worst -$843).
 KILL BAR (pre-set): >= +$60/tr AND worst <= -$1,500 AND materially
@@ -39,3 +39,12 @@ tail; gap+lights collapses into name-gate.
 ## Study 6 — VRP harvested per line (bookkeeping)
 With real IV series: recompute chainIV-vs-realized-after for every
 historical line incl. futures (is MES true VRP? measured, not assumed).
+
+## Study 7 — pre-earnings vol-ramp, broad-universe retest (TJ, 2026-07-22)
+Sinclair's straddle-10-days-before-earnings (Vol Trading fig 5.8-5.9): our
+5-mega-cap test matched his 43-44% win rate but missed the fat tail (killed
+at -$25/tr). Retest on the FULL 35-stock universe (more lottery tickets,
+2019-2026): buy front-month-ish straddle ~10d before earnings, sell close
+before announcement, $10K notional normalization.
+KILL BAR (pre-set): >= +$40/tr pooled after costs across the 35; else the
+grave gets its second date. Pre-registered: dies again — the tail is arbed.
