@@ -72,7 +72,9 @@ def price_one(sym: str, sig, ivdf: pd.DataFrame) -> dict | None:
     entry = pd.Timestamp(sig["date"])
     if entry not in ivdf.index:
         return None
-    spot = float(ivdf.loc[entry, "spot"])          # unadjusted (matches listed strikes)
+    # UNADJUSTED spot — the basis listed strikes live on (ivx 'spot' is adjusted)
+    col = "spot_unadj" if "spot_unadj" in ivdf.columns else "spot"
+    spot = float(ivdf.loc[entry, col])
     ivv = float(ivdf.loc[entry, "iv45"])
     sel = iv.select_16d_put(sym, entry.strftime("%Y-%m-%d"), spot, ivv,
                             dte_target=TRADE.dte_target,

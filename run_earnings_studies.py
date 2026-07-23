@@ -61,7 +61,11 @@ def straddle_event(sym: str, ivdf: pd.DataFrame, ann, tod: str) -> dict | None:
         return None
     exit_day = before[-1]
     entry = before[-11]                       # ~10 trading days earlier
-    spot_e = float(ivdf.loc[entry, "spot"])
+    # UNADJUSTED spot for strike selection + notional (listed strikes are
+    # as-traded; ivx 'spot' is split-adjusted — the bug that faked Study 7's
+    # first pass). ADJUSTED spot only for the gap RETURN (split-continuous).
+    scol = "spot_unadj" if "spot_unadj" in ivdf.columns else "spot"
+    spot_e = float(ivdf.loc[entry, scol])
     # front-month-ish: contracts listed at entry, expiring just after the event
     c = iv.list_contracts(sym, entry.strftime("%Y-%m-%d"),
                           exit_day.strftime("%Y-%m-%d"),
@@ -92,10 +96,12 @@ def straddle_event(sym: str, ivdf: pd.DataFrame, ann, tod: str) -> dict | None:
         return None
     scale = 10_000.0 / (spot_e * 100)                       # $10K notional
     pnl = ((marks_x - marks_e) * 100 - COSTS_RT) * scale
-    # study 3a: implied vs realized move around the announcement
+    # study 3a: implied move on the UNADJUSTED basis (straddle$/as-traded spot);
+    # realized gap on the ADJUSTED series (split-continuous returns)
     after = idx[idx > exit_day]
-    spot_x = float(ivdf.loc[exit_day, "spot"])
-    realized = abs(float(ivdf.loc[after[0], "spot"]) / spot_x - 1) if len(after) else np.nan
+    spot_x = float(ivdf.loc[exit_day, scol])
+    adj_x = float(ivdf.loc[exit_day, "spot"])
+    realized = abs(float(ivdf.loc[after[0], "spot"]) / adj_x - 1) if len(after) else np.nan
     return dict(symbol=sym, ann=A.date(), entry=entry.date(), exit=exit_day.date(),
                 strike=float(K), debit=marks_e, exit_val=marks_x, pnl_10k=round(pnl, 1),
                 impl_move=marks_x / spot_x, real_move=realized)

@@ -91,15 +91,24 @@ def build(symbol: str, start: str, end: str) -> pd.DataFrame:
         "iv30_put": _col(ivx, "30d iv put"),
     })
 
-    # 2. RV20 from split-adjusted stock close (yearly chunks) — the realized side
+    # 2. stock prices (yearly chunks): RV20 from ADJUSTED close (split-continuous
+    # returns) + the UNADJUSTED close = the as-traded basis that listed option
+    # strikes live on. NOTE: IVX 'price' and stock 'close' are both split-
+    # ADJUSTED (verified 2026-07-23: TSLA 2019 15.93 vs unadjusted 238.92) —
+    # strike selection MUST use spot_unadj, never spot.
     px = _pull_all(iv.stock_ohlc, symbol, start, end)
     if not px.empty:
         close = pd.to_numeric(px["close"], errors="coerce")     # adjusted (split-continuous)
         logret = np.log(close / close.shift(1))
         rv20 = logret.rolling(20).std() * np.sqrt(252)
         frame["rv20"] = rv20.reindex(frame.index)
+        if "unadjusted_close" in px.columns:
+            frame["spot_unadj"] = pd.to_numeric(px["unadjusted_close"],
+                                                errors="coerce").reindex(frame.index)
     else:
         frame["rv20"] = np.nan
+    if "spot_unadj" not in frame.columns:
+        frame["spot_unadj"] = frame["spot"]                     # no-split fallback
 
     # 3. derived dials (the pending-study instruments)
     frame["vrp_pts"] = (frame["iv45"] - frame["rv20"]) * 100          # Study 5
