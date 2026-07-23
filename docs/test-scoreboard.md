@@ -21,9 +21,14 @@ is mandatory before any verdict is read.*
 ## 🔄 In flight
 | item | status |
 |---|---|
-| Study 7 — pre-earnings straddle (buy D-10, sell pre-announcement) | clean re-run running; kill bar ≥+$40/tr pooled; pre-reg: dies |
-| Study 3a — implied vs realized move, calm half | same run; decides whether 3b (condor) may exist |
-| 35-name gated backtest RE-RUN on fixed basis | queued next — absolute $ not quotable until done |
+| 35-name gated backtest RE-RUN on fixed basis | RUNNING — absolute $ not quotable until done |
+| Study 5 — VRP-gap full run | chained after the re-run (~5.5h) |
+
+## ⚰️ Closed 2026-07-23 (clean basis)
+| item | verdict |
+|---|---|
+| **Study 7 — pre-earnings straddle** | **BURIED (2nd time), as pre-registered.** Clean run, 1,005 events, 98% coverage: +$26.6/tr pooled — below the +$40 bar. Win 39.5%, median −$52 (theta), tail real but thin (top-5 = 46%, ex-top5 +$14/tr). The ramp exists; after costs it doesn't pay enough. |
+| **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
 1. **35-name gated re-run** (restores quotable numbers)
@@ -37,7 +42,7 @@ is mandatory before any verdict is read.*
 4. **Study 2 — slope as 5th light (increment)** — does slope5 ADDED to the
    4-light name-gate improve $/tr or tail? Nearly free (filter analysis).
 5. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
-6. **Study 3b — earnings condor** — CONDITIONAL on 3a premise surviving
+6. **Study 3b — earnings condor** — UNLOCKED (3a premise survived 2026-07-23)
 7. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
 8. **#1 Term-structure carry gate** — term_pts column ready
