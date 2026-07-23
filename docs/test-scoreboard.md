@@ -18,11 +18,16 @@ is mandatory before any verdict is read.*
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 
-## 🔄 In flight
-| item | status |
-|---|---|
-| 35-name gated backtest RE-RUN on fixed basis | RUNNING — absolute $ not quotable until done |
-| Study 5 — VRP-gap full run | chained after the re-run (~5.5h) |
+## 🔄 In flight (chained overnight 2026-07-23→24; each starts when the prior ends)
+| # | job | what it answers | log to check | ETA |
+|---|---|---|---|---|
+| 1 | 35-name gated RE-RUN (fixed split basis) | restores the quotable gate numbers ($9→$79/tr claim re-verified); recovers the bug's silent skips (e.g. GOOGL 5DL 86→111 trades) | `reports/gated_rerun_fixed.log` | ~4-5 h |
+| 2 | Study 5 — VRP-gap indicator (TJ's ask) | is forecasted-vs-realized IV gap a tradeable entry? per-stock $ tables, kill bar ≥+$60/tr & worst ≥−$1,500 & non-overlapping | `reports/vrp_gap.log` | +~5.5 h |
+
+**Self-serve status check:** `tail -20 reports/gated_rerun_fixed.log` and
+`tail -40 reports/vrp_gap.log` — each prints per-cell lines while running and a
+final verdict block when done. Ask Claude "show me the scoreboard" any time —
+this file IS the memory.
 
 ## ⚰️ Closed 2026-07-23 (clean basis)
 | item | verdict |
