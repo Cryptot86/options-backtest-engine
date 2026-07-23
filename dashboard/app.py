@@ -56,9 +56,10 @@ if "proxy" in str(meta["notes"]).lower():
     st.info("⚠️ Realized-vol proxy for IV — **rankings & tails are reliable, "
             "absolute dollars are approximate** (proxy can't see the vol risk premium).")
 
-tab_sum, tab_trades, tab_verify, tab_lab, tab_cov, tab_port, tab_iv = st.tabs(
+(tab_sum, tab_trades, tab_verify, tab_lab, tab_cov, tab_port, tab_iv,
+ tab_tick) = st.tabs(
     ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab",
-     "✅ Coverage", "💼 Portfolio Sim", "📈 IV Series"])
+     "✅ Coverage", "💼 Portfolio Sim", "📈 IV Series", "🎯 Ticker Report"])
 
 # ---- summary --------------------------------------------------------------
 with tab_sum:
@@ -535,3 +536,78 @@ with tab_iv:
         st.caption(f"{len(d):,} trading days · {d.index.min().date()} → {d.index.max().date()} "
                    "· dials: vrp_pts (Study 5), slope5_pts (Study 2), iv_rank (Study 3), "
                    "term_pts (candidate #1)")
+
+
+# ---- Ticker Report: per-name performance by indicator, with filters -------
+with tab_tick:
+    st.subheader("🎯 Ticker Report — every indicator's record on one name")
+    src = st.radio("Data source", ["Backtest DB (futures + legacy runs)",
+                                   "IVol equities (latest run)"], horizontal=True)
+
+    def _perf_table(df, group_cols, date_col):
+        rows = []
+        for key, s in df.groupby(group_cols):
+            s = s.sort_values(date_col)
+            eq = s["pnl"].cumsum()
+            rows.append(dict(zip(group_cols, key if isinstance(key, tuple) else (key,)))
+                        | dict(n=len(s), total=round(s.pnl.sum()),
+                               avg=round(s.pnl.mean(), 1),
+                               win_pct=round(100 * (s.pnl > 0).mean(), 1),
+                               worst_trade=round(s.pnl.min()),
+                               worst_mae=round(s.mae.min()) if "mae" in s else None,
+                               eq_maxdd=round((eq.cummax() - eq).max())))
+        return pd.DataFrame(rows).sort_values("total", ascending=False)
+
+    def _curves(df, by, date_col, title):
+        fig = go.Figure()
+        for key, s in df.groupby(by):
+            s = s.sort_values(date_col)
+            fig.add_trace(go.Scatter(x=pd.to_datetime(s[date_col]),
+                                     y=s["pnl"].cumsum(), name=str(key), mode="lines"))
+        fig.update_layout(height=340, margin=dict(t=30, b=10), title=title,
+                          yaxis_title="cumulative $", legend=dict(orientation="h"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    if src.startswith("Backtest DB"):
+        allt = pd.read_sql("SELECT symbol, signal_type, entry_date, pnl, mae, "
+                           "exit_reason, run_id FROM trades", db._conn())
+        symn = st.selectbox("Ticker", sorted(allt.symbol.unique()),
+                            index=sorted(allt.symbol.unique()).index("CL")
+                            if "CL" in set(allt.symbol) else 0)
+        sub = allt[allt.symbol == symn]
+        run_pick = st.multiselect(
+            "Runs (leave empty = all; per-run rows prevent double counting)",
+            sorted(sub.run_id.unique()))
+        if run_pick:
+            sub = sub[sub.run_id.isin(run_pick)]
+        if symn in ("CL", "ES", "NQ", "NG"):
+            st.caption("Micro contracts (MCL/MES/MNQ/MNG) = these numbers ÷ 10.")
+        st.dataframe(_perf_table(sub, ["run_id", "signal_type"], "entry_date"),
+                     use_container_width=True, hide_index=True)
+        one_run = st.selectbox("Equity curves for run", sorted(sub.run_id.unique()))
+        _curves(sub[sub.run_id == one_run], "signal_type", "entry_date",
+                f"{symn} — cumulative P&L per indicator (run {one_run})")
+    else:
+        path = os.path.join("reports", "iv_backtest_trades.csv")
+        if not os.path.exists(path):
+            st.warning("No IVol trades yet — run `python run_iv_backtest.py`.")
+        else:
+            ivt = pd.read_csv(path)
+            symn = st.selectbox("Ticker", sorted(ivt.symbol.unique()))
+            sub = ivt[ivt.symbol == symn].copy()
+            gate = st.radio("Gate filter", ["ungated (all)", "VIX 3-green",
+                                            "name-gate", "either gate"], horizontal=True)
+            if "vix_gate" in sub.columns:
+                if gate == "VIX 3-green":
+                    sub = sub[sub.vix_gate]
+                elif gate == "name-gate":
+                    sub = sub[sub.name_gate]
+                elif gate == "either gate":
+                    sub = sub[sub.vix_gate | sub.name_gate]
+            if len(sub):
+                st.dataframe(_perf_table(sub, ["method"], "entry"),
+                             use_container_width=True, hide_index=True)
+                _curves(sub, "method", "entry",
+                        f"{symn} — cumulative P&L per method ({gate})")
+            else:
+                st.info("No trades pass this filter for this name.")
