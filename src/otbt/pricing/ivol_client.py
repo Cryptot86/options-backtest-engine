@@ -78,12 +78,19 @@ def _throttle() -> None:
         _last[0] = time.monotonic()
 
 
-def _get(endpoint: str, params: dict) -> pd.DataFrame:
-    _throttle()
-    r = requests.get(BASE + endpoint, params={**_auth_params(), **params}, timeout=30)
-    if r.status_code != 200:
-        # 401/403 on IVol usually = endpoint not in your plan tier.
-        raise RuntimeError(f"{endpoint} -> HTTP {r.status_code}: {r.text[:300]}")
+def _get(endpoint: str, params: dict, _tries: int = 4) -> pd.DataFrame:
+    for attempt in range(_tries):
+        _throttle()
+        r = requests.get(BASE + endpoint, params={**_auth_params(), **params}, timeout=45)
+        if r.status_code == 429:                       # rate limit — back off and retry
+            time.sleep(2 + attempt)
+            continue
+        if r.status_code != 200:
+            # 401/403 on IVol usually = endpoint not in your plan tier.
+            raise RuntimeError(f"{endpoint} -> HTTP {r.status_code}: {r.text[:300]}")
+        break
+    else:
+        raise RuntimeError(f"{endpoint} -> 429 after {_tries} tries")
     body = r.json()
     rows = body.get("data", body) if isinstance(body, dict) else body
     df = pd.DataFrame(rows)
