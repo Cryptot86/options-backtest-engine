@@ -5,3 +5,4 @@ __pycache__/
 data_cache/
 output/
 db/
+reports/gate0_*_result.csv
