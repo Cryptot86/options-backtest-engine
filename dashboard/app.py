@@ -56,9 +56,9 @@ if "proxy" in str(meta["notes"]).lower():
     st.info("⚠️ Realized-vol proxy for IV — **rankings & tails are reliable, "
             "absolute dollars are approximate** (proxy can't see the vol risk premium).")
 
-tab_sum, tab_trades, tab_verify, tab_lab, tab_cov, tab_port = st.tabs(
+tab_sum, tab_trades, tab_verify, tab_lab, tab_cov, tab_port, tab_iv = st.tabs(
     ["📊 Summary", "📋 Trades", "🔎 Verify a trade", "🧪 Strategy Lab",
-     "✅ Coverage", "💼 Portfolio Sim"])
+     "✅ Coverage", "💼 Portfolio Sim", "📈 IV Series"])
 
 # ---- summary --------------------------------------------------------------
 with tab_sum:
@@ -477,3 +477,61 @@ with tab_port:
         st.dataframe(pd.DataFrame({"year-end equity": yr.round(0),
                                    "yearly %": (yr.pct_change() * 100).round(1)}),
                      use_container_width=True)
+
+
+# ---- IV series (Study 1: per-name implied vol + study dials) --------------
+with tab_iv:
+    st.subheader("📈 Per-name IV series — Study 1 (IVolatility)")
+    IVDIR = os.path.join("data_cache", "iv_series", "stocks")
+    names = sorted(f[:-8] for f in os.listdir(IVDIR)) if os.path.isdir(IVDIR) else []
+    if not names:
+        st.warning("No IV series yet. Run `python build_stock_iv_series.py` first.")
+    else:
+        sym = st.selectbox("Name", names, index=names.index("MSFT") if "MSFT" in names else 0)
+        d = pd.read_parquet(os.path.join(IVDIR, f"{sym}.parquet"))
+        c1, c2, c3, c4 = st.columns(4)
+        last = d.iloc[-1]
+        c1.metric("iv45 (ATM ~45d)", f"{last.iv45:.1%}")
+        c2.metric("rv20 (realized)", f"{last.rv20:.1%}")
+        c3.metric("VRP (iv-rv)", f"{last.vrp_pts:+.1f} pts",
+                  help="positive = implied over realized = seller's premium")
+        c4.metric("IV rank (252d)", f"{last.iv_rank:.0%}")
+
+        # implied vs realized, with VRP fill
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=d.index, y=d.iv45, name="iv45 (implied)",
+                                 line=dict(color="#2563eb", width=1.6)))
+        fig.add_trace(go.Scatter(x=d.index, y=d.rv20, name="rv20 (realized)",
+                                 line=dict(color="#dc2626", width=1.2)))
+        fig.update_layout(height=340, margin=dict(t=30, b=10),
+                          title="Implied (forecast) vs realized vol",
+                          yaxis_tickformat=".0%", legend=dict(orientation="h"))
+        st.plotly_chart(fig, use_container_width=True)
+
+        # VRP + IV rank dials
+        g1, g2 = st.columns(2)
+        fv = go.Figure(go.Scatter(x=d.index, y=d.vrp_pts, name="VRP (pts)",
+                                  line=dict(color="#059669", width=1)))
+        fv.add_hline(y=0, line_dash="dot", line_color="#888")
+        fv.update_layout(height=260, margin=dict(t=30, b=10),
+                         title="VRP = iv45 − rv20  (Study 5)")
+        g1.plotly_chart(fv, use_container_width=True)
+        fr = go.Figure(go.Scatter(x=d.index, y=d.iv_rank, name="IV rank",
+                                  line=dict(color="#7c3aed", width=1)))
+        fr.add_hline(y=0.5, line_dash="dot", line_color="#888")
+        fr.update_layout(height=260, margin=dict(t=30, b=10), yaxis_range=[0, 1],
+                         title="IV rank 252d  (Study 3 / gate 'rich')")
+        g2.plotly_chart(fr, use_container_width=True)
+
+        # today's ATM term structure
+        ts = pd.DataFrame({"tenor": [30, 45, 60, 90],
+                           "IV": [last.iv30, last.iv45, last.iv60, last.iv90]})
+        ft = go.Figure(go.Scatter(x=ts.tenor, y=ts.IV, mode="lines+markers",
+                                  line=dict(color="#2563eb")))
+        ft.update_layout(height=240, margin=dict(t=30, b=10), yaxis_tickformat=".0%",
+                         title=f"ATM term structure — {d.index[-1].date()}",
+                         xaxis_title="days to expiry")
+        st.plotly_chart(ft, use_container_width=True)
+        st.caption(f"{len(d):,} trading days · {d.index.min().date()} → {d.index.max().date()} "
+                   "· dials: vrp_pts (Study 5), slope5_pts (Study 2), iv_rank (Study 3), "
+                   "term_pts (candidate #1)")

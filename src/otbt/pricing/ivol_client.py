@@ -43,6 +43,9 @@ EP_OPT_SERIES = "/equities/eod/option-series-on-date"   # symbol, date, exp*/str
 EP_OPT_EOD    = "/equities/eod/single-stock-option-raw-iv"  # optionId, from, to
 EP_IVX        = "/equities/eod/ivx"                      # symbol, from, to
 EP_EARNINGS   = "/equities/eod/earnings"                 # symbol(s), from, to
+# NOTE: /equities/eod/options-rawiv (full chain) is 403 on our tariff, as are
+# /proxy/option-series and all /rt/* endpoints. We select 16d via BS strike
+# estimate + option-series-on-date instead (in-tariff). EOD only.
 EP_TOKEN      = "/token/get"
 
 _RATE_SECONDS = 1.05
@@ -173,6 +176,57 @@ def option_series(symbol: str, expiration: str, strike: float, right: str,
     keep = ["close"] + [c for c in ("iv", "delta", "bid", "ask", "volume",
                                     "open interest") if c in out.columns]
     return out[keep]
+
+
+def contract_path(option_id, start: str, end: str) -> pd.DataFrame:
+    """Daily marks for ONE contract by optionId -> [date index, 'close' + iv/delta].
+    The shape simulate_real consumes."""
+    raw = option_eod(option_id, start, end)
+    if raw.empty:
+        return pd.DataFrame(columns=["close"])
+    raw["date"] = pd.to_datetime(raw["date"])
+    out = raw.set_index("date").sort_index()
+    out["close"] = _mark(out)
+    keep = ["close"] + [c for c in ("iv", "delta", "bid", "ask", "volume",
+                                    "open interest") if c in out.columns]
+    return out[keep]
+
+
+def select_16d_put(symbol: str, day: str, spot: float, iv: float,
+                   dte_target: int = 40, dte_min: int = 30, dte_max: int = 45,
+                   target_delta: float = 0.16) -> dict | None:
+    """Pick the ~target_delta put listed on `day` — in-tariff path (the full-chain
+    options-rawiv endpoint is 403 on our plan). We estimate the strike from REAL
+    IV via Black-Scholes, then snap to the nearest LISTED strike via
+    option-series-on-date. spot/iv MUST be on the UNADJUSTED basis (listed strikes
+    are as-traded) — pass the IVX 'spot' + iv45. Returns id/strike/expiration."""
+    from .blackscholes import strike_for_delta
+    est = strike_for_delta(spot, dte_target / 365.0, iv, target_delta, kind="put")
+    # FLEXIBLE dte: search a WIDE expiry window, then take the listed expiry
+    # nearest dte_target (so a missing 30-45 monthly falls back gracefully).
+    exp_lo = (pd.Timestamp(day) + pd.Timedelta(days=15)).strftime("%Y-%m-%d")
+    exp_hi = (pd.Timestamp(day) + pd.Timedelta(days=75)).strftime("%Y-%m-%d")
+    c = list_contracts(symbol, day, exp_lo, exp_hi,
+                       round(est * 0.70, 2), round(est * 1.30, 2), "P")
+    if c.empty:
+        return None
+    c = c.copy()
+    c["strike"] = pd.to_numeric(c["strike"], errors="coerce")
+    c["dte"] = (pd.to_datetime(c["expirationdate"]) - pd.Timestamp(day)).dt.days
+    # prefer expiries inside [dte_min,dte_max]; else nearest to target
+    inwin = c[(c["dte"] >= dte_min) & (c["dte"] <= dte_max)]
+    pool = inwin if not inwin.empty else c
+    tgt_dte = int(pool["dte"].iloc[(pool["dte"] - dte_target).abs().argmin()])
+    exp_pool = pool[pool["dte"] == tgt_dte].copy()
+    # FLEXIBLE delta: nearest LISTED strike to the 16-delta estimate
+    row = exp_pool.iloc[(exp_pool["strike"] - est).abs().argmin()]
+    return dict(
+        optionid=int(row["optionid"]),
+        strike=float(row["strike"]),
+        expiration=pd.to_datetime(row["expirationdate"]).strftime("%Y-%m-%d"),
+        dte=int(row["dte"]),
+        est_strike=round(est, 2),
+    )
 
 
 def iv_series(symbol: str, start: str, end: str) -> pd.DataFrame:
