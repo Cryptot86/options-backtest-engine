@@ -88,7 +88,12 @@ def price_one(sym: str, sig, ivdf: pd.DataFrame) -> dict | None:
     if entry_px <= 0:
         return None
     r = replay(path, entry_px, sel["expiration"], sel["strike"])
-    r.update(symbol=sym, entry=entry.date(), strike=sel["strike"], entry_px=entry_px)
+    r.update(symbol=sym, entry=entry.date(), strike=sel["strike"], entry_px=entry_px,
+             # gate dials at entry (from the name's own IV series) — the gate is
+             # applied later as a FILTER on this table, never a separate pull
+             iv_rank=float(ivdf.loc[entry, "iv_rank"]),
+             slope5=float(ivdf.loc[entry, "slope5_pts"]),
+             vrp=float(ivdf.loc[entry, "vrp_pts"]))
     return r
 
 
@@ -123,7 +128,7 @@ def main() -> int:
     ledger = ledger[ledger["iv_proxy"].notna()]
     print(f"signals: {len(ledger)} across {len(a.symbols)} names x {len(a.methods)} methods\n")
 
-    rows = []
+    rows, all_trades = [], []
     for sym in a.symbols:
         for method in a.methods:
             sigs = ledger[(ledger.symbol == sym) & (ledger.signal_type == method)]
@@ -138,6 +143,7 @@ def main() -> int:
                 except Exception as e:
                     print(f"  [warn] {sym} {sig['date']}: {e}", flush=True)
             rows.append(summarize(f"{sym}/{method}", trades))
+            all_trades.extend(dict(t, method=method) for t in trades)
             r = rows[-1]
             print(f"{r['cell']:<20} n={r.get('n',0):>3}  "
                   + (f"${r['total']:>8.0f}  win={r['win_pct']:>5.1f}%  "
@@ -147,7 +153,36 @@ def main() -> int:
 
     out = pd.DataFrame(rows)
     out.to_csv("reports/iv_backtest_5x2.csv", index=False)
-    print("\nwrote reports/iv_backtest_5x2.csv")
+
+    # ---- gated vs ungated: same trades, three filters --------------------
+    tdf = pd.DataFrame(all_trades)
+    spy = pd.read_parquet(os.path.join("data_cache", "iv_series", "stocks", "SPY.parquet"))
+    ent = pd.to_datetime(tdf["entry"])
+    spy_at = spy.reindex(ent, method="ffill")
+    # market 3-green on SPY's IVX (SPY iv30 ~ VIX): rich + paid + stabilizing
+    tdf["vix_gate"] = ((spy_at["iv_rank"].values >= 0.5)
+                       & (spy_at["vrp_pts"].values > 0)
+                       & (spy_at["slope5_pts"].values <= 0))
+    # name-gate on the stock's own IV: rich + falling + chain IV > RV (light 3)
+    tdf["name_gate"] = (tdf["iv_rank"] >= 0.5) & (tdf["slope5"] <= 0) & (tdf["vrp"] > 0)
+    tdf.to_csv("reports/iv_backtest_trades.csv", index=False)   # after gate cols
+
+    def _pool(name, sub):
+        if not len(sub):
+            print(f"{name:<26} n=  0   (no trades)"); return
+        eq = sub.sort_values("entry")["pnl"].cumsum()
+        print(f"{name:<26} n={len(sub):>4}  ${sub.pnl.sum():>8.0f}  "
+              f"avg=${sub.pnl.mean():>6.1f}  win={100*(sub.pnl>0).mean():>5.1f}%  "
+              f"worstMAE=${sub.mae.min():>7.0f}  eqMaxDD=${(eq.cummax()-eq).max():>7.0f}")
+
+    for method in a.methods:
+        m = tdf[tdf.method == method]
+        print(f"\n===== {method} — gated vs ungated (same trades, filtered) =====")
+        _pool("ungated", m)
+        _pool("VIX 3-green (SPY ivx)", m[m.vix_gate])
+        _pool("name-gate (own IV)", m[m.name_gate])
+        _pool("either gate", m[m.vix_gate | m.name_gate])
+    print("\nwrote reports/iv_backtest_5x2.csv + reports/iv_backtest_trades.csv")
     return 0
 
 

@@ -81,7 +81,25 @@ def _throttle() -> None:
         _last[0] = time.monotonic()
 
 
+_CACHE_DIR = os.path.join("data_cache", "ivol_cache")
+
+
 def _get(endpoint: str, params: dict, _tries: int = 4) -> pd.DataFrame:
+    """Throttled GET with a permanent disk cache — historical EOD never changes,
+    so identical (endpoint, params) re-reads are free and instant on re-runs."""
+    import hashlib
+    key = hashlib.md5(f"{endpoint}|{sorted(params.items())}".encode()).hexdigest()
+    cpath = os.path.join(_CACHE_DIR, f"{key}.parquet")
+    if os.path.exists(cpath):
+        df = pd.read_parquet(cpath)
+        return df.drop(columns=["__empty__"], errors="ignore")
+    df = _get_live(endpoint, params, _tries)
+    os.makedirs(_CACHE_DIR, exist_ok=True)
+    (df if not df.empty else pd.DataFrame({"__empty__": []})).to_parquet(cpath)
+    return df
+
+
+def _get_live(endpoint: str, params: dict, _tries: int = 4) -> pd.DataFrame:
     for attempt in range(_tries):
         _throttle()
         r = requests.get(BASE + endpoint, params={**_auth_params(), **params}, timeout=45)
