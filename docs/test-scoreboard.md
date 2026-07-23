@@ -12,7 +12,7 @@ is mandatory before any verdict is read.*
 | Gate-0 IVol reconciliation | vendor PASSES (MSFT ~3% mark diff) | commit be78320 |
 | Study 1 — per-name IV series | DONE: 35 names + SPY, 13yr, dual basis (spot adj + spot_unadj) | data_cache/iv_series/stocks |
 | Forecast-vs-realized edge | implied over-forecasts 63% of days, median +2.16 pts; vol-pts edge biggest when CHEAP (never read as "sell cheap") | forecast_vs_realized.py |
-| VIX 3-green gate at scale | re-moated: 5DL $9→$79/tr, DD −90%, rescues JPM-class by rule | commit 3036a21 (re-run pending, see below) |
+| VIX 3-green gate at scale | **CLEAN-BASIS FINAL (2026-07-24): 5DL $24→$129/tr (5.3×), eqDD $84.8K→$4.8K (−94%), n=349 (~26/yr), win 90%**; bug had UNDERSTATED the system (recovered split-name trades were profitable: ungated total $38.5K→$124.2K). Name-gate $62/tr = second. bb_2sd either-gate $162/tr n=55 | reports/gated_rerun_fixed.log |
 | 21-DTE law | stands; measured insurance ~$55/tr (CL calls); hold-to-exp doubles tail | run_21dte_counterfactual.py |
 | Sizing law | qty=clamp(floor(2%·eq/anchor),1,3); anchors=worst-loss-reference.json | PLAYBOOK size-steps |
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
@@ -21,8 +21,7 @@ is mandatory before any verdict is read.*
 ## 🔄 In flight (chained overnight 2026-07-23→24; each starts when the prior ends)
 | # | job | what it answers | log to check | ETA |
 |---|---|---|---|---|
-| 1 | 35-name gated RE-RUN (fixed split basis) | restores the quotable gate numbers ($9→$79/tr claim re-verified); recovers the bug's silent skips (e.g. GOOGL 5DL 86→111 trades) | `reports/gated_rerun_fixed.log` | ~4-5 h |
-| 2 | Study 5 — VRP-gap indicator (TJ's ask) | is forecasted-vs-realized IV gap a tradeable entry? per-stock $ tables, kill bar ≥+$60/tr & worst ≥−$1,500 & non-overlapping | `reports/vrp_gap.log` | +~5.5 h |
+| 1 | Study 5 — VRP-gap indicator (TJ's ask) | is forecasted-vs-realized IV gap a tradeable entry? per-stock $ tables, kill bar ≥+$60/tr & worst ≥−$1,500 & non-overlapping | `reports/vrp_gap.log` | running, ~5.5 h |
 
 **Self-serve status check:** `tail -20 reports/gated_rerun_fixed.log` and
 `tail -40 reports/vrp_gap.log` — each prints per-cell lines while running and a
