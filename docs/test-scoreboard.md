@@ -5,7 +5,7 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-24*
+*Last updated: 2026-07-24 (night) — 10 studies resolved this raid; queue: 4a/4b, term-structure, then blocked/low-priority tail*
 
 ## ✅ Validated / settled
 | item | verdict | receipts |
@@ -18,6 +18,7 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | Sizing law | qty=clamp(floor(2%·eq/anchor),1,3); anchors=worst-loss-reference.json | PLAYBOOK size-steps |
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
+| **Study 6 — VRP harvested per line (bookkeeping)** | **DONE (2026-07-24, $0).** Every LICENSED line harvests TRUE VRP (implied at entry > realized after): ES/MES +3.24 pts (78% of entries, pnl~vrp corr +0.47 — **"is MES true VRP?" = YES, measured**); NG calls +9.14 (the fattest premium); CL calls +6.21 (but corr −0.32: its P&L is mostly mean-reversion timing, premium second); GC +2.87 (91%). Stocks: gate DOUBLES harvested premium (5DL +1.18 ungated → +2.83 gated — the mechanical source of the 5.3× edge). bb_2sd ungated is the one negative-mean line (−0.57: crash entries poison it; either-gate fixes to +1.95). NQ/MNQ: no futures IV series (Databento spend) — only unmeasured line. | run_study6_vrp_ledger.py |
 | **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight
@@ -44,13 +45,12 @@ An edge smaller than your costs is not your edge. No residual questions.
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
-2. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
+1. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
-3. **#1 Term-structure carry gate** — term_pts column ready
-4. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
-5. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
-6. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
+2. **#1 Term-structure carry gate** — term_pts column ready
+3. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
+4. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
+5. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
 
 ## Data / infra notes
 - Option pulls disk-cached permanently (data_cache/ivol_cache) — everything
