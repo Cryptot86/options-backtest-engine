@@ -19,7 +19,9 @@ is mandatory before any verdict is read.*
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 
 ## 🔄 In flight
-(nothing — overnight chain complete 2026-07-24)
+| job | what it answers | log | ETA |
+|---|---|---|---|
+| #3 Crisis-peak fade (25Δ/5Δ put credit spread, 45 DTE) | the untested cell: sell AFTER a confirmed vol peak, defined-risk; confirm k={2,3,5}; kill bar ≥+$30/tr, top5<50%, n≥100; echo-wave failure pre-registered | `reports/crisis_fade.log` | ~5 h |
 
 ## ⚰️ Closed 2026-07-23 (clean basis)
 | item | verdict |
