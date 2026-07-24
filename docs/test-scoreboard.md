@@ -25,7 +25,14 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | Study 3b — earnings iron condor, calm half (peak-fear entry, post-crush exit) | ≥+$40/tr raw AND top5<50% AND equal-risk mean>0; pre-reg: marginal-to-breakeven; failure = the 22% of events where fear was right | `reports/condor_3b.log` | ~1 h |
 | **Study 8 — TJ's VIX 10x100 up-cross → buy straddle (top-5, 1 lot)** | ≥+$40/tr raw AND top5<50% AND ret-on-debit mean>0; prior: uncertain — vol momentum real but a 10x100 cross confirms LATE; whipsaws bleed double theta | `reports/vixcross.log` | +~20 min |
 
-## ⚰️ Closed 2026-07-23 (clean basis)
+## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
+**BUYING earnings vol = DEAD, all variants** (Study 7 buried ×2; Study 9 desk-killed:
+holding through the event costs ~−2.5% of spot, gap beats implied only 24% of the
+time). **SELLING earnings fear = the live play**: 3a premise SURVIVED (fear ~2×
+overpriced on calm names) → 3b condor (defined-risk, wings) is the open test.
+Same event, opposite sides — buying loses for exactly the reason selling might pay.
+
+## ⚰️ Closed (clean basis)
 | item | verdict |
 |---|---|
 | **Study 7 — pre-earnings straddle** | **BURIED (2nd time), as pre-registered.** Clean run, 1,005 events, 98% coverage: +$26.6/tr pooled — below the +$40 bar. Win 39.5%, median −$52 (theta), tail real but thin (top-5 = 46%, ex-top5 +$14/tr). The ramp exists; after costs it doesn't pay enough. |
@@ -35,18 +42,15 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. **#3 Crisis-peak fade** — iv_rank≥0.90 then 3 down-days → defined-risk put
-   spread. All dials on disk; runs off the same trade table as Study 5.
-4. **Study 2 — slope as 5th light (increment)** — does slope5 ADDED to the
+1. **Study 2 — slope as 5th light (increment)** — does slope5 ADDED to the
    4-light name-gate improve $/tr or tail? Nearly free (filter analysis).
-5. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
-6. **Study 3b — earnings condor** — UNLOCKED (3a premise survived 2026-07-23)
-7. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
+2. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
+3. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
-8. **#1 Term-structure carry gate** — term_pts column ready
-9. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
-10. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
-11. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
+4. **#1 Term-structure carry gate** — term_pts column ready
+5. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
+6. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
+7. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
 
 ## Data / infra notes
 - Option pulls disk-cached permanently (data_cache/ivol_cache) — everything
