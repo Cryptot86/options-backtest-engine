@@ -22,7 +22,9 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight
-(nothing running)
+| job | kill bar (pre-registered) | log | ETA |
+|---|---|---|---|
+| **#1 Term-structure carry** (Vasquez; jumped queue on TJ's calendar challenge) — entries: term_pts 252d-pctile≤20 & slope5≤0; ARM A naked 16Δ put / ARM B ATM calendar 30/90 (the honest calendar test) | A: ≥+$60/tr & top5<50%. B: ≥+$30/tr & top5<50% & ret-on-debit>0. Pre-reg: gate may barely filter (contango ~80% of days); calendar arm dies on double spreads | `reports/termstruct.log` | ~4-5 h |
 
 ## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
 **THE ENTIRE EARNINGS FAMILY IS CLOSED (2026-07-24).** Buying = dead (Study 7
@@ -45,7 +47,8 @@ An edge smaller than your costs is not your edge. No residual questions.
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
+1. *(running: #1 term-structure — see in-flight)*
+2. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
 2. **#1 Term-structure carry gate** — term_pts column ready
 3. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
