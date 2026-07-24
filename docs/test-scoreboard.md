@@ -19,8 +19,11 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 
-## 🔄 In flight
-(nothing running)
+## 🔄 In flight (chained 2026-07-24)
+| job | kill bar (pre-registered) | log | ETA |
+|---|---|---|---|
+| Study 3b — earnings iron condor, calm half (peak-fear entry, post-crush exit) | ≥+$40/tr raw AND top5<50% AND equal-risk mean>0; pre-reg: marginal-to-breakeven; failure = the 22% of events where fear was right | `reports/condor_3b.log` | ~1 h |
+| **Study 8 — TJ's VIX 10x100 up-cross → buy straddle (top-5, 1 lot)** | ≥+$40/tr raw AND top5<50% AND ret-on-debit mean>0; prior: uncertain — vol momentum real but a 10x100 cross confirms LATE; whipsaws bleed double theta | `reports/vixcross.log` | +~20 min |
 
 ## ⚰️ Closed 2026-07-23 (clean basis)
 | item | verdict |
