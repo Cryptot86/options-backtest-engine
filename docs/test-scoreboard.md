@@ -4,7 +4,7 @@
 Kill bars are written BEFORE runs. Concentration check (top-5 share of total)
 is mandatory before any verdict is read.*
 
-*Last updated: 2026-07-23*
+*Last updated: 2026-07-24*
 
 ## ✅ Validated / settled
 | item | verdict | receipts |
@@ -18,30 +18,18 @@ is mandatory before any verdict is read.*
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 
-## 🔄 In flight (chained overnight 2026-07-23→24; each starts when the prior ends)
-| # | job | what it answers | log to check | ETA |
-|---|---|---|---|---|
-| 1 | Study 5 — VRP-gap indicator (TJ's ask) | is forecasted-vs-realized IV gap a tradeable entry? per-stock $ tables, kill bar ≥+$60/tr & worst ≥−$1,500 & non-overlapping | `reports/vrp_gap.log` | running, ~5.5 h |
-
-**Self-serve status check:** `tail -20 reports/gated_rerun_fixed.log` and
-`tail -40 reports/vrp_gap.log` — each prints per-cell lines while running and a
-final verdict block when done. Ask Claude "show me the scoreboard" any time —
-this file IS the memory.
+## 🔄 In flight
+(nothing — overnight chain complete 2026-07-24)
 
 ## ⚰️ Closed 2026-07-23 (clean basis)
 | item | verdict |
 |---|---|
 | **Study 7 — pre-earnings straddle** | **BURIED (2nd time), as pre-registered.** Clean run, 1,005 events, 98% coverage: +$26.6/tr pooled — below the +$40 bar. Win 39.5%, median −$52 (theta), tail real but thin (top-5 = 46%, ex-top5 +$14/tr). The ramp exists; after costs it doesn't pay enough. |
+| **Study 5 — VRP-gap indicator (TJ's ask)** | **BURIED per kill bar (2026-07-24), as pre-registered — but positively, with a lesson.** 7,502 entries priced. Best spec (gap≥15 +trend): +$48.4/tr < $60 bar; every meaningful cell breaches the −$1,500 tail (gap-alone worst −$16,313; NFLX Jan-2022 −$14.6K single trade). Overlap only 28% (that prong passed). WHY it fails: a huge IV-RV gap can't tell OVERPRICED fear from INFORMED fear — sometimes the market smells the event (NFLX, COP-COVID) and the gap is fair price for a bomb. gap+lights is WORSE than the plain VIX gate ($-11 vs +$129/tr): conditioning on big-gap + high-rank selects pre-event days. THE DIAL SURVIVES as a confirm light (name-gate light-3 = vrp>0, already law); it dies as a standalone entry. Trades kept: reports/vrp_gap_trades.csv |
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. **35-name gated re-run** (restores quotable numbers)
-2. **Study 5 — VRP-gap indicator** ("TJ's realized-vs-forecasted-IV gap scanner").
-   Entries: vrp_pts ≥ {5,10,15}, variants {alone, +trend, +lights, +earnings-filter}.
-   KILL BAR: ≥+$60/tr AND worst ≤−$1,500 AND materially non-overlapping with
-   existing lines. Pre-reg: gap-alone fails tail; gap+lights collapses into gate.
-   Dial already computed daily for all 35 (vrp_pts) + dashboard IV tab plots it.
-3. **#3 Crisis-peak fade** — iv_rank≥0.90 then 3 down-days → defined-risk put
+1. **#3 Crisis-peak fade** — iv_rank≥0.90 then 3 down-days → defined-risk put
    spread. All dials on disk; runs off the same trade table as Study 5.
 4. **Study 2 — slope as 5th light (increment)** — does slope5 ADDED to the
    4-light name-gate improve $/tr or tail? Nearly free (filter analysis).
