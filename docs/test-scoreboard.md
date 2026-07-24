@@ -23,15 +23,16 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 ## 🔄 In flight (chained 2026-07-24)
 | job | kill bar (pre-registered) | log | ETA |
 |---|---|---|---|
-| Study 3b — earnings iron condor, calm half (peak-fear entry, post-crush exit) | ≥+$40/tr raw AND top5<50% AND equal-risk mean>0; pre-reg: marginal-to-breakeven; failure = the 22% of events where fear was right | `reports/condor_3b.log` | ~1 h |
 | **Study 8 — TJ's VIX 10x100 up-cross → buy straddle (top-5, 1 lot)** | ≥+$40/tr raw AND top5<50% AND ret-on-debit mean>0; prior: uncertain — vol momentum real but a 10x100 cross confirms LATE; whipsaws bleed double theta | `reports/vixcross.log` | +~20 min |
 
 ## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
-**BUYING earnings vol = DEAD, all variants** (Study 7 buried ×2; Study 9 desk-killed:
-holding through the event costs ~−2.5% of spot, gap beats implied only 24% of the
-time). **SELLING earnings fear = the live play**: 3a premise SURVIVED (fear ~2×
-overpriced on calm names) → 3b condor (defined-risk, wings) is the open test.
-Same event, opposite sides — buying loses for exactly the reason selling might pay.
+**THE ENTIRE EARNINGS FAMILY IS CLOSED (2026-07-24).** Buying = dead (Study 7
+buried ×2; Study 9 desk-killed at −2.5%/event). Selling = dead (Study 3b condor:
+raw −$6.2/tr, equal-risk −2.57%, win 39%). The fear IS ~2× overpriced (3a
+stands) but the harvestable slice on calm names (~$15-30 gross) is smaller than
+the 8-side cost stack ($22.80): cheap stocks 0-7% win, only $900-class names
+cleared the toll (thin n). The premium is real and belongs to market makers.
+An edge smaller than your costs is not your edge. No residual questions.
 
 ## ⚰️ Closed (clean basis)
 | item | verdict |
@@ -40,6 +41,7 @@ Same event, opposite sides — buying loses for exactly the reason selling might
 | **Study 5 — VRP-gap indicator (TJ's ask)** | **BURIED per kill bar (2026-07-24), as pre-registered — but positively, with a lesson.** 7,502 entries priced. Best spec (gap≥15 +trend): +$48.4/tr < $60 bar; every meaningful cell breaches the −$1,500 tail (gap-alone worst −$16,313; NFLX Jan-2022 −$14.6K single trade). Overlap only 28% (that prong passed). WHY it fails: a huge IV-RV gap can't tell OVERPRICED fear from INFORMED fear — sometimes the market smells the event (NFLX, COP-COVID) and the gap is fair price for a bomb. gap+lights is WORSE than the plain VIX gate ($-11 vs +$129/tr): conditioning on big-gap + high-rank selects pre-event days. THE DIAL SURVIVES as a confirm light (name-gate light-3 = vrp>0, already law); it dies as a standalone entry. Trades kept: reports/vrp_gap_trades.csv |
 | **Study 9 — reverse calendar straddle (TJ, 2026-07-24)** | **KILLED AT DESK-CHECK — $0 spent.** Buy short-dated straddle 1wk pre-earnings + sell long-dated. Front leg through the event: mean −2.73% of spot, gap>implied only 24% of 1,005 events (ramp subsidy +0.27% covers a tenth). Back leg = blacklisted naked-straddle family; its crush-capture merit is 3b-with-wings. Permanent receipt: holding straddles THROUGH earnings costs ~−2.5%/event. |
 | **#3 Crisis-peak fade** | **BURIED (2026-07-24).** Raw k=2 "passed" (+$35.7/tr) — a SIZING ILLUSION: spread width scales with stock price, so pre-split mega-caps carried 10-20x risk and clustered in the winning crashes. At EQUAL risk ($2K/trade): k=2 −$2.5/tr, k=3 −$13/tr, 17/35 names negative. Echo waves confirmed (TSLA/AMD/AAPL bleed). GATE MAP NOW COMPLETE: mid-and-stabilizing (3-green) is the ONLY harvestable seller cell. NEW LAW: normalize to risk before reading any dollar verdict. |
+| **Study 3b — earnings condor** | **BURIED (2026-07-24).** Raw −$6.2/tr, equal-risk −2.57%, win 39.4% (317 events). Cost-floor kill: calm-name condor edge ~$15-30 gross < $22.80 round-trip costs → cheap stocks 0-7% win; only high-priced names positive (GOOGL +$71 n=6). 3a's overpricing is REAL but unharvestable at retail costs. |
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
