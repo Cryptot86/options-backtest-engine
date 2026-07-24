@@ -1,8 +1,9 @@
 # Test Scoreboard — living list of every pending/validated scenario
 
 *Rule: update this file every time a study opens, closes, or changes status.
-Kill bars are written BEFORE runs. Concentration check (top-5 share of total)
-is mandatory before any verdict is read.*
+Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
+(1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
+per trade (raw dollars lie when position risk varies across names/eras).*
 
 *Last updated: 2026-07-24*
 
@@ -19,15 +20,14 @@ is mandatory before any verdict is read.*
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 
 ## 🔄 In flight
-| job | what it answers | log | ETA |
-|---|---|---|---|
-| #3 Crisis-peak fade (25Δ/5Δ put credit spread, 45 DTE) | the untested cell: sell AFTER a confirmed vol peak, defined-risk; confirm k={2,3,5}; kill bar ≥+$30/tr, top5<50%, n≥100; echo-wave failure pre-registered | `reports/crisis_fade.log` | ~5 h |
+(nothing running)
 
 ## ⚰️ Closed 2026-07-23 (clean basis)
 | item | verdict |
 |---|---|
 | **Study 7 — pre-earnings straddle** | **BURIED (2nd time), as pre-registered.** Clean run, 1,005 events, 98% coverage: +$26.6/tr pooled — below the +$40 bar. Win 39.5%, median −$52 (theta), tail real but thin (top-5 = 46%, ex-top5 +$14/tr). The ramp exists; after costs it doesn't pay enough. |
 | **Study 5 — VRP-gap indicator (TJ's ask)** | **BURIED per kill bar (2026-07-24), as pre-registered — but positively, with a lesson.** 7,502 entries priced. Best spec (gap≥15 +trend): +$48.4/tr < $60 bar; every meaningful cell breaches the −$1,500 tail (gap-alone worst −$16,313; NFLX Jan-2022 −$14.6K single trade). Overlap only 28% (that prong passed). WHY it fails: a huge IV-RV gap can't tell OVERPRICED fear from INFORMED fear — sometimes the market smells the event (NFLX, COP-COVID) and the gap is fair price for a bomb. gap+lights is WORSE than the plain VIX gate ($-11 vs +$129/tr): conditioning on big-gap + high-rank selects pre-event days. THE DIAL SURVIVES as a confirm light (name-gate light-3 = vrp>0, already law); it dies as a standalone entry. Trades kept: reports/vrp_gap_trades.csv |
+| **#3 Crisis-peak fade** | **BURIED (2026-07-24).** Raw k=2 "passed" (+$35.7/tr) — a SIZING ILLUSION: spread width scales with stock price, so pre-split mega-caps carried 10-20x risk and clustered in the winning crashes. At EQUAL risk ($2K/trade): k=2 −$2.5/tr, k=3 −$13/tr, 17/35 names negative. Echo waves confirmed (TSLA/AMD/AAPL bleed). GATE MAP NOW COMPLETE: mid-and-stabilizing (3-green) is the ONLY harvestable seller cell. NEW LAW: normalize to risk before reading any dollar verdict. |
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
