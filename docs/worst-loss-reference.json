@@ -64,5 +64,35 @@
   "worst": -2253.0,
   "p95_loss": -713.0,
   "avg": 51.0
+ },
+ "_CLUSTERS": {
+  "_rule": "CORRELATED POSITIONS SHARE ONE TAIL BUDGET. Before adding a position, sum the anchors of every OPEN position in its cluster + the new one; the sum must fit the undefined-risk cap (5-7% of equity, RiskConfig). Members of different clusters size independently. Measured 2026-07-24 from 4,495 days of our GLBX continuous data.",
+  "EQUITY_INDEX": {
+   "members": [
+    "SHORT_PUT_ES",
+    "SHORT_PUT_MES",
+    "SHORT_PUT_NQ_full",
+    "SHORT_PUT_MNQ_micro",
+    "SHORT_PUT_STOCK_ungated_class"
+   ],
+   "corr_daily_ES_NQ": 0.93,
+   "corr_on_ES_crash_days": 0.86,
+   "NQ_beta_on_ES_crash": 1.14,
+   "note": "MES put + MNQ put = same trade, NQ falls 1.14x harder on crash days. Stock puts carry the same beta - count gated stock puts here too."
+  },
+  "CROSS_CLUSTER_CORR_TO_ES": {
+   "GC": 0.08,
+   "CL": 0.21,
+   "NG": 0.04,
+   "6E": 0.14,
+   "ZB": -0.18,
+   "on_ES_crash_days": {
+    "GC": 0.07,
+    "CL": 0.17,
+    "NG": 0.18,
+    "ZB": -0.11
+   },
+   "note": "GC/CL/NG/ZB lines are REAL diversification vs index puts, even in crashes."
+  }
  }
 }

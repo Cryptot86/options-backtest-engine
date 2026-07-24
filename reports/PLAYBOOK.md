@@ -42,6 +42,15 @@ where marked D+1 — next-morning-9:30 execution (TJ's real workflow).*
 7. **bounce_100ema: entry cut, exit kept.** No edge as entry anywhere ever
    (~$0 × 6 markets), but its 100-EMA invalidation is the best tail-control
    found — grafted onto other entries where thesis-relevant.
+8. **Correlated positions share ONE tail budget (measured 2026-07-24).**
+   ES~NQ daily corr 0.93, crash-day corr 0.86, NQ falls 1.14× harder — an MNQ
+   put beside an MES put is the same trade squared, not diversification. Before
+   adding any position: sum the worst-loss anchors of every OPEN position in
+   its cluster (see _CLUSTERS in worst-loss-reference.json); the sum must fit
+   the 5-7% undefined-risk cap. Real diversification lives across clusters:
+   GC 0.08 / CL 0.21 / NG 0.04 / ZB −0.18 to equities, holding even on crash
+   days. "Good premium" is never an entry criterion — rich premium while vol
+   expands is the market quoting fair price for a risk you can't see.
 
 ## Open items before trading any of this live
 
