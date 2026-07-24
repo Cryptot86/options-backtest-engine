@@ -18,6 +18,7 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | Sizing law | qty=clamp(floor(2%·eq/anchor),1,3); anchors=worst-loss-reference.json | PLAYBOOK size-steps |
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
+| **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight (chained 2026-07-24)
 | job | kill bar (pre-registered) | log | ETA |
@@ -42,15 +43,13 @@ Same event, opposite sides — buying loses for exactly the reason selling might
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. **Study 2 — slope as 5th light (increment)** — does slope5 ADDED to the
-   4-light name-gate improve $/tr or tail? Nearly free (filter analysis).
-2. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
-3. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
+1. **Study 6 — VRP harvested per line** (bookkeeping; is MES true VRP?)
+2. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
-4. **#1 Term-structure carry gate** — term_pts column ready
-5. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
-6. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
-7. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
+3. **#1 Term-structure carry gate** — term_pts column ready
+4. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
+5. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
+6. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
 
 ## Data / infra notes
 - Option pulls disk-cached permanently (data_cache/ivol_cache) — everything
