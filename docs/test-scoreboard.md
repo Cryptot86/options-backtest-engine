@@ -22,7 +22,10 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight
-(nothing running)
+| job | kill bar (pre-registered) | log | ETA |
+|---|---|---|---|
+| **Study 4b** — bull put spread vs naked, full name-gate population (~367; wings priced onto already-priced nakeds) | spread per-$BPR ≥ 3× naked AND ≥$50/tr; pre-reg: capacity variant at best. Smoke n=68 warns: wing cost ($115) > entire edge | `reports/study4.log` | ~20 min |
+| **Study 4a** — straddle tenor sweep 30/45/60d, cheap-vol entries, 5 mega-caps | DECISION not kill: challenger tenor must beat ~45d incumbent on BOTH $/tr and ret-on-debit | same log | +~1 h |
 
 ## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
 **THE ENTIRE EARNINGS FAMILY IS CLOSED (2026-07-24).** Buying = dead (Study 7
