@@ -5,7 +5,7 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-25 — 12 studies resolved this raid; queue: 4a/4b, then blocked/low-priority tail (skew, COT, NG-winter, weekend-theta)*
+*Last updated: 2026-07-25 — 14 studies resolved; SUBSTANTIVE QUEUE EMPTY. The raid's study program is complete; remaining items are blocked or low-priority.*
 
 ## ✅ Validated / settled
 | item | verdict | receipts |
@@ -22,10 +22,7 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight
-| job | kill bar (pre-registered) | log | ETA |
-|---|---|---|---|
-| **Study 4b** — bull put spread vs naked, full name-gate population (~367; wings priced onto already-priced nakeds) | spread per-$BPR ≥ 3× naked AND ≥$50/tr; pre-reg: capacity variant at best. Smoke n=68 warns: wing cost ($115) > entire edge | `reports/study4.log` | ~20 min |
-| **Study 4a** — straddle tenor sweep 30/45/60d, cheap-vol entries, 5 mega-caps | DECISION not kill: challenger tenor must beat ~45d incumbent on BOTH $/tr and ret-on-debit | same log | +~1 h |
+(nothing running — substantive queue EMPTY)
 
 ## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
 **THE ENTIRE EARNINGS FAMILY IS CLOSED (2026-07-24).** Buying = dead (Study 7
@@ -43,6 +40,8 @@ An edge smaller than your costs is not your edge. No residual questions.
 | **Study 5 — VRP-gap indicator (TJ's ask)** | **BURIED per kill bar (2026-07-24), as pre-registered — but positively, with a lesson.** 7,502 entries priced. Best spec (gap≥15 +trend): +$48.4/tr < $60 bar; every meaningful cell breaches the −$1,500 tail (gap-alone worst −$16,313; NFLX Jan-2022 −$14.6K single trade). Overlap only 28% (that prong passed). WHY it fails: a huge IV-RV gap can't tell OVERPRICED fear from INFORMED fear — sometimes the market smells the event (NFLX, COP-COVID) and the gap is fair price for a bomb. gap+lights is WORSE than the plain VIX gate ($-11 vs +$129/tr): conditioning on big-gap + high-rank selects pre-event days. THE DIAL SURVIVES as a confirm light (name-gate light-3 = vrp>0, already law); it dies as a standalone entry. Trades kept: reports/vrp_gap_trades.csv |
 | **Study 9 — reverse calendar straddle (TJ, 2026-07-24)** | **KILLED AT DESK-CHECK — $0 spent.** Buy short-dated straddle 1wk pre-earnings + sell long-dated. Front leg through the event: mean −2.73% of spot, gap>implied only 24% of 1,005 events (ramp subsidy +0.27% covers a tenth). Back leg = blacklisted naked-straddle family; its crush-capture merit is 3b-with-wings. Permanent receipt: holding straddles THROUGH earnings costs ~−2.5%/event. |
 | **#3 Crisis-peak fade** | **BURIED (2026-07-24).** Raw k=2 "passed" (+$35.7/tr) — a SIZING ILLUSION: spread width scales with stock price, so pre-split mega-caps carried 10-20x risk and clustered in the winning crashes. At EQUAL risk ($2K/trade): k=2 −$2.5/tr, k=3 −$13/tr, 17/35 names negative. Echo waves confirmed (TSLA/AMD/AAPL bleed). GATE MAP NOW COMPLETE: mid-and-stabilizing (3-green) is the ONLY harvestable seller cell. NEW LAW: normalize to risk before reading any dollar verdict. |
+| **Study 4b — bull put spreads: BURIED (2026-07-25, n=367 full name-gate pop).** Naked +$69.7/tr at 2.20%/BPR vs spread +$6.2/tr at 0.38%/BPR — ratio 0.17× vs the 3× bar. The $141 wing eats 91% of the edge. Name-gate line = NAKED, anchor-sized, only. 3rd cost-floor burial: structures with more legs than thesis die at the toll booth. |
+| **Study 4a — tenor sweep: INCUMBENT CONFIRMED (n=681 legs).** Same entries × {30,45,60}d: 30d −$15.4/tr (theta cliff), **45d +$138.9/tr**, 60d −$16.4/tr. The validated ~40-45d spec is a sharp ridge — both neighbors NEGATIVE. No spec change. Caveat: top5 124% — Sleeve-3 income is storm-carried by nature; keep the sleeve small. |
 | **#1 Term-structure carry — BOTH ARMS BURIED (2026-07-25, n=1,798/1,664).** Arm A (naked put gated by term-slope): +$6.7/tr — BELOW ungated baseline; steep-contango days = calm/thin-premium days; the dial anti-filters. Arm B (ATM calendar 30/90 at the literature's best condition): −$17.7/tr, ret-on-debit −6.4%, win 43%; 771 slope-regime exits prove the carry converged — the double-spread toll ate it anyway. CALENDAR FAMILY FULLY CLOSED (wrong condition H14 + right condition here). Vasquez's edge is real in mid-quote data, untradeable at retail costs. VIX gate survives its 4TH challenger. |
 | **Study 8 — VIX 10x100 up-cross → buy straddle (TJ, 2026-07-24)** | **BURIED.** 259 trades, all 5 names negative: −$213.5/tr, win 34%, median ret-on-debit −13.8%. 202/259 bled to 21-DTE — the cross confirms LATE; straddles are already storm-priced. The crosses DID catch every real storm (TSLA +$4.9K/+$7.8K singles) but 66% false/late crosses buried them 3:1. Mirror law confirmed: long vol pays when bought CHEAP (Sleeve-3, rank≤30) — before the regime confirms, never after. |
 | **Study 3b — earnings condor** | **BURIED (2026-07-24).** Raw −$6.2/tr, equal-risk −2.57%, win 39.4% (317 events). Cost-floor kill: calm-name condor edge ~$15-30 gross < $22.80 round-trip costs → cheap stocks 0-7% win; only high-priced names positive (GOOGL +$71 n=6). 3a's overpricing is REAL but unharvestable at retail costs. |
