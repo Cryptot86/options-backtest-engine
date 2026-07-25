@@ -5,7 +5,7 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-24 (night) — 10 studies resolved this raid; queue: 4a/4b, term-structure, then blocked/low-priority tail*
+*Last updated: 2026-07-25 — 12 studies resolved this raid; queue: 4a/4b, then blocked/low-priority tail (skew, COT, NG-winter, weekend-theta)*
 
 ## ✅ Validated / settled
 | item | verdict | receipts |
@@ -22,9 +22,7 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | **Study 2 — slope as extra light** | **CONFIRMED (2026-07-24, $0 — local analysis).** On the name-gate population: without slope $57.7/tr, worstMAE −$16,480, eqDD $41.9K → WITH slope≤0: $69.7/tr, worstMAE −$3,490 (4.7×), eqDD $4,395 (9.5×). ALL catastrophic trades lived in the still-rising bucket. 3rd independent proof of never-sell-while-vol-rises. Pine name-gate slope light validated on REAL IV. | scoreboard analysis, iv_backtest_trades.csv |
 
 ## 🔄 In flight
-| job | kill bar (pre-registered) | log | ETA |
-|---|---|---|---|
-| **#1 Term-structure carry** (Vasquez; jumped queue on TJ's calendar challenge) — entries: term_pts 252d-pctile≤20 & slope5≤0; ARM A naked 16Δ put / ARM B ATM calendar 30/90 (the honest calendar test) | A: ≥+$60/tr & top5<50%. B: ≥+$30/tr & top5<50% & ret-on-debit>0. Pre-reg: gate may barely filter (contango ~80% of days); calendar arm dies on double spreads | `reports/termstruct.log` | ~4-5 h |
+(nothing running)
 
 ## 🎯 EARNINGS FAMILY — one-line status (TJ asks this often)
 **THE ENTIRE EARNINGS FAMILY IS CLOSED (2026-07-24).** Buying = dead (Study 7
@@ -42,15 +40,14 @@ An edge smaller than your costs is not your edge. No residual questions.
 | **Study 5 — VRP-gap indicator (TJ's ask)** | **BURIED per kill bar (2026-07-24), as pre-registered — but positively, with a lesson.** 7,502 entries priced. Best spec (gap≥15 +trend): +$48.4/tr < $60 bar; every meaningful cell breaches the −$1,500 tail (gap-alone worst −$16,313; NFLX Jan-2022 −$14.6K single trade). Overlap only 28% (that prong passed). WHY it fails: a huge IV-RV gap can't tell OVERPRICED fear from INFORMED fear — sometimes the market smells the event (NFLX, COP-COVID) and the gap is fair price for a bomb. gap+lights is WORSE than the plain VIX gate ($-11 vs +$129/tr): conditioning on big-gap + high-rank selects pre-event days. THE DIAL SURVIVES as a confirm light (name-gate light-3 = vrp>0, already law); it dies as a standalone entry. Trades kept: reports/vrp_gap_trades.csv |
 | **Study 9 — reverse calendar straddle (TJ, 2026-07-24)** | **KILLED AT DESK-CHECK — $0 spent.** Buy short-dated straddle 1wk pre-earnings + sell long-dated. Front leg through the event: mean −2.73% of spot, gap>implied only 24% of 1,005 events (ramp subsidy +0.27% covers a tenth). Back leg = blacklisted naked-straddle family; its crush-capture merit is 3b-with-wings. Permanent receipt: holding straddles THROUGH earnings costs ~−2.5%/event. |
 | **#3 Crisis-peak fade** | **BURIED (2026-07-24).** Raw k=2 "passed" (+$35.7/tr) — a SIZING ILLUSION: spread width scales with stock price, so pre-split mega-caps carried 10-20x risk and clustered in the winning crashes. At EQUAL risk ($2K/trade): k=2 −$2.5/tr, k=3 −$13/tr, 17/35 names negative. Echo waves confirmed (TSLA/AMD/AAPL bleed). GATE MAP NOW COMPLETE: mid-and-stabilizing (3-green) is the ONLY harvestable seller cell. NEW LAW: normalize to risk before reading any dollar verdict. |
+| **#1 Term-structure carry — BOTH ARMS BURIED (2026-07-25, n=1,798/1,664).** Arm A (naked put gated by term-slope): +$6.7/tr — BELOW ungated baseline; steep-contango days = calm/thin-premium days; the dial anti-filters. Arm B (ATM calendar 30/90 at the literature's best condition): −$17.7/tr, ret-on-debit −6.4%, win 43%; 771 slope-regime exits prove the carry converged — the double-spread toll ate it anyway. CALENDAR FAMILY FULLY CLOSED (wrong condition H14 + right condition here). Vasquez's edge is real in mid-quote data, untradeable at retail costs. VIX gate survives its 4TH challenger. |
 | **Study 8 — VIX 10x100 up-cross → buy straddle (TJ, 2026-07-24)** | **BURIED.** 259 trades, all 5 names negative: −$213.5/tr, win 34%, median ret-on-debit −13.8%. 202/259 bled to 21-DTE — the cross confirms LATE; straddles are already storm-priced. The crosses DID catch every real storm (TSLA +$4.9K/+$7.8K singles) but 66% false/late crosses buried them 3:1. Mirror law confirmed: long vol pays when bought CHEAP (Sleeve-3, rank≤30) — before the regime confirms, never after. |
 | **Study 3b — earnings condor** | **BURIED (2026-07-24).** Raw −$6.2/tr, equal-risk −2.57%, win 39.4% (317 events). Cost-floor kill: calm-name condor edge ~$15-30 gross < $22.80 round-trip costs → cheap stocks 0-7% win; only high-priced names positive (GOOGL +$71 n=6). 3a's overpricing is REAL but unharvestable at retail costs. |
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
 ## ⏳ Pending — ordered queue
-1. *(running: #1 term-structure — see in-flight)*
-2. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
+1. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
    (kill: ≥3× per-BPR vs naked, ≥$50/tr)
-2. **#1 Term-structure carry gate** — term_pts column ready
 3. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
 4. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
 5. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
