@@ -55,6 +55,32 @@
     "ovx_note": "OVX is an ENTRY-QUALITY signal (high+STABILIZING = rich premium, safe to sell; high+RISING = kill zone), NOT an allocation throttle. CL call line currently validated UNGATED; whether an OVX rich+stabilizing gate IMPROVES it is UNTESTED (small future study).",
     "nested_or_additive": "SEPARATE (additive-diversifying). Confirmed by sim + 0.11 correlation."
    }
+  },
+  "allocation": {
+   "_purpose": "Portfolio-level capital allocation. Governs HOW MUCH total capital is deployed and WHETHER a sized trade is admitted. Sits ABOVE per-line sizing_engine.",
+   "confirmed": "2026-07-21 (calm-band re-sweep); bands 25/50/60 win all metrics; $50K->$99.7K MAR 1.52 on modern book",
+   "vix_bands_SELL": [
+    {
+     "vix": "<25 (calm)",
+     "sell_pct_equity": 0.25
+    },
+    {
+     "vix": "25-35",
+     "sell_pct_equity": 0.5
+    },
+    {
+     "vix": ">=35",
+     "sell_pct_equity": 0.6,
+     "note": "never 100%"
+    }
+   ],
+   "buy_pct_equity": 0.15,
+   "buy_note": "flat 15% for long-vol sleeve (straddles) + micro long calls; separate bucket from selling",
+   "sell_budget_meaning": "MARGIN/BPR committed to short premium <= band% of equity. Applies to the EQUITY+FUTURES-PUT selling book (VIX is its regime).",
+   "energy_separate": "ENERGY cluster (CL/NG calls) is NOT in the VIX sell budget \u2014 it has its own 5% TAIL cap (regime-agnostic). 0.11-corr to equities = separate, confirmed improves book MAR 0.49->0.56.",
+   "dedupe": "SAME-NAME SAME-DAY = ONE position (never stack bb_2sd + five_day_low on one underlying). Max 2 new equity entries/day. This dedupe IS the equity cluster fix \u2014 no equity-sleeve cap needed.",
+   "capacity": "If a fully-sized trade does not fit the remaining band budget -> SKIP, skip_reason='capacity'. ~20% skip rate is BY DESIGN = implicit correlation filter (skips cluster during same-regime bursts = the most redundant trades). Never raise bands to force fills.",
+   "idle_cash": "sweep idle collateral to T-bills (was the largest sleeve raw)"
   }
  },
  "lines": [
