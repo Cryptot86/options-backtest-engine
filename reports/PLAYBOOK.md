@@ -329,6 +329,23 @@ applies to EVERY position (not just stocks); anchors = backtest worst per
 line (docs/worst-loss-reference.json); Tom's 5-7% outer bound stands behind;
 concentration cap 3 lots until live data blesses more.
 
+## SIZING vs ALLOCATION — the 2% and the 5% are DIFFERENT numbers (2026-07-27)
+Two numbers, two jobs — not a contradiction. The pine scanner's SIZE row shows
+the FIRST one; the Titan app watches the second.
+- **2% = per-TRADE risk sizing (per line).** qty=clamp(floor(0.02*equity/anchor),
+  1,cap). Each single position's worst-case ≈ 2% of equity. This is the pine
+  SIZE row. At $50K: MCL=3 (3×$290=$870=1.7%), MNG=5 (5×$200=$1,000=2.0%).
+- **5% = ENERGY CLUSTER ceiling (all energy combined).** Max combined worst-case
+  for CL+NG together. At $50K combined = $1,870 = 3.7% < 5% -> both fit at full
+  size, room to spare.
+- KEY: the 5% cluster cap is a BACKSTOP that almost never bites — the per-line
+  abs caps (MCL 10 / MNG 8) hold combined energy to ~3-4% at EVERY equity level
+  (even fully maxed at ~$145K = ~3.1%). So in practice energy is governed by the
+  2% per-line rule; the 5% is a slack seatbelt for if a 3rd energy line is ever
+  added. Act on the SIZE row (per-line); the app enforces the 5% in the
+  background. Pine shows per-line only (can't see your other open positions) —
+  the cluster/capacity trim lives in the Titan app.
+
 ## MCL / CALL-SLEEVE SIZING STUDY — settled 2026-07-27 (don't re-run)
 Question: optimal position sizing for the CL/NG micro CALL sleeve; is the
 blanket 3-lot cap right? Sized off WORST-LOSS anchor (never broker BPR — margin
