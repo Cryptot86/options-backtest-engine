@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "title": "Titan Rulebook — canonical machine-readable line registry",
+    "purpose": "Single source of truth for every licensed line. The SCANNER (pine/python) reads the 'scanner' fields to detect+display; the EXECUTION/APP (Titan Ops) reads 'execution','sizing','risk' to enforce at entry and manage. Human cards live in reports/PLAYBOOK.md; this file is what code consumes.",
+    "updated": "2026-07-27",
+    "smart": "Each rule is Specific (exact condition), Measurable (numeric thresholds + receipts), Achievable (backtest-validated), Relevant (licensed only), Time-bound (every exit has a clock: 50% target OR 21 DTE).",
+    "component_owners": {
+      "scanner": "detect entry trigger + gate state + habitat; DISPLAY only, no orders. Fields: market, entry, gate, habitat.",
+      "execution": "signal->order timing (D+1 9:30), structure, exits. Fields: structure, exits, entry_basis.",
+      "sizing": "contracts = clamp(floor(risk_pct*equity/anchor),1,cap). Fields: sizing.",
+      "risk": "cluster tail-budget check BEFORE any add. Fields: cluster, references _CLUSTERS in worst-loss-reference.json.",
+      "journal": "record + grade adherence. Owned by Titan Ops app, not this file."
+    },
+    "global": {
+      "risk_pct": 0.02,
+      "exit_default": "take_profit_50 OR manage_21dte; NO price stops; NO trend-flip exit (curve-fit, killed OOS)",
+      "entry_basis": "signal confirmed at day-D close; enter D+1 ~09:30 (validated D+1 basis)",
+      "delta_target": 0.16,
+      "dte_target": 40,
+      "dte_window": [30, 45],
+      "note_risk_pct": "Do NOT raise risk_pct. MAR peaks ~3% then falls; 2% is the disciplined setting."
+    }
+  },
+
+  "lines": [
+    {
+      "id": "stock_put_5dl", "status": "LICENSED", "sleeve": "put",
+      "market": "US equities (class)", "side": "short_put",
+      "scanner": {"entry": "new 5-day closing low AND uptrend (EMA10>EMA100)", "gate": "VIX 3-green REQUIRED (rank>=0.5 & VIX>SPY-RV & VIX 5d slope<=0)", "habitat": "any liquid optionable stock"},
+      "execution": {"structure": "short 16d put ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 4520, "cap": 1, "risk_pct": 0.02},
+      "risk": {"cluster": "EQUITY_INDEX"},
+      "receipts": {"gated_avg_tr": 129, "gated_win": 0.90, "gated_n": 349, "ungated_avg_tr": 24, "note": "gate multiplies edge 5.3x, cuts DD 94%"}
+    },
+    {
+      "id": "stock_put_bb2sd", "status": "LICENSED", "sleeve": "put",
+      "market": "US equities (class)", "side": "short_put",
+      "scanner": {"entry": "close <= lower 2-SD Bollinger(20) AND uptrend", "gate": "VIX 3-green OR name-gate", "habitat": "any liquid optionable stock"},
+      "execution": {"structure": "short 16d put ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 4520, "cap": 1, "risk_pct": 0.02},
+      "risk": {"cluster": "EQUITY_INDEX"},
+      "receipts": {"either_gate_avg_tr": 162, "either_gate_n": 55}
+    },
+    {
+      "id": "name_gate_put", "status": "CANDIDATE", "sleeve": "put",
+      "market": "single-name equities", "side": "short_put",
+      "scanner": {"entry": "(5DL or bb_2sd) AND name-gate 4 lights: iv_rank>=0.5 + iv slope5<=0 + chain-IV>RV (light3, IV-validated) + price trigger + no earnings in hold window", "gate": "name-gate replaces VIX gate when VIX flat", "habitat": "single names, journal separately"},
+      "execution": {"structure": "short 16d put ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 4520, "cap": 1, "risk_pct": 0.02},
+      "risk": {"cluster": "EQUITY_INDEX"},
+      "receipts": {"scaled_avg_tr": 62, "scaled_n": 331, "note": "real but 2nd to VIX gate; stays candidate"}
+    },
+    {
+      "id": "es_put", "status": "LICENSED", "sleeve": "put",
+      "market": "ES / MES", "side": "short_put",
+      "scanner": {"entry": "5DL or bb_2sd dip AND uptrend", "gate": "NONE — validated ungated (+$4,554 OOS)", "habitat": "ES, MES"},
+      "execution": {"structure": "short 25d put ~40 DTE (skew ~0.25)", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 1569, "cap": 2, "risk_pct": 0.02},
+      "risk": {"cluster": "EQUITY_INDEX"},
+      "receipts": {"vrp_pts": 3.24, "vrp_positive": 0.78, "note": "TRUE VRP harvester confirmed"}
+    },
+    {
+      "id": "gc_put", "status": "LICENSED", "sleeve": "put",
+      "market": "GC / MGC", "side": "short_put",
+      "scanner": {"entry": "bb_2sd dip in uptrend", "gate": "3-green improves it (+$354) but not required", "habitat": "GC, MGC"},
+      "execution": {"structure": "short 16d put ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 823, "cap": 2, "risk_pct": 0.02},
+      "risk": {"cluster": "METALS"},
+      "receipts": {"avg_tr_d1": 303, "win": 0.91, "worst": -1400}
+    },
+    {
+      "id": "nq_put", "status": "LICENSED", "sleeve": "put",
+      "market": "NQ / MNQ", "side": "short_put",
+      "scanner": {"entry": "5DL or bb_2sd dip AND uptrend", "gate": "NONE (index put, like ES)", "habitat": "NQ, MNQ (richest put market tested)"},
+      "execution": {"structure": "short 16d put ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 2253, "cap": 3, "risk_pct": 0.02},
+      "risk": {"cluster": "EQUITY_INDEX"},
+      "receipts": {"five_day_low_avg_tr": 498, "win": 0.84, "bb2sd_avg_tr": 544, "note": "NQ CALLS BANNED (-$1,266/tr, worst -$43K)"}
+    },
+    {
+      "id": "cl_call", "status": "LICENSED", "sleeve": "call",
+      "market": "CL / MCL", "side": "short_call",
+      "scanner": {"entry": "2-SD rally (close>=upper 2-SD band) AND downtrend (EMA10<EMA100)", "gate": "NONE (validated ungated; OVX-cheap is a straddle signal, not a gate)", "habitat": "CL, MCL only for calls"},
+      "execution": {"structure": "short 16d call ~40 DTE", "exits": "50% OR 21 DTE (trend-flip exit KILLED OOS)"},
+      "sizing": {"anchor": 290, "cap": 5, "risk_pct": 0.02, "cap_note": "raised 3->5 OOS-validated 2026-07-27"},
+      "risk": {"cluster": "ENERGY"},
+      "receipts": {"avg_tr": 126, "win": 0.90, "worst_full": -2902, "n": 29, "vrp_pts": 6.21, "vrp_note": "timing-first line (pnl~vrp corr -0.32)"}
+    },
+    {
+      "id": "ng_call", "status": "LICENSED", "sleeve": "call",
+      "market": "NG / MNG", "side": "short_call",
+      "scanner": {"entry": "2-SD rally AND downtrend (same trigger as CL)", "gate": "NONE (no public vol index; IV via dashboard)", "habitat": "NG, MNG only; NG PUTS BLACKLISTED"},
+      "execution": {"structure": "short 16d call ~40 DTE", "exits": "50% OR 21 DTE"},
+      "sizing": {"anchor": 45, "cap": 5, "risk_pct": 0.02, "cap_note": "cap 5 NOT the ~20 the tiny anchor allows — weather-tail (Uri) discipline"},
+      "risk": {"cluster": "ENERGY"},
+      "receipts": {"avg_tr": 297, "win": 0.93, "worst": -452, "vrp_pts": 9.14, "note": "best line in the book; fattest premium"}
+    },
+    {
+      "id": "straddle_sleeve3", "status": "LICENSED", "sleeve": "long_vol",
+      "market": "stocks / ES / CL", "side": "long_straddle",
+      "scanner": {"entry": "vol CHEAP: vol_rank<=0.30 AND vol_index<realized (VIX for stocks/ES, OVX for CL)", "gate": "inverse gate (cheap, not rich)", "habitat": "stocks, ES/MES, CL/MCL; NG/GC banned"},
+      "execution": {"structure": "buy ATM straddle ~40 DTE", "exits": "+50% OR -40% STOP OR 21 DTE (only line with a loss stop)"},
+      "sizing": {"anchor": 6522, "cap": 1, "risk_pct": 0.02},
+      "risk": {"cluster": "LONG_VOL"},
+      "receipts": {"avg_tr": 89, "win": 0.41, "note": "win-small-lose-big INVERTED: wins big rarely; keep sleeve SMALL"}
+    }
+  ],
+
+  "blacklist": [
+    {"what": "NG puts (any timing)", "why": "premium too lean, tail fat"},
+    {"what": "NQ calls", "why": "-$1,266/tr, worst -$43,171 (momentum index squeezes)"},
+    {"what": "6E anything", "why": "premium too lean"},
+    {"what": "HG both sides", "why": "5dl -$71 worst -$16K"},
+    {"what": "naked strangles on single commodities", "why": "-$22K/13yr on CL (Tom-style)"},
+    {"what": "bb_20sma", "why": "marginal, worst tails"},
+    {"what": "YM (E-mini Dow)", "why": "0.93 corr to ES, thin options — trade via MES (decision, not backtest)"},
+    {"what": "trend-flip exit on any line", "why": "curve-fit; killed OOS on NG (-57% profit, DD doubles)"},
+    {"what": "earnings buy-vol (Study 7,9) and sell-vol (Study 3b condor)", "why": "family closed; edge < cost stack"},
+    {"what": "calendar spreads (any condition)", "why": "H14 + term-structure both buried; carry belongs to zero-spread players"},
+    {"what": "VRP-gap / crisis-fade / VIX-cross as standalone entries", "why": "buried with receipts (see test-scoreboard)"}
+  ]
+}

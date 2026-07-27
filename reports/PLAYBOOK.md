@@ -337,8 +337,13 @@ understates the tail). $50K, compounding, 13yr.
   ($51K→$54K at any risk level). Sizing only matters at the book/sleeve level.
 - Risk-% sweep (CL+NG micros, 73 trades): 2%cap3 $55K/0.7%CAGR/MAR .39 ·
   3% $118K/6.6%/MAR 1.24(peak) · 5% $203K/11.1%/MAR .97 · 7% $339K/15.4%/MAR .77.
-  MAR peaks at 3% then FALLS = beyond 3% you buy return at a worsening
-  risk exchange rate (leverage, not edge). DO NOT raise the risk-% dial.
+  MAR peaks at 3% then FALLS *in the UNCAPPED sweep* — BUT that 3% headline was
+  the UNCAPPED run (needed ~75 NG lots off a $45 anchor = weather-tail bomb).
+  Two dials, don't conflate: (risk%) and (cap). Once you CAP for safety, 2% BEATS
+  3% (cap-5 MAR: 2%=0.55 vs 3%=0.38 — 3% adds only drawdown, cap binds first).
+  Conclusion: 2% risk + cap-5 is the OPTIMUM under real constraints, not a
+  compromise. The '3% uncapped best MAR' was a pre-safety mirage. DO NOT raise
+  either dial.
 - BUT the eye-popping 3-7% dollars came from UNCAPPING NG to ~20+ lots (NG MCL
   anchor is only ~$45). That is fat weather-tail (Uri) exposure — REJECTED on
   principle even though it didn't fire in-sample.
