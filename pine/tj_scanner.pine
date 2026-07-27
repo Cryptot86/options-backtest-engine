@@ -257,7 +257,7 @@ actCol    = sigConf and not (holdActive and inPos) ? color.new(#0E6B4F, 0) :
      sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
 
 // ============ STATUS TABLE (high-contrast) ============
-var table tb = table.new(position.top_right, 2, 14, border_width=1,
+var table tb = table.new(position.top_right, 2, 15, border_width=1,
      border_color=color.new(color.white, 60))
 if showTable and barstate.islast
     cHdr = color.rgb(103, 58, 183)
@@ -327,8 +327,8 @@ if showTable and barstate.islast
          bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
     table.cell(tb, 0, 9, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 9, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 0, 10, "SIZE (2% risk, capped)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 10, str.tostring(sizeQty) + " contract(s)  ·  anchor $"
+    table.cell(tb, 0, 14, "SIZE (2% risk, capped)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 14, str.tostring(sizeQty) + " contract(s)  ·  anchor $"
          + str.tostring(sizeAnchor, "#") + " · cap " + str.tostring(sizeCap)
          + "  (equity $" + str.tostring(acctEquity, "#") + ")",
          bgcolor=cRow, text_color=wht)
