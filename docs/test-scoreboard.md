@@ -5,7 +5,7 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-25 — 14 studies resolved; SUBSTANTIVE QUEUE EMPTY. The raid's study program is complete; remaining items are blocked or low-priority.*
+*Last updated: 2026-07-27 — 14 studies resolved + allocation/sizing engine specced & shipped to main. Substantive program COMPLETE; only blocked/low-priority tail remains.*
 
 ## 📦 SYSTEM ARTIFACTS (the buildable spec)
 | artifact | what |
@@ -59,12 +59,13 @@ An edge smaller than your costs is not your edge. No residual questions.
 | **Study 3b — earnings condor** | **BURIED (2026-07-24).** Raw −$6.2/tr, equal-risk −2.57%, win 39.4% (317 events). Cost-floor kill: calm-name condor edge ~$15-30 gross < $22.80 round-trip costs → cheap stocks 0-7% win; only high-priced names positive (GOOGL +$71 n=6). 3a's overpricing is REAL but unharvestable at retail costs. |
 | **Study 3a — condor premise** | **SURVIVES.** 507 calm-half events: implied move 4.95% vs realized 2.52% — fear overpriced ~2× on 78% of events. Study 3b (4-leg condor) is UNLOCKED and justified. |
 
-## ⏳ Pending — ordered queue
-1. **Study 4a/4b** — straddle tenor sweep; bull-put-spread wing pricing
-   (kill: ≥3× per-BPR vs naked, ≥$50/tr)
-3. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
-4. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
-5. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
+## ⏳ Pending — only the low-priority / blocked tail remains
+1. **#6 Skew dial** — BLOCKED on phase-2 endpoint (16Δ/surface IV)
+2. **#2 COT hedgers' bid** — new free CFTC pipe; most orthogonal
+3. **#4 NG winter vol / #5 weekend theta** — cheap, low priority
+4. **NQ/MNQ futures IV series** — small Databento spend; closes Study 6's one gap
+5. **CL-call OVX rich+stabilizing gate** — untested; ~20min study if ever wanted
+*(Study 4a/4b DONE — see Closed. Substantive program complete.)*
 
 ## Data / infra notes
 - Option pulls disk-cached permanently (data_cache/ivol_cache) — everything
