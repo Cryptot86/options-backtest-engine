@@ -17,6 +17,7 @@ stradExpiry  = input.time(timestamp("2026-12-18"), "  straddle expiry date")
 lastChainIV  = input.float(0.0, "Chain IV you last saw (0=off) — enables convergence countdown", minval=0)
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
 armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
+acctEquity   = input.float(50000, "Account equity $ (for position-size suggestion)", minval=1000)
 
 // ============ PRICE STRUCTURE (your indicators) ============
 ema10  = ta.ema(close, 10)
@@ -75,6 +76,20 @@ volIdx   = isCL ? ovx : vix
 volRank  = ta.percentrank(volIdx, 252)
 hvChart  = ta.stdev(math.log(close / close[1]), 20) * math.sqrt(252) * 100  // chart's own RV
 hvRef    = isCL ? hvChart : hv20                    // CL: crude RV; equities: SPY RV (validated spec)
+// ---- SIZING (validated 2026-07-27, worst-loss anchor + per-line cap) ----
+// qty = clamp(floor(2% * equity / MICRO worst-loss anchor), 1, per-line cap).
+// Micro anchors ($): MCL/CL -290, MNG/NG -45, MES/ES -1569, MGC/GC -823,
+// MNQ/NQ -2253, stocks -4520. Caps: micro-calls(CL/NG) 5, ES/GC 2, NQ 3,
+// stocks 1. NEVER size off broker margin (BPR understates the tail).
+sizeAnchor = (isCL or syminfo.root=="MCL") ? 290.0 :
+     (syminfo.root=="NG" or syminfo.root=="MNG") ? 45.0 :
+     (syminfo.root=="ES" or syminfo.root=="MES") ? 1569.0 :
+     (syminfo.root=="GC" or syminfo.root=="MGC") ? 823.0 :
+     (syminfo.root=="NQ" or syminfo.root=="MNQ") ? 2253.0 : 4520.0
+sizeCap = ((isCL or syminfo.root=="MCL") or syminfo.root=="NG" or syminfo.root=="MNG") ? 5 :
+     (syminfo.root=="ES" or syminfo.root=="MES" or syminfo.root=="GC" or syminfo.root=="MGC") ? 2 :
+     (syminfo.root=="NQ" or syminfo.root=="MNQ") ? 3 : 1
+sizeQty = math.max(1, math.min(sizeCap, math.floor(0.02 * acctEquity / sizeAnchor)))
 cheapOK  = isEq or isCL
 cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef
 var int stCount = 0
@@ -312,6 +327,11 @@ if showTable and barstate.islast
          bgcolor=cushion >= 0 ? cRow : cWn, text_color=wht)
     table.cell(tb, 0, 9, "Exit rules",     bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 9, "50% profit OR 21 DTE · NO price stops", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 0, 10, "SIZE (2% risk, capped)", bgcolor=cRow, text_color=wht)
+    table.cell(tb, 1, 10, str.tostring(sizeQty) + " contract(s)  ·  anchor $"
+         + str.tostring(sizeAnchor, "#") + " · cap " + str.tostring(sizeCap)
+         + "  (equity $" + str.tostring(acctEquity, "#") + ")",
+         bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 11, iStrad ? "MY STRADDLE (exit card)" : "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 11, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
           cheapDay ? ("🟣 " + (isCL ? "OVX" : "VIX") + " CHEAP — buy ATM straddle") :

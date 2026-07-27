@@ -329,6 +329,29 @@ applies to EVERY position (not just stocks); anchors = backtest worst per
 line (docs/worst-loss-reference.json); Tom's 5-7% outer bound stands behind;
 concentration cap 3 lots until live data blesses more.
 
+## MCL / CALL-SLEEVE SIZING STUDY — settled 2026-07-27 (don't re-run)
+Question: optimal position sizing for the CL/NG micro CALL sleeve; is the
+blanket 3-lot cap right? Sized off WORST-LOSS anchor (never broker BPR — margin
+understates the tail). $50K, compounding, 13yr.
+- SLEEVE, not standalone: MCL calls ALONE (29 trades, ~2/yr) = rounding error
+  ($51K→$54K at any risk level). Sizing only matters at the book/sleeve level.
+- Risk-% sweep (CL+NG micros, 73 trades): 2%cap3 $55K/0.7%CAGR/MAR .39 ·
+  3% $118K/6.6%/MAR 1.24(peak) · 5% $203K/11.1%/MAR .97 · 7% $339K/15.4%/MAR .77.
+  MAR peaks at 3% then FALLS = beyond 3% you buy return at a worsening
+  risk exchange rate (leverage, not edge). DO NOT raise the risk-% dial.
+- BUT the eye-popping 3-7% dollars came from UNCAPPING NG to ~20+ lots (NG MCL
+  anchor is only ~$45). That is fat weather-tail (Uri) exposure — REJECTED on
+  principle even though it didn't fire in-sample.
+- CAP REFINEMENT, OOS-VALIDATED (train 2012-18 / test 2019-25 holding COVID+Uri):
+  raising the per-line micro cap from blanket-3 to CL=5/NG=5 improved TEST MAR
+  0.59→0.85 with worst single trade UNCHANGED (−$870). Adopted:
+  MICRO-FUTURES LOT CAP = CL 5, NG 5 (stocks/ES/GC/NQ unchanged). Risk-% stays 2%.
+  NG kept no higher than CL despite its tiny anchor — weather tail discipline.
+- WHY 3% not 5%: MAR = CAGR ÷ maxDD% = return per unit of pain. 3%=1.24,
+  5%=0.97 → 5% more than doubles drawdown for less than double the return.
+- Exit rule for these lines UNCHANGED: 50%/21DTE (trend-flip exit curve-fit,
+  killed OOS on NG — see trend-flip counterfactual in test-scoreboard).
+
 ## NQ + HG verdicts — the futures map is COMPLETE (2026-07-17)
 NQ PUTS LICENSED (MNQ micro): five_day_low +$498x340 (84%), bb_2sd +$544x65
 (91%) — richest put market tested; MNQ worst ~-$2,253 (sizing anchor). NQ

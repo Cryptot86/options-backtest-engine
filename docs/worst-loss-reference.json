@@ -94,5 +94,21 @@
    },
    "note": "GC/CL/NG/ZB lines are REAL diversification vs index puts, even in crashes."
   }
+ },
+ "_SIZING": {
+  "_rule": "qty = clamp(floor(risk_pct * equity / worst_loss_anchor), 1, PER_LINE_CAP). risk_pct=0.02 (2%, do NOT raise \u2014 MAR peaks ~3%, falls after). Anchor = worst historical loss per line (micro = full/10). NEVER size off broker BPR/margin (understates tail).",
+  "PER_LINE_CAP": {
+   "CL_micro": 5,
+   "NG_micro": 5,
+   "MCL": 5,
+   "MNG": 5,
+   "_default_micro": 5,
+   "stocks": 1,
+   "ES_MES": 2,
+   "GC_MGC": 2,
+   "NQ_MNQ": 3,
+   "_note": "micro-futures call cap raised 3->5 (OOS-validated 2026-07-27, TEST MAR .59->.85, worst trade unchanged). NG NOT higher than CL despite tiny anchor \u2014 weather-tail discipline. Stocks/ES/GC/NQ unchanged."
+  },
+  "_rejected": "uncapping NG to ~20+ lots (its ~$45 anchor allows it) gave $117-339K in-sample but is fat weather-tail leverage \u2014 rejected on principle."
  }
 }
