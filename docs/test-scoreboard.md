@@ -67,6 +67,23 @@ An edge smaller than your costs is not your edge. No residual questions.
 5. **CL-call OVX rich+stabilizing gate** — untested; ~20min study if ever wanted
 *(Study 4a/4b DONE — see Closed. Substantive program complete.)*
 
+## 🗓️ LATER / SOMEDAY bucket (not now — TJ parked 2026-07-27)
+- **Automated paper-trading runner (the hybrid).** Decision logic is 100%
+  complete + mechanical, so an autonomous paper loop is BUILDABLE. Three gaps to
+  build: (1) a daily scheduled runner (cron/cloud agent) to execute the scanner
+  each market day; (2) LIVE option data for forward marking — cleanest is a
+  BROKER PAPER ACCOUNT (tastytrade/IBKR API = free, real fills + real marks,
+  fake money) since cached IVol is historical and ends at cancel; (3) the Titan
+  logging/grading layer. RECOMMENDATION ON RECORD: do NOT fully automate —
+  paper trading's real job is Job B (build TJ's discipline + personal track
+  record), which a bot cannot do. Hybrid: bot detects+sizes+alerts (kills the
+  tedium/math); TJ pulls trigger + journals emotion (keeps the reps). Optional
+  parallel: a fully-autonomous bot paper-trades the same signals as a clean
+  forward OOS edge-validation (Job A). "Automating the discipline away is hiring
+  someone to go to the gym for you."
+- **NQ/MNQ futures IV series** (also in pending) — closes Study 6's one gap.
+- **CL-call OVX rich+stabilizing gate** — ~20min entry-quality study if ever wanted.
+
 ## Data / infra notes
 - Option pulls disk-cached permanently (data_cache/ivol_cache) — everything
   pulled this billing month is ours after cancel.
