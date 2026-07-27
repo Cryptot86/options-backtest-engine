@@ -7,9 +7,19 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 
 *Last updated: 2026-07-25 — 14 studies resolved; SUBSTANTIVE QUEUE EMPTY. The raid's study program is complete; remaining items are blocked or low-priority.*
 
+## 📦 SYSTEM ARTIFACTS (the buildable spec)
+| artifact | what |
+|---|---|
+| docs/SYSTEM.md | one-page system map |
+| docs/rulebook.json | machine-readable line registry + `_meta.allocation` + `_meta.sizing_engine` (code reads this) |
+| docs/ALLOCATION_SIZING_SPEC.md | 5-step allocation/sizing pipeline handoff for Titan app |
+| reports/PLAYBOOK.md | human law + why | worst-loss-reference.json | anchors + clusters |
+| pine/tj_scanner.pine | live scanner (signals + gates + SIZE row) |
+
 ## ✅ Validated / settled
 | item | verdict | receipts |
 |---|---|---|
+| **Portfolio allocation (COMPLETE 2026-07-27)** | VIX-band sell budget 25/50/60 + 15% buy; energy SEPARATE 5% tail cap (improves MAR 0.49->0.56, DD unchanged); dedupe = equity cluster fix; capacity-skip = correlation filter. Spec handed to Titan app. | rulebook.json + ALLOCATION_SIZING_SPEC.md |
 | Gate-0 IVol reconciliation | vendor PASSES (MSFT ~3% mark diff) | commit be78320 |
 | Study 1 — per-name IV series | DONE: 35 names + SPY, 13yr, dual basis (spot adj + spot_unadj) | data_cache/iv_series/stocks |
 | Forecast-vs-realized edge | implied over-forecasts 63% of days, median +2.16 pts; vol-pts edge biggest when CHEAP (never read as "sell cheap") | forecast_vs_realized.py |

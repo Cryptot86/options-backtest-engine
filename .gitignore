@@ -7,3 +7,8 @@ output/
 db/
 reports/gate0_*_result.csv
 reports/iv_backtest_5x2.csv
+reports/*.log
+reports/*_trades.csv
+reports/*_tenors.csv
+reports/earnings_studies.csv
+reports/cl_21dte_counterfactual.csv
