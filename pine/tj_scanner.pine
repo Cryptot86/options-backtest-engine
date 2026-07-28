@@ -148,7 +148,8 @@ if nameStorm and (dip2SD or low5) and (barstate.isconfirmed or barstate.ishistor
     ngCount += 1
 
 gateOK     = needGate ? gateGreen : true
-sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5)
+noEarnBlock = not (isEquity and earnIn)            // no-earnings-holds law (equities)
+sellSignal = useSellLine and gateOK and validPutMkt and (dip2SD or low5) and noEarnBlock
 callSignal = useCallLine and freshCross and validTrendMkt
 sellCallSig = useSellCall and rally2SD    // NG/CL only; IV gate lives in dashboard — verify before entry
 
@@ -234,7 +235,7 @@ plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, 
 // Decision uses YESTERDAY'S CLOSED bar (D+1 discipline): signal at yesterday's
 // close -> enter THIS morning. A triangle on today's forming bar is only a
 // "forming" notice — it can vanish by 4pm and is never actionable same-day.
-sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine
+sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine and noEarnBlock
 sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
 cConf     = sellCallSig[1]
 cForm     = sellCallSig and barstate.isrealtime
