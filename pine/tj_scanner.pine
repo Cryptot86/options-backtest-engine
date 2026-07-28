@@ -235,10 +235,10 @@ plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, 
 // Decision uses YESTERDAY'S CLOSED bar (D+1 discipline): signal at yesterday's
 // close -> enter THIS morning. A triangle on today's forming bar is only a
 // "forming" notice — it can vanish by 4pm and is never actionable same-day.
-// ACT NOW requires the gate green at signal (yesterday) AND STILL green now —
-// if vol expanded overnight and the gate closed, do NOT enter (never sell into
-// rising vol). This also kills the "ACT NOW while gate CLOSED" contradiction.
-sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and gateOK and validPutMkt and useSellLine and noEarnBlock
+// D+1 DISCIPLINE: the actionable signal is YESTERDAY's confirmed close (signal +
+// gate + no-earnings all evaluated at [1]). Today's live gate is NOT re-checked
+// — that's not in the validated strategy and would suppress valid signals.
+sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine and noEarnBlock
 sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
 cConf     = sellCallSig[1]
 cForm     = sellCallSig and barstate.isrealtime
@@ -260,6 +260,15 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
 actCol    = sigConf and not (holdActive and inPos) ? color.new(#0E6B4F, 0) :
      sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
 
+// GATE to DISPLAY — match the decision, not the live intraday tick. If a signal
+// confirmed at yesterday's close, the actionable gate is yesterday's ([1]); the
+// table must show THAT, or it contradicts the ACT-NOW banner. Else show live.
+hadSig1 = (dip2SD[1] or low5[1]) and validPutMkt and useSellLine
+gR_d    = hadSig1 ? gRich[1]    : gRich
+gP_d    = hadSig1 ? gPaid[1]    : gPaid
+gS_d    = hadSig1 ? gStable[1]  : gStable
+gG_d    = hadSig1 ? gateGreen[1]: gateGreen
+
 // ============ STATUS TABLE (high-contrast) ============
 var table tb = table.new(position.top_right, 2, 15, border_width=1,
      border_color=color.new(color.white, 60))
@@ -275,8 +284,9 @@ if showTable and barstate.islast
     table.cell(tb, 1, 1, actTxt,           bgcolor=actCol, text_color=wht)
     table.cell(tb, 1, 0, syminfo.ticker,   bgcolor=cHdr, text_color=wht)
     table.cell(tb, 0, 2, "VIX gate",       bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 2, (gRich ? "🟢" : "🔴") + (gPaid ? "🟢" : "🔴") + (gStable ? "🟢" : "🔴")
-         + (gateGreen ? "  OPEN" : "  CLOSED"), bgcolor=gateGreen ? cOk : cNo, text_color=wht)
+    table.cell(tb, 1, 2, (gR_d ? "🟢" : "🔴") + (gP_d ? "🟢" : "🔴") + (gS_d ? "🟢" : "🔴")
+         + (gG_d ? "  OPEN" : "  CLOSED") + (hadSig1 ? "  (at signal close)" : ""),
+         bgcolor=gG_d ? cOk : cNo, text_color=wht)
     ng1 = nRank >= 50
     ng2 = nSlope <= 0
     ng3 = not earnIn and not earnUnk
