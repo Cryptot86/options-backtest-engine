@@ -22,6 +22,17 @@ where marked D+1 — next-morning-9:30 execution (TJ's real workflow).*
 4 markets tested. Never sell while vol is still expanding (the 25–35% IV
 "kill zone" on CL held every catastrophic loss).
 
+**What "VIX gate OPEN" means (3 lights, all green = sell):**
+- 🟢 RICH: VIX rank ≥ 50% — vol in the top half of its year → options expensive → good premium.
+- 🟢 PAID: VIX > 20d realized (SPY RV) → you're paid MORE than the risk actually materializing (positive VRP).
+- 🟢 STABILIZING: VIX 5d slope ≤ 0 → storm receding, not building. THE key light — never sell into rising vol.
+All 3 green = OPEN = rich + paid + calming = the ideal sell-put moment (the
+filter that took stocks −$21→+$129/tr). Any red = CLOSED, stocks don't signal.
+Scanner shows "OPEN (at signal close)" = the gate AT YESTERDAY's close (the D+1
+decision bar), so the banner and the row always agree. Stocks REQUIRE this gate;
+ES/MES/NQ index puts are validated ungated. Name-gate is the backup path only
+when the VIX gate is closed (VIX flat) and the NAME's own vol is cresting+falling.
+
 ## Hard rules (all data-derived)
 
 1. **Structure follows thesis.** Directional entry → directional structure.
@@ -42,6 +53,15 @@ win% is a vanity metric, total $ is truth. Only pro-fast-TP argument (redeploy
 capital) tested & dead (recycling sim: nothing to recycle into, -$2,681). LAW:
 50% profit OR 21 DTE, no fast exits. HOW TO DECIDE any exit tweak: test the RULE
 across all trades, measure TOTAL $ not win%, and check the held-counterfactual.
+FREQUENCY + REVERSAL RISK (the follow-up TJ asks): 32% of trades (119/377) hit
+30% within 2 days — 1 in 3, common. Of those 119, HELD to 50%: 96% still win;
+only 4.2% (5 trades, 1-in-24) reverse to a LOSS (avg give-back -$364, worst
+-$1,310). Those 5 reversals cost -$2,968 total; the other 114 held-winners added
++$8,122 -> holding nets +$5,155. So: you WILL occasionally watch a +30% turn red
+(~4%), and that is the PRICE of the +27% you make on the rest ($2.74 earned per
+$1 given back). Banking early = buying expensive insurance (costs 27% of profit)
+against a small survivable pain (4%, ~$364) = loss aversion, overruled by
+arithmetic. Mechanical fix: GTC buy-back at 50% removes the decision.
 
 4. **Rolling only on mean-reverting entries** (bb_2sd class: +$67→+$484/chain).
    Rolling five_day_low produced −$32K chains with −$48.6K MAE. Chain MAE is
