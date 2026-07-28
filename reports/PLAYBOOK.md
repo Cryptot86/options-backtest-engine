@@ -31,6 +31,18 @@ where marked D+1 — next-morning-9:30 execution (TJ's real workflow).*
 3. **No tight dollar stops.** $100 stop cut MSFT P&L 70%; selling at −$1,500 MAE
    on CL doubled losses (−$27K → −$49.5K). Loss control = entry selection +
    21-DTE calendar + trend-invalidation, not stops.
+## FAST-TP TEST — 30% quick exit vs 50%/21DTE (settled 2026, don't re-run)
+TJ's Q: put at 30% in 1-2 days — bank it? NO. 377 gated equity trades, same
+trades, re-priced: exit@30% $28.8K/$76tr/95%win · exit@40% $38.3K · exit@50%
+$48.5K/$129tr/91%win. Banking at 30% costs 41% of book profit. The 30%-in-2-days
+subset (119 trades, TJ's exact case): banked $13.5K vs HELD-to-50% $18.7K = held
+earns +27%/tr more. WHY: fast winners are your BEST trades; early TP caps winners,
+ignores losers. TRAP: faster TP RAISES win rate (95% vs 91%) but LOWERS total $ —
+win% is a vanity metric, total $ is truth. Only pro-fast-TP argument (redeploy
+capital) tested & dead (recycling sim: nothing to recycle into, -$2,681). LAW:
+50% profit OR 21 DTE, no fast exits. HOW TO DECIDE any exit tweak: test the RULE
+across all trades, measure TOTAL $ not win%, and check the held-counterfactual.
+
 4. **Rolling only on mean-reverting entries** (bb_2sd class: +$67→+$484/chain).
    Rolling five_day_low produced −$32K chains with −$48.6K MAE. Chain MAE is
    the sizing input if you roll.
