@@ -235,7 +235,10 @@ plotshape((cheapDay and not cheapDay[1]) and fin, "STRADDLE DAY", shape.circle, 
 // Decision uses YESTERDAY'S CLOSED bar (D+1 discipline): signal at yesterday's
 // close -> enter THIS morning. A triangle on today's forming bar is only a
 // "forming" notice — it can vanish by 4pm and is never actionable same-day.
-sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and validPutMkt and useSellLine and noEarnBlock
+// ACT NOW requires the gate green at signal (yesterday) AND STILL green now —
+// if vol expanded overnight and the gate closed, do NOT enter (never sell into
+// rising vol). This also kills the "ACT NOW while gate CLOSED" contradiction.
+sigConf   = (dip2SD[1] or low5[1]) and gateOK[1] and gateOK and validPutMkt and useSellLine and noEarnBlock
 sigForm   = (dip2SD or low5) and gateOK and validPutMkt and barstate.isrealtime
 cConf     = sellCallSig[1]
 cForm     = sellCallSig and barstate.isrealtime
