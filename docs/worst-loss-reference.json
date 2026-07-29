@@ -93,7 +93,32 @@
     "ZB": -0.11
    },
    "note": "GC/CL/NG/ZB lines are REAL diversification vs index puts, even in crashes."
-  }
+  },
+  "METALS": {
+   "members": [
+    "SHORT_PUT_GC",
+    "SHORT_PUT_MGC",
+    "SHORT_PUT_SI_paper"
+   ],
+   "corr_to_equities": 0.08,
+   "corr_on_ES_crash": 0.07,
+   "corr_GC_SI": 0.8,
+   "budget_pct": 0.05,
+   "note": "Gold = BEST diversifier in book (0.08 daily, 0.07 crash \u2014 flight-to-safety hedge). Separate 5% tail budget, confirmed same logic as ENERGY. GC+SI are ONE cluster (0.80 corr) \u2014 share the 5%, never stack. SI is PAPER-ONLY (rejected except bb_2sd puts +$413/tr n=35 journal); metals budget = GC puts for now (+$303/tr licensed)."
+  },
+  "ENERGY": {
+   "members": [
+    "SHORT_CALL_CL",
+    "SHORT_CALL_MCL",
+    "SHORT_CALL_NG",
+    "SHORT_CALL_NG_micro"
+   ],
+   "corr_to_equities": 0.11,
+   "corr_CL_NG": 0.11,
+   "budget_pct": 0.05,
+   "note": "CL+NG ~0.11 to equities AND to each other \u2014 nearly independent. Separate 5% tail. Confirmed improves book MAR 0.49->0.56, DD unchanged."
+  },
+  "_decision_framework": "Add any new asset class as a SEPARATE cluster budget IFF: (1) corr<~0.3 to existing clusters (genuine diversification), (2) instruments within it that correlate >~0.6 SHARE one budget (don't stack), (3) the line is LICENSED not paper, (4) energy-style sim confirms it improves book MAR with DD unchanged. Per-cluster tail <=5%; TOTAL across all clusters <=~12-15% (crisis-correlation buffer)."
  },
  "_SIZING": {
   "_rule": "qty = clamp(floor(risk_pct * equity / worst_loss_anchor), 1, PER_LINE_CAP). risk_pct=0.02 (2%, do NOT raise \u2014 MAR peaks ~3%, falls after). Anchor = worst historical loss per line (micro = full/10). NEVER size off broker BPR/margin (understates tail).",
