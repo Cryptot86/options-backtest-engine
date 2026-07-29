@@ -138,7 +138,14 @@
     "cash_is_not_waste": "60% T-bills = (1) margin buffer vs vol-spike liquidation, (2) dry powder to deploy MORE when VIX high, (3) yield. It's the ballast that gives the 3% DD.",
     "kills_speed_tradeoff": "NO speed/endurance tradeoff exists. Toyota (25%) = same return as Aggressive (55%) at <half the DD. The '50/50 speed option' documented earlier is SUPERSEDED - there is no speed to buy by deploying more.",
     "FINAL": "SELLING ~25% BPR (eqidx 7 + energy 5 + metals 5 tail) \u00b7 BUYING ~15% BPR (straddle 10 + longcall 5) \u00b7 T-BILLS ~60%. Do NOT deploy more - strictly worse."
-   }
+   },
+   "SGOV_COLLATERAL_RULE": {
+    "rule": "SGOV/T-bill ETF is COLLATERAL + yield, NOT a tracked position. Never blocked by dedupe/cluster/band rules; never counts against any allocation budget.",
+    "mechanics": "consumes ~25% of value as BPR (empirical: 100sh~$10K -> $2,500 BPR); other ~75% stays available BP for selling; earns ~4.5% yield.",
+    "futures_caveat": "MES/MCL/MNG options need CASH margin (futures side) - SGOV can't collateralize those. Keep cash for futures sleeves.",
+    "example_42k": "~300 sh SGOV (~$30K) + ~$12K cash (futures margin+buffer). Verify exact BP on platform (Reg-T vs PM differs)."
+   },
+   "IDLE_IS_NORMAL": "Energy & metals fire ~1-4 trades/yr each; their 5% budgets sit EMPTY most of the time. Correct + expected. Empty cluster != under-deployed. Never loosen to fill idle budgets."
   }
  },
  "lines": [
