@@ -97,6 +97,19 @@
      "avoid": "flat-100% (no buffer for a grinding bear not in the 2015-26 sample)"
     },
     "caveat": "Absolute CAGR 2-4% is the CONSERVATIVE SUBSET (micro 1-lot, no name-gate/straddle/long-call/T-bill, no size-steps). Full book ~12% CAGR. Band RANKING is the takeaway, not dollars. In-sample crash = V-shaped 2020 only."
+   },
+   "FULL_BOOK_RESULT_2026-07-29": {
+    "sim": "$50K 2015-2026, all 7 sleeves + size-steps + T-bills + optimal alloc (1,200 trades)",
+    "result": "1-contract: $93.5K/5.6%CAGR/3.2%DD/MAR1.72. SIZE-STEPS: $99.9K/6.2%/3.0%/MAR2.04 (doubles account, 3% DD).",
+    "note": "6.2% < old v2 12.2% because 2015 start (weak 2015-18) + conservative T-bills + cluster caps. Defensive fully-controlled version. Size-steps lift MAR 1.72->2.04.",
+    "FINAL_POLICY": {
+     "L1_entry_gate": "VIX 3-green (rich+paid+STABILIZING) = crash protection, regime on/off",
+     "L2_dedupe_equity": "one open/name + max 2 new equity/day (the equity concentration control; a hard equity %-cap HURT in testing)",
+     "L3_cluster_caps": "equity-index 7%, energy 5%, metals 5%, TOTAL 12%",
+     "L4_margin_bands": "SELL ~50% (not 25%=over-throttle micros, not 100%=no buffer); BUY 15% (straddles+long calls). Mostly vestigial once L2+L3 bind \u2014 keep as crisis buffer.",
+     "dedupe_live": "multiple names fire on a dip -> take at most 2, one/name, log skip:dedupe. No rule picks WHICH 2 (first-come); improvement = prefer different sectors, UNTESTED.",
+     "no_equity_correlation_optimizer": "equities entered chronologically, only dedupe filters; no per-name correlation selection (gap, untested)."
+    }
    }
   }
  },
