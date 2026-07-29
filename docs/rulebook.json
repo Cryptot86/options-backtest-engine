@@ -80,7 +80,24 @@
    "energy_separate": "ENERGY cluster (CL/NG calls) is NOT in the VIX sell budget \u2014 it has its own 5% TAIL cap (regime-agnostic). 0.11-corr to equities = separate, confirmed improves book MAR 0.49->0.56.",
    "dedupe": "SAME-NAME SAME-DAY = ONE position (never stack bb_2sd + five_day_low on one underlying). Max 2 new equity entries/day. This dedupe IS the equity cluster fix \u2014 no equity-sleeve cap needed.",
    "capacity": "If a fully-sized trade does not fit the remaining band budget -> SKIP, skip_reason='capacity'. ~20% skip rate is BY DESIGN = implicit correlation filter (skips cluster during same-regime bursts = the most redundant trades). Never raise bands to force fills.",
-   "idle_cash": "sweep idle collateral to T-bills (was the largest sleeve raw)"
+   "idle_cash": "sweep idle collateral to T-bills (was the largest sleeve raw)",
+   "OPTIMAL_RULE_2026-07-29": {
+    "finding": "With dedupe + cluster tail caps in place, the VIX-MARGIN band is REDUNDANT on a $50K micro book. Sweep 2015-2026: tight 25% skips 424 good trades ($63.8K); loose/off makes more ($81K) at similar low DD because dedupe+cluster-caps+ENTRY-gate already control risk. Crash protection comes from the VIX 3-green ENTRY gate (never sell into expanding vol), NOT the allocation band.",
+    "rule": {
+     "keep": [
+      "VIX 3-green ENTRY gate (real crash protection)",
+      "dedupe: 1/name + max 2 new equity/day",
+      "cluster tail caps: energy 5%, metals 5%"
+     ],
+     "add": [
+      "equity-index cluster cap ~7% (only uncapped correlated group)",
+      "total-across-clusters cap ~12% (crisis-correlation buffer)"
+     ],
+     "loosen": "VIX-margin band 25% calm -> ~50% (25% over-throttles micros)",
+     "avoid": "flat-100% (no buffer for a grinding bear not in the 2015-26 sample)"
+    },
+    "caveat": "Absolute CAGR 2-4% is the CONSERVATIVE SUBSET (micro 1-lot, no name-gate/straddle/long-call/T-bill, no size-steps). Full book ~12% CAGR. Band RANKING is the takeaway, not dollars. In-sample crash = V-shaped 2020 only."
+   }
   }
  },
  "lines": [
