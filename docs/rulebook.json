@@ -141,7 +141,7 @@
    },
    "SGOV_COLLATERAL_RULE": {
     "rule": "SGOV/T-bill ETF is COLLATERAL + yield, NOT a tracked position. Never blocked by dedupe/cluster/band rules; never counts against any allocation budget.",
-    "mechanics": "consumes ~25% of value as BPR (empirical: 100sh~$10K -> $2,500 BPR); other ~75% stays available BP for selling; earns ~4.5% yield.",
+    "mechanics": "VERIFIED: ~25% of value as BPR (TJ account 100sh~$10K->$2,500). UNVERIFIED (NOT from tastytrade docs, standard Reg-T inference): the ~75% stays available to sell against, ~4.5% yield. CONFIRM empirically: watch available BP before/after buying SGOV.",
     "futures_caveat": "MES/MCL/MNG options need CASH margin (futures side) - SGOV can't collateralize those. Keep cash for futures sleeves.",
     "example_42k": "~300 sh SGOV (~$30K) + ~$12K cash (futures margin+buffer). Verify exact BP on platform (Reg-T vs PM differs)."
    },
