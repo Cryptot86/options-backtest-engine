@@ -110,6 +110,27 @@
      "dedupe_live": "multiple names fire on a dip -> take at most 2, one/name, log skip:dedupe. No rule picks WHICH 2 (first-come); improvement = prefer different sectors, UNTESTED.",
      "no_equity_correlation_optimizer": "equities entered chronologically, only dedupe filters; no per-name correlation selection (gap, untested)."
     }
+   },
+   "THE_BLUEPRINT_2026-07-29": {
+    "philosophy": "Capital protection FIRST. Never 100% deployed (structural via cluster caps). Toyota (endurance) over Ferrari.",
+    "SELLING_tail_budgets": {
+     "equity_index_stocks+MES": 0.07,
+     "energy_CL_NG": 0.05,
+     "metals_GC": 0.05,
+     "TOTAL_short_premium_tail": "<=0.15 (~25% BPR)"
+    },
+    "BUYING_debit": {
+     "straddles_longvol": 0.1,
+     "long_calls": 0.05,
+     "note": "straddles HEDGE the sell book (win in crashes)"
+    },
+    "BALLAST": {
+     "T_bills": "the rest ~60-70% idle collateral = capital protection + yield"
+    },
+    "structural": "per-cluster tail caps (7/5/5) + 12% total cap MATHEMATICALLY prevent >15% short-premium tail. Cannot deploy 100% to selling - trade rejected skip:capacity first.",
+    "proof": "full-book sim: doubles $50K->$100K over 11yr at 3% maxDD, MAR 2.04.",
+    "speed_option": "50/50 = double the selling tail budgets (eqidx 14/energy 8/metals 8, ~30% total) -> ~2x return AND drawdown. NOT recommended in $50K build phase; protection first.",
+    "sector_dedupe": "TESTED 2026-07-29: sector-diverse dedupe = IDENTICAL to plain (max-2/day already prevents same-sector-same-day pairs). NOT adopted - inert complexity."
    }
   }
  },

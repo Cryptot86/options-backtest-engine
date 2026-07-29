@@ -51,7 +51,16 @@ con.close()
 T=pd.DataFrame([x for x in trades if x["d"]>=START]).sort_values("d").reset_index(drop=True)
 print(f"full book trades {START.date()}..: {len(T)}  ({T.tag.value_counts().to_dict()})\n")
 
-def run(sell_band=0.50, buy_band=0.15, sizesteps=True):
+
+SECTOR={ "AAPL":"TECH","MSFT":"TECH","NVDA":"SEMI","AMD":"SEMI","AVGO":"SEMI","TSM":"SEMI",
+ "CRM":"TECH","META":"TECH","GOOGL":"TECH","NFLX":"TECH","PLTR":"TECH","SMCI":"SEMI","ARM":"SEMI",
+ "AMZN":"CONS","TSLA":"CONS","COST":"CONS","WMT":"CONS","HD":"CONS","MCD":"CONS","NKE":"CONS","DIS":"CONS","HOOD":"FIN","LYFT":"CONS",
+ "JPM":"FIN","BAC":"FIN","WFC":"FIN","GS":"FIN","C":"FIN","COIN":"FIN",
+ "LLY":"HLTH","UNH":"HLTH","JNJ":"HLTH","PFE":"HLTH",
+ "XOM":"ENGY","CVX":"ENGY","COP":"ENGY","CAT":"INDU","DE":"INDU","BA":"INDU"}
+def sec_of(name): return SECTOR.get(name.split(":")[-1],"OTH")
+
+def run(sell_band=0.50, buy_band=0.15, sizesteps=True, dedupe='plain'):
     equity,openp,taken,skip=EQ0,[],0,0; curve={}; last=EQ0
     Tby={d:g for d,g in T.groupby("d")}
     for day in pd.date_range(START,END,freq="D"):
@@ -61,13 +70,14 @@ def run(sell_band=0.50, buy_band=0.15, sizesteps=True):
         equity+=max(equity-deployed,0)*RF   # T-bill on idle
         capS=sell_band*equity; capB=buy_band*equity
         usedS=sum(p["m"] for p in openp if p["book"]=="sell"); usedB=sum(p["m"] for p in openp if p["book"]=="buy")
-        names={p["name"] for p in openp}; eqday=0
+        names={p["name"] for p in openp}; eqday=0; sect_today=set()
         if day in Tby:
             for _,r in Tby[day].iterrows():
                 q = qty(r.tag,equity) if (sizesteps and r.tag in LINE) else 1
                 mgn=r.margin*q; ok=True
                 if r["name"] in names: ok=False
                 if r.tag=="EQ" and eqday>=2: ok=False
+                if r.tag=="EQ" and dedupe=='sector' and sec_of(r['name']) in sect_today: ok=False
                 cap,used=(capS,usedS) if r.book=="sell" else (capB,usedB)
                 if used+mgn>cap: ok=False
                 if r.cluster in CAP:
@@ -84,7 +94,7 @@ def run(sell_band=0.50, buy_band=0.15, sizesteps=True):
                     if r.book=="sell": usedS+=mgn
                     else: usedB+=mgn
                     names.add(r["name"])
-                    if r.tag=="EQ": eqday+=1
+                    if r.tag=="EQ": eqday+=1; sect_today.add(sec_of(r['name']))
                 else: skip+=1
         curve[day]=equity
     for p in openp: equity+=p["realpnl"]
@@ -92,9 +102,6 @@ def run(sell_band=0.50, buy_band=0.15, sizesteps=True):
     dd=((cv.cummax()-cv)/cv.cummax()).max()
     return dict(final=equity,cagr=(equity/EQ0)**(1/yrs)-1,mddp=dd,mar=((equity/EQ0)**(1/yrs)-1)/dd if dd else 0,taken=taken,skip=skip,curve=cv)
 
-for tag,ss in [("1-contract (no size-steps)",False),("SIZE-STEPS (contracts scale w/ equity)",True)]:
-    r=run(sizesteps=ss)
-    print(f"{tag}")
-    print(f"  $50,000 -> ${r['final']:,.0f}  ({100*(r['final']/EQ0-1):+.0f}%)  CAGR {100*r['cagr']:.1f}%  maxDD {100*r['mddp']:.1f}%  MAR {r['mar']:.2f}  (taken {r['taken']}, skip {r['skip']})")
-print("\nyear-end equity (full book, size-steps):")
-print(run(sizesteps=True)['curve'].resample("YE").last().round(0).to_string())
+for tag,dd in [("dedupe PLAIN (any 2/day)","plain"),("dedupe SECTOR-DIVERSE (2/day, diff sectors)","sector")]:
+    r=run(sizesteps=True,dedupe=dd)
+    print(f"{tag:<44} $ {r['final']:>8,.0f}  CAGR {100*r['cagr']:>4.1f}%  maxDD {100*r['mddp']:>4.1f}%  MAR {r['mar']:.2f}  (taken {r['taken']})")
