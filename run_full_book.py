@@ -13,7 +13,8 @@ RF=0.02/252  # T-bill daily on idle (rate-honest ~2% avg)
 # line: cluster, tail_anchor, base_margin, cap
 LINE={"EQ":("EQIDX",4520,1200,1),"MES":("EQIDX",1569,1300,2),"MCL":("ENERGY",290,350,5),
       "MNG":("ENERGY",200,280,5),"MGC":("METALS",823,220,2)}
-CAP={"ENERGY":0.05,"METALS":0.05,"EQIDX":0.07}   # + total 12%
+BASECAP={"ENERGY":0.05,"METALS":0.05,"EQIDX":0.07}   # Toyota base; + total 12%
+CAP=dict(BASECAP)
 def qty(tag,equity):
     cl,anc,mg,cap=LINE[tag]; return int(np.clip(np.floor(0.02*equity/anc),1,cap))
 
@@ -60,7 +61,9 @@ SECTOR={ "AAPL":"TECH","MSFT":"TECH","NVDA":"SEMI","AMD":"SEMI","AVGO":"SEMI","T
  "XOM":"ENGY","CVX":"ENGY","COP":"ENGY","CAT":"INDU","DE":"INDU","BA":"INDU"}
 def sec_of(name): return SECTOR.get(name.split(":")[-1],"OTH")
 
-def run(sell_band=0.50, buy_band=0.15, sizesteps=True, dedupe='plain'):
+def run(sell_band=0.50, buy_band=0.15, sizesteps=True, dedupe='plain', scale=1.0):
+    global CAP
+    CAP={k:v*scale for k,v in BASECAP.items()}
     equity,openp,taken,skip=EQ0,[],0,0; curve={}; last=EQ0
     Tby={d:g for d,g in T.groupby("d")}
     for day in pd.date_range(START,END,freq="D"):
@@ -86,7 +89,7 @@ def run(sell_band=0.50, buy_band=0.15, sizesteps=True, dedupe='plain'):
                     if ct+tanc*q>CAP[r.cluster]*equity: ok=False
                 # total-cluster cap 12%
                 tot=sum(p["tail"] for p in openp)
-                if r.tag in LINE and tot+LINE[r.tag][1]*q>0.12*equity: ok=False
+                if r.tag in LINE and tot+LINE[r.tag][1]*q>0.12*scale*equity: ok=False
                 if ok:
                     tanc=LINE[r.tag][1]*q if r.tag in LINE else 0
                     openp.append(dict(name=r["name"],x=r.x,realpnl=r.pnl1*q,m=mgn,tail=tanc,
@@ -102,6 +105,9 @@ def run(sell_band=0.50, buy_band=0.15, sizesteps=True, dedupe='plain'):
     dd=((cv.cummax()-cv)/cv.cummax()).max()
     return dict(final=equity,cagr=(equity/EQ0)**(1/yrs)-1,mddp=dd,mar=((equity/EQ0)**(1/yrs)-1)/dd if dd else 0,taken=taken,skip=skip,curve=cv)
 
-for tag,dd in [("dedupe PLAIN (any 2/day)","plain"),("dedupe SECTOR-DIVERSE (2/day, diff sectors)","sector")]:
-    r=run(sizesteps=True,dedupe=dd)
-    print(f"{tag:<44} $ {r['final']:>8,.0f}  CAGR {100*r['cagr']:>4.1f}%  maxDD {100*r['mddp']:>4.1f}%  MAR {r['mar']:.2f}  (taken {r['taken']})")
+print(f"{'profile':<34}{'final$':>10}{'CAGR':>7}{'maxDD%':>8}{'MAR':>6}{'taken':>7}")
+for name,sc,sb in [("TOYOTA (7/5/5 tail, ~25% BPR)",1.0,0.50),
+                   ("BALANCED (1.6x, ~40% BPR)",1.6,0.70),
+                   ("AGGRESSIVE (2.5x, ~55% BPR)",2.5,1.0)]:
+    r=run(sizesteps=True,scale=sc,sell_band=sb)
+    print(f"{name:<34}${r['final']:>9,.0f}{100*r['cagr']:>6.1f}%{100*r['mddp']:>7.1f}%{r['mar']:>6.2f}{r['taken']:>7}")

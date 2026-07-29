@@ -131,6 +131,13 @@
     "proof": "full-book sim: doubles $50K->$100K over 11yr at 3% maxDD, MAR 2.04.",
     "speed_option": "50/50 = double the selling tail budgets (eqidx 14/energy 8/metals 8, ~30% total) -> ~2x return AND drawdown. NOT recommended in $50K build phase; protection first.",
     "sector_dedupe": "TESTED 2026-07-29: sector-diverse dedupe = IDENTICAL to plain (max-2/day already prevents same-sector-same-day pairs). NOT adopted - inert complexity."
+   },
+   "DEPLOYMENT_FRONTIER_2026-07-29": {
+    "finding": "25% BPR to selling is OPTIMAL, not conservative. Frontier (full book, size-steps): Toyota ~25% BPR = $99.9K/6.2%CAGR/3.0%DD/MAR2.04; Balanced ~40% = $96.2K/5.9%/4.8%/1.22; Aggressive ~55% = $100.9K/6.3%/7.1%/0.88. Deploying 25%->55% BPR: SAME return, 2.4x drawdown.",
+    "why": "Book is limited by SIGNAL QUALITY not capital. First ~25% BPR captures all the edge (best/most-diversified trades). Extra deployment drags in marginal, correlated, redundant trades = variance without edge.",
+    "cash_is_not_waste": "60% T-bills = (1) margin buffer vs vol-spike liquidation, (2) dry powder to deploy MORE when VIX high, (3) yield. It's the ballast that gives the 3% DD.",
+    "kills_speed_tradeoff": "NO speed/endurance tradeoff exists. Toyota (25%) = same return as Aggressive (55%) at <half the DD. The '50/50 speed option' documented earlier is SUPERSEDED - there is no speed to buy by deploying more.",
+    "FINAL": "SELLING ~25% BPR (eqidx 7 + energy 5 + metals 5 tail) \u00b7 BUYING ~15% BPR (straddle 10 + longcall 5) \u00b7 T-BILLS ~60%. Do NOT deploy more - strictly worse."
    }
   }
  },
