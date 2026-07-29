@@ -15,12 +15,13 @@ limited by SIGNAL QUALITY, not capital. **Never force deployment to hit a %.**
 CRITICAL for the engine: **SGOV (or any T-bill ETF) is COLLATERAL + yield, NOT a
 tracked strategy position.** It must NOT count against any allocation budget and
 must NOT be blocked by dedupe/cluster/band rules.
-- VERIFIED (TJ's account): SGOV consumes ~25% of its value as BPR (100 sh ≈
-  $10K -> $2,500 BPR). This is the ONLY confirmed fact.
-- UNVERIFIED INFERENCE (confirm with broker/empirically): that the other ~75%
-  stays available as buying power to sell options against. This is standard
-  Reg-T mechanics but was NOT confirmed in tastytrade docs. VERIFY by watching
-  available BP before/after buying SGOV — the delta is the true answer.
+- VERIFIED (tastytrade order screen, 2026-07-29): buying 100 SGOV (~$10,066)
+  reduces STOCK BP by $5,033 (50%, Reg-T initial) and OPTION BP by ~$2,516 (25%,
+  = half, since Option BP = Stock BP/2). For the SELL book the OPTION-BP effect
+  (25%) is the one that binds: ~75% of SGOV value stays available to sell options
+  against, WHILE the position earns ~4.5% yield. SGOV IS efficient dual-use
+  collateral. (Residual: confirm Option BP drops ~$2,516 not the full $5,033 on
+  the first live fill.)
 - It earns ~4.5% yield. It is where idle net-liq lives.
 - RULE: buying/holding SGOV is always allowed; the allocation engine ignores it
   except to (a) reduce available BPR by 25% of SGOV value, (b) credit yield.

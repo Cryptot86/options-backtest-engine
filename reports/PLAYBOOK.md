@@ -92,16 +92,15 @@ arithmetic. Mechanical fix: GTC buy-back at 50% removes the decision.
 - Frequency check (H12): surviving methods ≈ 4–8 signals/mo across 6 markets at
   ~$150–300 avg → ballpark $800–1,500/mo at 1-lot discipline. Equities widen it.
 - Paper-trade the playbook lines alongside live data before committing capital.
-- **OPEN QUESTION — SGOV as selling collateral (2026-07-29, UNVERIFIED).** Only
-  VERIFIED fact: SGOV consumes ~25% of its value as BPR (TJ's tastytrade account:
-  100 sh ≈ $10K -> $2,500 BPR). UNVERIFIED (assumed from standard Reg-T mechanics,
-  NOT found in tastytrade docs): that the other ~75% stays available as buying
-  power to sell options against. If true, SGOV is efficient dual-use collateral
-  (yield ~4.5% + backs short premium) and the ~60% "cash" bucket should live in
-  SGOV. RESOLVE EMPIRICALLY before relying on it: note available BP -> buy SGOV ->
-  note BP again; if BP drops ~25% of SGOV value the assumption holds, if it drops
-  the full value it does NOT. Also: futures options (MES/MCL/MNG) need CASH margin
-  in the futures account — SGOV can't collateralize those regardless.
+- **SGOV as selling collateral — RESOLVED 2026-07-29 (tastytrade order screen).**
+  Confirmed: buying 100 SGOV (~$10,066) shows two BP meters — STOCK BP reduced by
+  $5,033 (50%, Reg-T initial), OPTION BP reduced by ~$2,516 (25%, = half, since
+  Option BP = Stock BP/2). The OPTION-BP effect (25%) is what matters for selling:
+  ~75% of SGOV value stays available to sell options against, WHILE earning ~4.5%
+  yield. SGOV IS efficient dual-use collateral — the ~60% "cash" bucket should
+  live in SGOV. (One residual check: confirm Option BP actually drops ~$2,516 not
+  the full $5,033 post-fill.) CAVEAT stands: futures options (MES/MCL/MNG) need
+  CASH margin in the futures account — SGOV can't collateralize those.
 
 ## What was definitively learned (see findings-ledger memory for detail)
 
