@@ -46,11 +46,15 @@ loosen anything. Deploy only when a gated/licensed signal actually fires.
 
 ## 3. DEDUPE spec (equity concentration control)
 Applies to EQUITY (stock) puts only:
+- **21-day loss cooldown:** after a losing exit in a name, no re-entry in THAT
+  name for 21 calendar days (OOS-validated law; wins clear immediately).
 - **1 per name:** at most one open position per underlying at a time. If a name
   already has an open position, skip any new signal on it (bb_2sd AND
   five_day_low firing on the same stock = ONE trade, never two).
-- **2 per day:** at most 2 NEW equity entries opened per calendar day. If 6 names
-  fire on a market dip, take the first 2 that pass all gates, skip the rest with
+- **3 per day:** at most 3 NEW equity entries opened per calendar day (raised
+  from 2 on 2026-07-30; passed kill bars in both signal-level and canonical $-sims
+  — MAR up, DD flat; cluster caps still govern dollars). If 6 names fire on a
+  market dip, take the first 3 that pass all gates, skip the rest with
   skip_reason='dedupe'.
 - No sector rule: sector-diverse dedupe was TESTED (2026-07-29) and made ZERO
   difference (max-2/day already prevents same-sector same-day pairs). Not adopted.

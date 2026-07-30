@@ -78,7 +78,7 @@
    "buy_note": "flat 15% for long-vol sleeve (straddles) + micro long calls; separate bucket from selling",
    "sell_budget_meaning": "MARGIN/BPR committed to short premium <= band% of equity. Applies to the EQUITY+FUTURES-PUT selling book (VIX is its regime).",
    "energy_separate": "ENERGY cluster (CL/NG calls) is NOT in the VIX sell budget \u2014 it has its own 5% TAIL cap (regime-agnostic). 0.11-corr to equities = separate, confirmed improves book MAR 0.49->0.56.",
-   "dedupe": "SAME-NAME SAME-DAY = ONE position (never stack bb_2sd + five_day_low on one underlying). Max 2 new equity entries/day. This dedupe IS the equity cluster fix \u2014 no equity-sleeve cap needed.",
+   "dedupe": "EQUITY puts: 1 open per name + max 3 NEW equity entries/day (raised 2->3 on 2026-07-30: passed kill bar in signal-level sim (+14% profit, tot/DD 6.38->7.47, DD DOWN) AND canonical $-sim (MAR 2.71->2.74, DD flat) \u2014 burst-day signals are good signals in DIFFERENT names; cluster $-caps still govern concentration). 4/day tested even better (MAR 2.83) \u2014 held as candidate, not adopted. 21-day same-name loss cooldown applies on top (LOSS_COOLDOWN_RULE).",
    "capacity": "If a fully-sized trade does not fit the remaining band budget -> SKIP, skip_reason='capacity'. ~20% skip rate is BY DESIGN = implicit correlation filter (skips cluster during same-regime bursts = the most redundant trades). Never raise bands to force fills.",
    "idle_cash": "sweep idle collateral to T-bills (was the largest sleeve raw)",
    "OPTIMAL_RULE_2026-07-29": {

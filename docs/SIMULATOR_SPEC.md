@@ -48,8 +48,9 @@ maxDD = max peak-to-trough on the daily curve; MAR = CAGR/maxDD.
    validated ungated. See `docs/GATES_EXPLAINED.md`. A trade whose signal wasn't
    gate-clean at signal close never enters. (In backtest the trade list is
    already gate-filtered; the live app applies the gate here.)
-2. **Dedupe** (equity puts only): skip if `name` already open (**1 per name**);
-   skip if **2 equity entries** already opened today. `skip_reason='dedupe'`.
+2. **Dedupe** (equity puts only): skip if the name is inside its **21-day loss
+   cooldown** (LOSS_COOLDOWN_RULE); skip if `name` already open (**1 per name**);
+   skip if **3 equity entries** already opened today (raised 2->3, 2026-07-30). `skip_reason='dedupe'`.
 3. **Deployment band**: sell book used + new margin ≤ `sell_band * equity`
    (25% calm baseline; band mostly non-binding once caps+dedupe exist); buy book
    ≤ 15%. `skip_reason='band'`.

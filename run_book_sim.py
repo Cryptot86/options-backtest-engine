@@ -6,7 +6,7 @@ inflates contracts to hit a theta target. Theta is an OUTPUT, reported only.
 Governors (docs/rulebook.json + worst-loss-reference.json):
   sizing   : qty = clamp(floor(0.02*equity/worst_anchor), 1, per_line_cap)
              stocks cap=1, MES/MGC=2, MCL/MNG=5
-  dedupe   : 1 per name, max 2 new equity/day
+  dedupe   : 1 per name, max 3 new equity/day, 21d same-name loss cooldown
   clusters : EQIDX 7% / ENERGY 5% / METALS 5% / TOTAL 12% of equity (tail budget)
   deploy   : sell book <= 25% BPR, buy book <= 15% (blueprint)
   exits    : 50%/21DTE (already in trade P&L)
@@ -19,7 +19,8 @@ very tight on small accounts); 'p95' = typical concurrent-adverse loss (what a
 correlated bad day actually costs). Run both to see the small-account gap.
 """
 from __future__ import annotations
-import sys, sqlite3, numpy as np, pandas as pd
+import os, sys, sqlite3, numpy as np, pandas as pd
+EQ_DAILY_CAP = int(os.environ.get("EQ_DAILY_CAP", "3"))  # law 2026-07-30 (was 2)
 
 EQ0, START, END = 42_000.0, pd.Timestamp("2015-01-01"), pd.Timestamp("2026-06-30")
 RF = 0.045 / 252
@@ -111,7 +112,7 @@ def run(cluster_basis="p95"):
                 mgn = mgn1 * q
                 if r["name"] in names:
                     skips["dedupe"] += 1; continue
-                if r.tag == "EQ" and eqday >= 2:
+                if r.tag == "EQ" and eqday >= EQ_DAILY_CAP:
                     skips["dedupe"] += 1; continue
                 band, used = (SELL_BAND, usedS) if book == "sell" else (BUY_BAND, usedB)
                 if used + mgn > band * equity:
