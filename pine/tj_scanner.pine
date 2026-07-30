@@ -304,12 +304,13 @@ if showTable and barstate.islast
           not (ng1 and ng2) ? (ng1 ? "  storm still building — wait" : "  quiet — no storm to sell") :
           not ngTrigC and not ngTrigF ? "  NOT READY — waiting for entry trigger (2-SD dip or 5-day low)" :
           ngTrigF ? "  trigger FORMING today — real only if it holds at the 4pm close" :
+          not (useNameGate and not gateGreen) ? "  STAND DOWN — VIX gate reopened / name-gate mode off; take the VIX-gated path or wait (do NOT open on this stale signal)" :
           lastChainIV > 0 and nRV > lastChainIV and convK > 0 ?
           "  CONVERGING — IV " + str.tostring(lastChainIV, "#.#") + " < RV; entry likely in ~" +
           str.tostring(convK) + " calm session(s)" :
           "  READY — last check: chain IV > " + str.tostring(nRV, "#.#") + "% → open the trade"
           + (earnUnk ? " (⚪ verify earnings)" : "")),
-         bgcolor=ngStormOK and ngTrigC and isEquity ? color.new(#1F4A2E, 0) : cRow, text_color=wht)
+         bgcolor=ngStormOK and ngTrigC and isEquity and useNameGate and not gateGreen ? color.new(#1F4A2E, 0) : cRow, text_color=wht)
     table.cell(tb, 0, 4, "Trend (10x100)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 4, trendUp ? "UP — puts allowed" : "DOWN — no puts",
          bgcolor=trendUp ? cOk : cNo, text_color=wht)
