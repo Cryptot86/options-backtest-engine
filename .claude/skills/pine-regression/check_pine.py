@@ -9,14 +9,23 @@ It is a guard against the SPECIFIC ways we have broken this file before:
 Each LAW below maps to a real prior bug or a load-bearing rule. Add a law here
 whenever you fix a scanner bug, so it can never silently come back.
 
-Usage:  python3 check_pine.py [path/to/tj_scanner.pine]
-Exit 0 = all pass. Exit 1 = at least one regression. Prints a report.
+Usage:  python3 check_pine.py [file.pine ...]   # one or more files
+        python3 check_pine.py --all             # every .pine in the repo
+        python3 check_pine.py                    # default: pine/tj_scanner.pine
+Exit 0 = all files pass. Exit 1 = any regression in any file. Prints a report.
 """
 from __future__ import annotations
-import re, sys, os
+import re, sys, os, glob
 
-PINE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    os.path.dirname(__file__), "..", "..", "..", "pine", "tj_scanner.pine")
+REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+
+def resolve_targets(argv):
+    if argv == ["--all"]:
+        return sorted(glob.glob(os.path.join(REPO, "**", "*.pine"), recursive=True))
+    if argv:
+        return argv
+    return [os.path.join(REPO, "pine", "tj_scanner.pine")]
 
 
 def strip_strings_and_comments(src: str) -> str:
@@ -87,8 +96,8 @@ LAWS = [
 ]
 
 
-def main() -> int:
-    path = os.path.normpath(PINE)
+def check_file(path: str) -> int:
+    path = os.path.normpath(path)
     if not os.path.exists(path):
         print(f"FAIL  cannot find pine file: {path}")
         return 1
@@ -137,6 +146,20 @@ def main() -> int:
     print(f"{len(results)-fails}/{len(results)} passed"
           + ("" if not fails else f"  — {fails} REGRESSION(S)"))
     return 1 if fails else 0
+
+
+def main() -> int:
+    targets = resolve_targets(sys.argv[1:])
+    if not targets:
+        print("no .pine files found")
+        return 1
+    rc = 0
+    for t in targets:
+        rc |= check_file(t)
+    if len(targets) > 1:
+        print(f"\n==== {len(targets)} file(s) checked — "
+              + ("ALL GREEN" if rc == 0 else "REGRESSION(S) PRESENT") + " ====")
+    return rc
 
 
 if __name__ == "__main__":
