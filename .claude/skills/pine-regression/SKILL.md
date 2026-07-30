@@ -16,7 +16,8 @@ broken before — each check maps to a real prior bug or a validated rule.
 
 ## How to run
 ```bash
-python3 .claude/skills/pine-regression/check_pine.py pine/tj_scanner.pine
+python3 .claude/skills/pine-regression/check_pine.py --all   # every .pine in the repo
+python3 .claude/skills/pine-regression/check_pine.py pine/tj_scanner.pine   # one file
 ```
 Exit 0 = all invariants hold. Exit 1 = at least one regression (the report names
 which law and why). Do not commit a pine change while this exits non-zero.
