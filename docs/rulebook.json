@@ -145,7 +145,17 @@
     "futures_caveat": "MES/MCL/MNG options need CASH margin (futures side) - SGOV can't collateralize those. Keep cash for futures sleeves.",
     "example_42k": "~300 sh SGOV (~$30K) + ~$12K cash (futures margin+buffer). Verify exact BP on platform (Reg-T vs PM differs)."
    },
-   "IDLE_IS_NORMAL": "Energy & metals fire ~1-4 trades/yr each; their 5% budgets sit EMPTY most of the time. Correct + expected. Empty cluster != under-deployed. Never loosen to fill idle budgets."
+   "IDLE_IS_NORMAL": "Energy & metals fire ~1-4 trades/yr each; their 5% budgets sit EMPTY most of the time. Correct + expected. Empty cluster != under-deployed. Never loosen to fill idle budgets.",
+   "THETA_INVARIANT": {
+    "type": "monitoring_alarm_only",
+    "rule": "aggregate daily theta of SHORT book <= 0.10% of net_liq",
+    "is_governor": false,
+    "action_on_breach": "alarm/log only \u2014 do NOT block trades; a breach means a sizing or cluster cap upstream has failed; investigate",
+    "rationale": "theta is a byproduct of position count x size, both already bounded by 2% sizing + cluster caps (7/5/5, total 12%) + dedupe. Book historical max = 0.06%. As a hard skip below the operating range it costs return with no drawdown benefit (0.03% -> MAR 2.04->1.85, maxDD unchanged); above it (>=0.10%) it never binds. Correct form is alarm-only.",
+    "measured_max_pct": 0.06,
+    "threshold_pct": 0.1,
+    "verified": "run_theta_cap_sim.py 2026-07-30 (theta via credit proxy; live app should re-verify with real chain theta)"
+   }
   }
  },
  "lines": [

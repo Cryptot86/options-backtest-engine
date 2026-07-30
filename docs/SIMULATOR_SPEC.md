@@ -55,12 +55,9 @@ maxDD = max peak-to-trough on the daily curve; MAR = CAGR/maxDD.
    ≤ 15%. `skip_reason='band'`.
 4. **Cluster tail caps**: sum(open worst-case in cluster) + new worst-case ≤
    cap·equity — EQIDX 7% · ENERGY 5% · METALS 5% · TOTAL 12%. `skip_reason='capacity'`.
-5. **Theta cap** (sell book only): current aggregate daily theta + new position
-   theta ≤ `THETA_CAP * equity`. `skip_reason='theta'`. Set it as a BACKSTOP
-   ABOVE the natural operating range (~0.10-0.15%), NOT below — see §7. The book
-   naturally runs at ≤0.06% daily theta; a cap below that costs return with no
-   drawdown benefit (theta is income, not risk — the tail is governed by sizing +
-   cluster caps, not by theta).
+   *(No theta gate here.)* Theta is a byproduct of position count × size, both
+   already capped by sizing + cluster caps + dedupe. It is NOT a governor — see
+   the monitoring invariant in §8.1.
 
 ## 5. Sizing (per line)
 `contracts = clamp(floor(0.02 * equity / stress_anchor), 1, abs_ceil)`
@@ -98,6 +95,21 @@ Break-even depends on the theta proxy (§6) — re-verify with live chain theta.
 Deployment frontier: 25% BPR is optimal (same return as 55% BPR, ~half the DD).
 
 ## 8. Outputs the app should surface
-`final_equity, cagr, maxDD, MAR, trades_taken, skips{capacity,dedupe,theta,band},
+`final_equity, cagr, maxDD, MAR, trades_taken, skips{capacity,dedupe,band},
 max_theta_pct, equity_curve[]`. Show MAR and maxDD as the headline (not win%).
 "Idle is normal" — empty energy/metals budgets are expected, not under-deployment.
+
+### 8.1 Monitoring invariant — theta (ALARM ONLY, not a governor)
+Aggregate daily theta of the SHORT book must stay ≤ **0.10% of net-liq**. This is
+NOT a trade-blocking rule — it is a health check. By design theta cannot reach
+this level: it is a byproduct of position count × size, both already bounded by
+2% sizing + cluster caps (7/5/5, 12% total) + dedupe. The book's historical max
+is 0.06%. Therefore:
+- Do **not** skip trades on theta.
+- Compute `daily_theta_pct = sum(open short theta) / net_liq` each day.
+- If it EVER exceeds 0.10% → **raise an alarm / log** ("theta invariant breached —
+  a sizing or cluster cap has failed; investigate"), do not silently continue.
+It should never fire. Its firing means an upstream cap broke — that is the signal.
+Tested: as a hard skip a theta cap below the operating range costs return with no
+drawdown benefit (0.03% → MAR 2.04→1.85, maxDD unchanged); above it (≥0.10%) it
+never binds. So the only correct form is alarm-only. (§7)
