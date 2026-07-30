@@ -460,3 +460,23 @@ filter P&L vs naive): FAILED — +$45/tr on 145 trades vs naive's +$67 on 89
 (model discounts the spent storm -> lower bar -> marginal admits). Forecast
 trilogy complete: EWMA, RV45, EGARCH all lose to naive RV20. The comparator
 is SETTLED LAW: the naive bar's storm-memory is the filter.
+
+## 21-DAY LOSS COOLDOWN (LAW, 2026-07-30 — survived pre-registered OOS)
+After a booked LOSS in a name/line: **no new entry in that same name for 21
+calendar days from the losing exit.** After a WIN: the next signal is
+immediately tradeable. The cooldown is name-local — other names are never
+blocked by it.
+
+WHY: a booked loss is the receipt that THAT name's storm is live, and
+name-storms outlive one option cycle. Quick re-entry is the worst cohort in
+every book we have: gated equity −$183/tr (65% win), futures −$635/tr (53%),
+ungated equity −$187/tr (51%) — a coin flip that costs money — while waiting
+21+ days restores full health (futures: +$538/tr, 92% win). Pre-registered
+kill bar passed on BOTH out-of-sample datasets, with a LARGER effect OOS than
+in-sample (the opposite of curve-fit decay). ~$40K/13yr saved on the licensed
+book. This is the per-name echo of the slope light: never sell into a storm
+that is still alive — and a fresh loss is proof it is.
+
+NOT martingale's cousin either way: no sizing up after wins, no revenge entry
+after losses. Same size, next VALID signal — where valid now includes "the
+name is out of cooldown."

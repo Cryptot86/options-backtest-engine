@@ -156,6 +156,18 @@
     "threshold_pct": 0.1,
     "verified": "run_theta_cap_sim.py 2026-07-30 (theta via credit proxy; live app should re-verify with real chain theta)"
    }
+  },
+  "LOSS_COOLDOWN_RULE": {
+   "law": "After a booked LOSS in a name/line: NO new entry in that same name for 21 calendar days from the losing exit. After a WIN: next signal immediately tradeable. Name-local \u2014 other names never blocked.",
+   "adopted": "2026-07-30, survived pre-registered OOS",
+   "receipts": {
+    "in_sample_gated_eq": "<=21d re-entry -$183/tr 65% win (n=26) vs after-win +$112",
+    "OOS_futures": "MES/CL/NG/GC: -$635/tr 53% win (n=55) vs after-win +$412; >21d re-entry fully healthy +$538 92%",
+    "OOS_ungated_eq": "-$187/tr 51% win (n=765) vs +$57",
+    "kill_bar": "pre-registered: OOS <=21d cohort avg<0 or >=$75/tr worse than after-win \u2014 PASSED both datasets; OOS effect LARGER than in-sample"
+   },
+   "mechanism": "a booked loss = receipt that the NAME's storm is live; name-storms outlive one option cycle (per-name echo of the slope light / never-sell-into-rising-vol law)",
+   "basis_note": "tested entry-to-entry gap; law uses exit-to-entry (stricter, safe direction)"
   }
  },
  "lines": [
