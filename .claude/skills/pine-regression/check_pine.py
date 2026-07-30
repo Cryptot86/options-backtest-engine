@@ -87,6 +87,17 @@ LAWS = [
     # --- gate display must match the decision (the 'at signal close' display fix) ---
     ("gate-at-signal-close", "gate row shows '(at signal close)' when a signal confirmed",
      r"\(at signal close\)"),
+    # --- 21-day loss cooldown (LAW 2026-07-30, OOS-validated) ---
+    ("cooldown-inputs", "cooldown inputs present (cdRoot + cdLossExit)",
+     r"cdRoot\s*=\s*input\.string"),
+    ("cooldown-symbol-aware", "cooldown is name-local (matches symbol root only)",
+     r"cdMatch\s*=\s*cdRoot\s*!=\s*\"\"\s*and\s*\(syminfo\.root\s*==\s*cdRoot"),
+    ("cooldown-action", "ACTION chain has COOLDOWN branch with days-left",
+     r"COOLDOWN — \" \+ str\.tostring\(cdDaysLeft\)"),
+    ("cooldown-color", "actCol handles cdActive FIRST (no green-bg mismatch)",
+     r"actCol\s*=\s*cdActive"),
+    ("cooldown-alerts", "sell-put alerts suppressed during cooldown",
+     r"sellSignal and dip2SD and not cdActive"),
     # --- SIZE row (2% risk, capped) must stay present ---
     ("size-row", "SIZE row present with 2% risk + anchor + cap",
      r"SIZE \(2% risk"),

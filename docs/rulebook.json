@@ -167,7 +167,9 @@
     "kill_bar": "pre-registered: OOS <=21d cohort avg<0 or >=$75/tr worse than after-win \u2014 PASSED both datasets; OOS effect LARGER than in-sample"
    },
    "mechanism": "a booked loss = receipt that the NAME's storm is live; name-storms outlive one option cycle (per-name echo of the slope light / never-sell-into-rising-vol law)",
-   "basis_note": "tested entry-to-entry gap; law uses exit-to-entry (stricter, safe direction)"
+   "basis_note": "tested entry-to-entry gap; law uses exit-to-entry (stricter, safe direction)",
+   "scanner_enforcement": "pine tj_scanner.pine: set cdRoot=<losing symbol> + cdLossExit=<losing exit date> after any loss; ACTION row shows '\ud83e\uddca COOLDOWN \u2014 Nd left', sell-put alerts suppressed, name-local. Guarded by 5 pine-regression laws (cooldown-*).",
+   "win_side": "ANY profitable exit clears the name IMMEDIATELY \u2014 win speed irrelevant (fast <=7d 50%-hit: next trade 87% win +$110 n=194; re-entry within 10d of a fast win = BEST cohort 95% +$148 n=21)."
   }
  },
  "lines": [

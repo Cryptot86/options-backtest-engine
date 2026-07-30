@@ -18,6 +18,17 @@ lastChainIV  = input.float(0.0, "Chain IV you last saw (0=off) — enables conve
 posClosed    = input.bool(false, "☑ I closed my position (reset tracker)")
 armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (ignore older history)")
 acctEquity   = input.float(50000, "Account equity $ (for position-size suggestion)", minval=1000)
+cdRoot       = input.string("", "Cooldown: root of last LOSS exit (e.g. INTC; blank = off)")
+cdLossExit   = input.time(timestamp("2020-01-01"), "  date of that LOSING exit (21-day loss cooldown)")
+
+// ============ 21-DAY LOSS COOLDOWN (LAW 2026-07-30, OOS-validated) ============
+// After a booked LOSS in a name: no re-entry in THAT name for 21 calendar days
+// from the losing exit. Quick re-entry = worst cohort in every book (53-65% win,
+// -$183..-$635/tr). After a WIN (any speed, incl. fast 50%): next signal is
+// immediately tradeable. Name-local: set cdRoot to the losing symbol only.
+cdMatch    = cdRoot != "" and (syminfo.root == cdRoot or syminfo.ticker == cdRoot)
+cdDaysLeft = 21 - math.floor((timenow - cdLossExit) / 86400000.0)
+cdActive   = cdMatch and cdDaysLeft > 0
 
 // ============ PRICE STRUCTURE (your indicators) ============
 ema10  = ta.ema(close, 10)
@@ -252,12 +263,14 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
      isNGCL ? "⬜ NOTHING today — call-side market, wait for a 2-SD rally in the downtrend" :
      not validPutMkt and not isNGCL ? "⛔ NOTHING — untested market" :
      holdActive and inPos ? "🟦 HOLD your position — no new entries (see POSITION row)" :
+     cdActive ? "🧊 COOLDOWN — " + str.tostring(cdDaysLeft) + "d left on " + cdRoot + " (21-day loss rule; a win exits clear it, other names free)" :
      sigConf ? "✅ ACT NOW: sell 16Δ put — rule 8 first: cluster budget (anchors JSON), then size formula" :
      sigForm ? "🕐 FORMING today — only real if it holds at 4pm close; then act TOMORROW 9:30" :
      nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE " + (dip2SD[1] ? "2SD" : "5DL") + " ready — ONE check: chain IV > "
          + str.tostring(nRV, "#.#") + "% → open (earnings already cleared)" :
      "⬜ NOTHING today — wait"
-actCol    = sigConf and not (holdActive and inPos) ? color.new(#0E6B4F, 0) :
+actCol    = cdActive ? color.new(#12344F, 0) :
+     sigConf and not (holdActive and inPos) ? color.new(#0E6B4F, 0) :
      sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
 
 // GATE to DISPLAY — match the decision, not the live intraday tick. If a signal
@@ -375,8 +388,8 @@ if showTable and barstate.islast
          bgcolor=cRow, text_color=wht)
 
 // ============ ALERTS ============
-alertcondition((sellSignal and dip2SD) and fin, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
-alertcondition((sellSignal and low5 and not dip2SD) and fin, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
+alertcondition((sellSignal and dip2SD and not cdActive) and fin, "TJ: SELL PUT (2-SD dip)", "Gate green + 2-SD dip: sell 16d put tomorrow")
+alertcondition((sellSignal and low5 and not dip2SD and not cdActive) and fin, "TJ: SELL PUT (5-day low)", "Gate green + 5-day low: sell 16d put tomorrow")
 alertcondition((callSignal) and fin, "TJ: BUY CALL signal", "Fresh 10x100 bullish cross: buy ATM call tomorrow")
 alertcondition((sellCallSig) and fin, "TJ: SELL CALL (NG/CL)", "2-SD rally in downtrend on NG/CL: sell 16d call tomorrow IF dashboard IV gate is green")
 alertcondition((rsiDivSig) and fin, "TJ: RSI DIVERGENCE (bonus put)", "RSI bullish divergence + gate green: sell 16d put tomorrow (rare, 90% historical win)")
