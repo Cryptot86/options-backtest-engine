@@ -5,16 +5,22 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-27 — 14 studies resolved + allocation/sizing engine specced & shipped to main. Substantive program COMPLETE; only blocked/low-priority tail remains.*
+*Last updated: 2026-07-31 — post-raid governance week complete: 21-day loss-cooldown LAW (OOS-passed, scanner-enforced), dedupe 3/day, theta = alarm-only invariant, SGOV collateral verified, canonical no-scaling simulator, equity call-selling buried, book-breaker/ranking/after-loss-edge/VRP-filter all buried. Lab is git-portable (CLAUDE.md).*
 
 ## 📦 SYSTEM ARTIFACTS (the buildable spec)
 | artifact | what |
 |---|---|
 | docs/SYSTEM.md | one-page system map |
 | docs/rulebook.json | machine-readable line registry + `_meta.allocation` + `_meta.sizing_engine` (code reads this) |
-| docs/ALLOCATION_SIZING_SPEC.md | 5-step allocation/sizing pipeline handoff for Titan app |
+| docs/ALLOCATION_SPEC_V2.md | allocation handoff v2 (supersedes ALLOCATION_SIZING_SPEC): SGOV rule, buckets, dedupe 3/day + cooldown, cluster caps |
+| docs/SIMULATOR_SPEC.md | portfolio sim engine spec for Titan app (gate stack, sizing, theta alarm-only invariant §8.1) |
+| docs/GATES_EXPLAINED.md | every gate dot, plain words + study receipts; how expected-IV (nRV) works |
+| docs/STOCK_SYSTEM.md | TJ's SHARE-trading system spec (separate engine; read before any stock question) |
+| CLAUDE.md | repo orientation auto-loaded every session — lab is fully git-portable |
 | reports/PLAYBOOK.md | human law + why | worst-loss-reference.json | anchors + clusters |
-| pine/tj_scanner.pine | live scanner (signals + gates + SIZE row) |
+| pine/tj_scanner.pine | live scanner (signals + gates + SIZE row + 🧊 cooldown enforcement) |
+| .claude/skills/pine-regression/ | 22-law static regression checker — run before ANY pine commit |
+| run_book_sim.py | canonical no-contract-scaling book sim (rulebook-exact; app reference) |
 
 ## ✅ Validated / settled
 | item | verdict | receipts |
@@ -30,6 +36,8 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 | YM (E-mini Dow) | NOT tested by decision — redundant ES beta, thin options; trade via MES | TJ 2026-07-23 |
 | **Allocation policy (COMPLETE 2026-07-29)** | Deployment frontier: **25% BPR to selling is OPTIMAL** — 25% vs 55% BPR = same return (~6.2% CAGR), but 3% vs 7.1% maxDD. More deployment = same return, 2.4x pain (book limited by SIGNAL QUALITY not capital). Blueprint (Toyota): selling ≤15% tail (eqidx 7/energy 5/metals 5) + buying 15% debit + ~60% SGOV/cash. Full-book sim: \$50K->\$100K, 3% DD, MAR 2.04. Dedupe: 1/name + 2/day (sector-diverse tested=inert). Idle energy/metals budgets = NORMAL. SGOV=collateral+yield (VERIFIED tastytrade screen: buy $10K SGOV -> option BP -$2,516 (25%), ~75% stays sellable + ~4.5% yield). Spec: ALLOCATION_SPEC_V2.md | rulebook.json _meta.allocation |
 | **21-day loss cooldown (NEW LAW 2026-07-30)** | After a booked LOSS in a name: no re-entry in THAT name for 21d (from exit). Survived pre-registered OOS on 2 unseen datasets: futures −$635/tr 53% win (n=55) & ungated eq −$187/tr 51% (n=765) vs healthy after-win baselines; >21d futures re-entry fully recovers (+$538, 92%). OOS effect LARGER than in-sample (opposite of curve-fit). ~$40K/13yr saved on licensed book. After a WIN: next signal tradeable. Mechanism = per-name echo of slope light. | run in-session (cohorts script) |
+| **Theta = alarm-only invariant (2026-07-30)** | Tested theta caps as trade-blockers: book naturally runs ≤0.06%/day; caps below that cost return with ZERO DD benefit (0.03% → MAR 2.04→1.85, DD unchanged) — theta is INCOME not RISK (tail governed by sizing+cluster caps). Rule: never skip trades on theta; alarm if daily theta >0.10% NLV (means an upstream cap broke). Theta-target ladder on \$42K also killed "collect more theta" framing: 0.10%/day needs 9-14x size for 17-31% DD. Proxy calibrated to TJ's real account (credit≈Cst/DTE). | run_theta_cap_sim.py, run_theta_target_sim.py, rulebook THETA_INVARIANT |
+| **Canonical book sim (2026-07-30)** | run_book_sim.py: strict rulebook, NO contract scaling (stocks cap=1). \$42K 2015-2026: worst-anchor basis MAR 3.08 / \$327/mo / DD 3.2%; p95 basis MAR 2.71 / \$409/mo / DD 4.5% (matches TJ's live book ~0.155% theta, 4 names). OPEN DECISION: which cluster-cap basis the app enforces (parked). Cohort math: realistic all-lose cluster event ≈ −\$2.2-4K (5-9%); Apr-2024 real receipt: 7 concurrent, paper −\$7.1K → booked −\$3.6K (no-stops discipline recovered half). | run_book_sim.py |
 | Split-basis law | strikes/notional on spot_unadj ONLY; ivx price & stock close are ADJUSTED | commit (fix) 2026-07-23 |
 | **Study 6 — VRP harvested per line (bookkeeping)** | **DONE (2026-07-24, $0).** Every LICENSED line harvests TRUE VRP (implied at entry > realized after): ES/MES +3.24 pts (78% of entries, pnl~vrp corr +0.47 — **"is MES true VRP?" = YES, measured**); NG calls +9.14 (the fattest premium); CL calls +6.21 (but corr −0.32: its P&L is mostly mean-reversion timing, premium second); GC +2.87 (91%). Stocks: gate DOUBLES harvested premium (5DL +1.18 ungated → +2.83 gated — the mechanical source of the 5.3× edge). bb_2sd ungated is the one negative-mean line (−0.57: crash entries poison it; either-gate fixes to +1.95). NQ/MNQ: no futures IV series (Databento spend) — only unmeasured line. | run_study6_vrp_ledger.py |
 | **Portfolio allocation — governance model LOCKED (2026-07-27)** | Two SEPARATE regimes, not one nested budget. EQUITY cluster: VIX-band margin throttle (25% calm, confirmed). ENERGY cluster: own 5% TAIL cap, regime-agnostic (no OVX allocation band — energy too small + uncorrelated 0.11). Confirmation sim: energy sleeve improved book MAR 0.49->0.56, maxDD UNCHANGED 12.7% (pure diversification). OVX = entry-quality signal (rich+stabilizing), NOT a size throttle; CL-call OVX-gate untested. Full OVX optimizer REJECTED as optimizing a rounding error. | run in-session |
