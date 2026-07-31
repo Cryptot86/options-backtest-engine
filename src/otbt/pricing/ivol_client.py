@@ -247,6 +247,37 @@ def select_16d_put(symbol: str, day: str, spot: float, iv: float,
     )
 
 
+def select_16d_call(symbol: str, day: str, spot: float, iv: float,
+                    dte_target: int = 40, dte_min: int = 30, dte_max: int = 45,
+                    target_delta: float = 0.16) -> dict | None:
+    """Mirror of select_16d_put for the CALL side (equity bb_2sd_call study).
+    Same in-tariff path: BS strike estimate from REAL IV on the UNADJUSTED
+    basis, snapped to the nearest LISTED strike, flexible DTE."""
+    from .blackscholes import strike_for_delta
+    est = strike_for_delta(spot, dte_target / 365.0, iv, target_delta, kind="call")
+    exp_lo = (pd.Timestamp(day) + pd.Timedelta(days=15)).strftime("%Y-%m-%d")
+    exp_hi = (pd.Timestamp(day) + pd.Timedelta(days=75)).strftime("%Y-%m-%d")
+    c = list_contracts(symbol, day, exp_lo, exp_hi,
+                       round(est * 0.70, 2), round(est * 1.30, 2), "C")
+    if c.empty:
+        return None
+    c = c.copy()
+    c["strike"] = pd.to_numeric(c["strike"], errors="coerce")
+    c["dte"] = (pd.to_datetime(c["expirationdate"]) - pd.Timestamp(day)).dt.days
+    inwin = c[(c["dte"] >= dte_min) & (c["dte"] <= dte_max)]
+    pool = inwin if not inwin.empty else c
+    tgt_dte = int(pool["dte"].iloc[(pool["dte"] - dte_target).abs().argmin()])
+    exp_pool = pool[pool["dte"] == tgt_dte].copy()
+    row = exp_pool.iloc[(exp_pool["strike"] - est).abs().argmin()]
+    return dict(
+        optionid=int(row["optionid"]),
+        strike=float(row["strike"]),
+        expiration=pd.to_datetime(row["expirationdate"]).strftime("%Y-%m-%d"),
+        dte=int(row["dte"]),
+        est_strike=round(est, 2),
+    )
+
+
 def iv_series(symbol: str, start: str, end: str) -> pd.DataFrame:
     """Daily IV index (ivx) — Study 1 crown jewel."""
     df = _get(EP_IVX, {"symbol": symbol, "from": start, "to": end})
