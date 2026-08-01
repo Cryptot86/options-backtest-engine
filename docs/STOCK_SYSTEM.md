@@ -27,9 +27,18 @@ ffilled.
 3. Sector-aware correlation blocks: 0.85 same-sector / 0.92 cross-sector /
    0.80 unknown
 
-## Stop variants to compare
-Cross-only vs fixed 2×ATR vs chandelier 3×ATR trailing
-(+ optional −15% circuit breaker).
+## Stop variants — QUESTION CLOSED (2026-08-01, 9 challengers buried)
+**LAW: cross-only. No price stops of any kind. The death cross IS the stop;
+TSP sizing carries the risk (Seykota: ride winners, cut losses, manage risk —
+all three live in cross + sizing).** Receipts (scoreboard, exit-saga rows):
+fixed 2/2.5/3×ATR negative at every age window and both remount speeds;
+always-on chandelier −36% on majors; altitude-parachute fails every threshold
+(n=1 carriers); vol-conditioning runs backwards; age-conditioning is ARM/RDDT
+contamination; stop+reclaim package = NVDA-only luck; gaps (RDDT −21%) fill
+through every stop identically. Realized single-name gap cost at TSP sizing:
+~1.5% of equity — the sizing is the protection. OPEN (forward journal only):
+chandelier 3×ATR on trades entered <2yr post-IPO — paper-track future young
+IPO entries; adopt only if 10-15 untainted trades vote yes.
 
 ## Candidate rules to validate OOS in the stock engine
 (Law in the options book does NOT auto-transfer — different holding mechanics,
