@@ -140,7 +140,7 @@ def run(cluster_basis="p95"):
                 mo_mean=mret.mean() * EQ0, mo_worst=mret.min(),
                 win=100 * wins / (wins + losses), taken=taken, skips=skips,
                 avg_theta=np.mean(thetas), max_theta=np.max(thetas), alarm_days=alarm_days,
-                ntrades=sum(taken.values()))
+                ntrades=sum(taken.values()), curve=cv)
 
 
 print(f"CANONICAL book sim — ${EQ0:,.0f}, 2015-2026, strict rulebook (NO contract scaling)\n")
