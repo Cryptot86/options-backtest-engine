@@ -46,7 +46,7 @@ different loss anatomy. "Guilty until proven innocent OOS.")
 - 21-day name cooldown after a loss (options-book law, receipts in rulebook)
 - After-win immediate re-tradeability
 - TargetRisk 20% vs 100%
-- Exit-type shootout
+- ~~Exit-type shootout~~ CLOSED 2026-08-01 — cross-only law (see Stop variants above)
 
 ## Methodology guardrails
 No lookahead; calendar-union + ffill (the −13%/+$65K bug is immortalized as the
