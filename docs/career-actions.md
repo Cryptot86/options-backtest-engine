@@ -66,3 +66,16 @@ decision, separate session.
 GUARDRAIL (standing): capability, never dependence — the day rent needs the
 $4K, desert years become pressure to oversize (the -$70K failure mode). Job
 pays rent until $4K/mo is a ~7% draw.
+
+## ARCHITECTURE CLARIFIED (TJ, 2026-08-02) — supersedes the migration note above
+Two engines, permanent separation:
+- WEALTH engine = stock trading (~$400K): compounds UNTOUCHED (~27% backtest;
+  plan 15-18% live), absorbs its 30-40% DDs because nothing is drawn from it.
+- INCOME engine = options book: low-DD (4.5%), the future $4K/mo source.
+GLIDE PATH: wealth compounds ~8-10yr -> ~$1.3-1.5M -> peel ~$700K into the
+income engine -> $4K/mo at a durable 7% draw day one; wealth keeps growing.
+Options-alone path would take ~13yr from $42K — the handoff is the plan.
+OPTIONS ENGINE'S JOB TODAY: dress rehearsal — battle-test every law at $42K so
+the future $700K lands in a proven machine run by a proven operator. Do NOT
+migrate the 400K to the income profile; do NOT draw from wealth. Job pays rent
+until the handoff.
