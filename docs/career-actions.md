@@ -79,3 +79,16 @@ OPTIONS ENGINE'S JOB TODAY: dress rehearsal — battle-test every law at $42K so
 the future $700K lands in a proven machine run by a proven operator. Do NOT
 migrate the 400K to the income profile; do NOT draw from wealth. Job pays rent
 until the handoff.
+
+## The full milestone ladder (2026-08-02 — numbers only, end-state audited)
+Target end-state: $12K/mo from trading alone = $144K/yr at durable 7% draw
+-> needs ~$2.05M. Wealth engine $400K at haircut 15-18% -> ~$2M in ~10-12yr
+(contributions + income engine pull it closer). Stations en route:
+1. Walk-away power (India cost basis ~$2-2.5K/mo = 7% draw on ~$430K):
+   combined book is essentially there NOW — posture, not plan.
+2. $5K/mo generous-hometown: ~$860K combined -> ~year 4-6.
+3. $4K/mo US-basis via $700K income-engine handoff -> ~year 8-10.
+4. $12K/mo full vision -> ~year 10-12.
+No rule changes, no size-ups, no extra risk anywhere on the ladder — same
+machine plus time. Ops note: from IST, both books need ~1 evening hour
+(US open 7pm IST, D+1 discipline); the system is low-touch by design.
