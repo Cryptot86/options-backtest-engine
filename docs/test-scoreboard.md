@@ -5,7 +5,7 @@ Kill bars are written BEFORE runs. MANDATORY before any verdict is read:
 (1) concentration check (top-5 share), (2) NORMALIZE TO RISK — equal max-loss
 per trade (raw dollars lie when position risk varies across names/eras).*
 
-*Last updated: 2026-07-31 — post-raid governance week complete: 21-day loss-cooldown LAW (OOS-passed, scanner-enforced), dedupe 3/day, theta = alarm-only invariant, SGOV collateral verified, canonical no-scaling simulator, equity call-selling buried, book-breaker/ranking/after-loss-edge/VRP-filter all buried. Lab is git-portable (CLAUDE.md).*
+*Last updated: 2026-08-01 — STOCK EXIT SAGA CLOSED: 9 challengers buried across 2 days (fixed stops all ages/multiples/remounts, chandelier, altitude parachute, vol/age conditioning, stop+reclaim package) — cross-only LAW, sizing is the protection (STOCK_SYSTEM.md updated); RDDT live gap receipt (stops gap-immune, TSP held loss to 1.5%). Also closed: rates/FOMC fully quantified (rho $2, straddle null, sell-book scare = artifact); sleeve-3 straddle receipts (earnings-in-hold = 8/8, 83% of stock sleeve profit — never earnings-block the straddle light). Prior week: cooldown law, 3/day, theta alarm-only, SGOV verified, canonical sim. Lab git-portable.*
 
 ## 📦 SYSTEM ARTIFACTS (the buildable spec)
 | artifact | what |
