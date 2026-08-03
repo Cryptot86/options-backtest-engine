@@ -1,8 +1,8 @@
 # Fresh-Cross Scanner — spec for the Titan platform
 
-*Handoff spec, 2026-08-02. Written to be implemented in the platform; a
-reference universe file exists at `data_cache/universe_sp500.csv` (ticker,
-sector, industry). No reference implementation was built by design.*
+*Handoff spec, 2026-08-02. Written to be implemented in the platform; the
+seed universe file is committed at `docs/universe_sp500_seed.csv` (503 S&P
+names: ticker, sector, GICS sub-industry). No reference implementation was built by design.*
 
 ## 1. The problem this solves
 The stock system's entry is the 10x100 golden cross (5-bar window), exits are
