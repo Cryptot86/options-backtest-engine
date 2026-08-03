@@ -93,6 +93,7 @@ An edge smaller than your costs is not your edge. No residual questions.
 *(Study 4a/4b DONE — see Closed. Substantive program complete.)*
 
 ## 🗓️ LATER / SOMEDAY bucket (not now — TJ parked 2026-07-27)
+- **Alternative trend models** (parked 2026-08-02): 10x100 EMA is the shared direction-selector (stocks: the edge itself; options: which fear to sell). Candidates someday: other EMA pairs, Donchian/breakout, dual momentum, supertrend-class. BAR IS HIGH by doctrine: incumbent is validated 13yr both books + 9-grave exit siege; any challenger must beat 10x100 head-to-head OOS on BOTH roles (stock entries + options direction), and trend-parameter sweeps are curve-fit-prone territory (mechanism first, one shot, pre-registered). Related journal curiosity: downtrend+gate cell (+15.2%, n=51 model marks).
 - **Automated paper-trading runner (the hybrid).** Decision logic is 100%
   complete + mechanical, so an autonomous paper loop is BUILDABLE. Three gaps to
   build: (1) a daily scheduled runner (cron/cloud agent) to execute the scanner
