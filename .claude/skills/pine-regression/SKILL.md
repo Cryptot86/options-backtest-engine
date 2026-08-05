@@ -43,6 +43,13 @@ Encoded laws (each tied to a bug we already fixed — see comments in the script
   decision, not the live tick.
 - **SIZE row** present (2% risk, anchor, cap). **Exit law** row = 50% or 21 DTE.
 
+## Multiple pine files
+The checker applies PER-FILE law sets (see `laws_for()`): tj_scanner.pine gets
+the full 22-law scanner set; tj_bbmr_stocks.pine gets its own 8 laws (candidate
+banner, no-repaint/confirmed bars, young-IPO warning, costs input, entry/exit
+definitions); any other .pine gets version+balance. Add a law set when adding
+a new pine file.
+
 ## Extending it (do this every time you fix a scanner bug)
 Open `check_pine.py`, add a tuple to the `LAWS` list:
 `("my-law-id", "human description of the rule", r"regex that MUST be present")`.

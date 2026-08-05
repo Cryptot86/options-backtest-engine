@@ -123,8 +123,9 @@ def check_file(path: str) -> int:
         results.append((o == c, f"balance-{label}",
                         f"{label} balanced", f"{o} '{open_c}' vs {c} '{close_c}'"))
 
-    # 2) each LAW
-    for lid, desc, pat in LAWS:
+    # 2) each LAW (per-file set)
+    file_laws, check_rows = laws_for(path)
+    for lid, desc, pat in file_laws:
         if lid == "no-live-gate-in-sigconf":
             # sigConf line must not contain a bare 'gateOK' without [1]
             m = re.search(r"sigConf\s*=.*", raw)
@@ -136,10 +137,12 @@ def check_file(path: str) -> int:
         found = re.search(pat, raw, re.DOTALL) is not None
         results.append((found, lid, desc, "found" if found else "MISSING pattern"))
 
-    # 3) table.cell row-index coverage: rows 0..14 should all appear (15-row table)
+    # 3) table.cell row-index coverage (scanner only)
+    if not check_rows:
+        rows_ok = True
     rows = sorted(set(int(m) for m in re.findall(r"table\.cell\(tb,\s*\d+,\s*(\d+)", raw)))
     expected = list(range(0, 15))
-    missing_rows = [r for r in expected if r not in rows]
+    missing_rows = [] if not check_rows else [r for r in expected if r not in rows]
     results.append((not missing_rows, "table-rows",
                     "table rows 0..14 all populated",
                     "ok" if not missing_rows else f"missing rows {missing_rows}"))
@@ -157,6 +160,27 @@ def check_file(path: str) -> int:
     print(f"{len(results)-fails}/{len(results)} passed"
           + ("" if not fails else f"  — {fails} REGRESSION(S)"))
     return 1 if fails else 0
+
+
+BBMR_LAWS = [
+    ("version", "Pine v5 header present", r"//@version=5"),
+    ("indicator", "indicator() declaration present", r"indicator\(\s*\"TJ BB-MR Stocks"),
+    ("candidate-banner", "CANDIDATE (not law) status visible in table", r"CANDIDATE — not law"),
+    ("no-repaint", "entry/exit act on confirmed bars only", r"barstate\.isconfirmed"),
+    ("young-ipo-warning", "young-IPO (ARM/RDDT) negative warning present", r"ARM/RDDT"),
+    ("costs-input", "round-trip cost input present", r"costBps\s*=\s*input"),
+    ("entry-def", "entry = close below lower band", r"close < lower"),
+    ("exit-def", "exit = close at/above basis", r"close >= basis"),
+]
+
+
+def laws_for(path: str):
+    b = os.path.basename(path)
+    if "tj_scanner" in b:
+        return LAWS, True          # (laws, check table rows 0..14)
+    if "bbmr" in b:
+        return BBMR_LAWS, False
+    return [("version", "Pine v5 header present", r"//@version=5")], False
 
 
 def main() -> int:
