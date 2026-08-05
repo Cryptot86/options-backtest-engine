@@ -86,6 +86,13 @@ Target end-state: $12K/mo from trading alone = $144K/yr at durable 7% draw
 (contributions + income engine pull it closer). Stations en route:
 1. Walk-away power (India cost basis ~$2-2.5K/mo = 7% draw on ~$430K):
    combined book is essentially there NOW — posture, not plan.
+1.5. **$2K/mo PASSIVE INCOME milestone (TJ-stated 2026-08-04)**: income engine
+   (options+SGOV, optional MR sleeve pending OOS) at ~$220-260K -> draw ~10%.
+   NOT compounding once reached (pure income mode); binary compound-then-draw
+   switch — NO draws before the number. Paths: +$1.5K/mo contribs ~6yr, or
+   partial wealth handoff (~$200K when stocks cross ~$800K-1M) ~4-6yr.
+   Steadiness comes from THETA+SGOV; MR sleeve = yield booster on idle cash,
+   not a paycheck (lumpy years: +2%..+42%). Today's capability: ~$350-420/mo.
 2. $5K/mo generous-hometown: ~$860K combined -> ~year 4-6.
 3. $4K/mo US-basis via $700K income-engine handoff -> ~year 8-10.
 4. $12K/mo full vision -> ~year 10-12.
