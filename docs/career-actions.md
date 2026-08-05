@@ -99,3 +99,21 @@ Target end-state: $12K/mo from trading alone = $144K/yr at durable 7% draw
 No rule changes, no size-ups, no extra risk anywhere on the ladder — same
 machine plus time. Ops note: from IST, both books need ~1 evening hour
 (US open 7pm IST, D+1 discipline); the system is low-touch by design.
+
+## HFT / microstructure career track (TJ-stated 2026-08-04)
+FRAMING: not intraday-for-income (desk-rejected — fails all 4 checks). This is
+a CAREER LADDER: learn microstructure -> build a rigorous research pod/portfolio
+-> quant-dev/researcher seat at a fund -> learn inside -> own firm -> Dubai
+(DIFC/ADGM already the target jurisdiction). PAYOFF ASYMMETRY: the fund seat is
+won by demonstrated CRAFT, not by a profitable homebrew strategy — a rigorous,
+kill-bar-disciplined, even UNPROFITABLE project is portfolio gold. P&L = lottery
+ticket; skill = the paycheck. Pre-registered: "if backtest not profitable, shut
+the door" (and the door was never the prize).
+Roadmap: (1) Harris 'Trading and Exchanges' -> Cartea/Jaimungal; (2) Databento
+MBO slice, one instrument (ES), order-book reconstruction pipeline; (3) 2-3
+microstructure hypotheses through the standard factory (kill bars, cost stacks,
+attribution); (4) centerpiece of the sanitized showcase repo (existing item);
+(5) target quant-dev/market-data roles at pods (existing target list).
+NOT retail HFT (colocation economics); mid-frequency research + infra craft.
+The $12K/mo-from-HFT thought = lottery ticket, NOT a plan leg; income plan
+stays options+platform. Engines unchanged: trend=wealth, options->$250K=income.
