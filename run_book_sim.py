@@ -22,7 +22,8 @@ from __future__ import annotations
 import os, sys, sqlite3, numpy as np, pandas as pd
 EQ_DAILY_CAP = int(os.environ.get("EQ_DAILY_CAP", "3"))  # law 2026-07-30 (was 2)
 
-EQ0, START, END = 42_000.0, pd.Timestamp("2015-01-01"), pd.Timestamp("2026-06-30")
+EQ0 = float(os.environ.get("BOOK_EQ0", "42000"))
+START, END = pd.Timestamp("2015-01-01"), pd.Timestamp("2026-06-30")
 RF = 0.045 / 252
 RISK_PCT = 0.02
 DTE = 35.0
