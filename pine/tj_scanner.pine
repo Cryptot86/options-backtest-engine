@@ -102,7 +102,13 @@ sizeCap = ((isCL or syminfo.root=="MCL") or syminfo.root=="NG" or syminfo.root==
      (syminfo.root=="NQ" or syminfo.root=="MNQ") ? 3 : 1
 sizeQty = math.max(1, math.min(sizeCap, math.floor(0.02 * acctEquity / sizeAnchor)))
 cheapOK  = isEq or isCL
-cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef
+// STRADDLE light (TJ 2026-08-11 fix): for SINGLE STOCKS the cheapness test must
+// include the NAME'S OWN vol (rank<=30), not just market VIX — an illiquid gold
+// miner at its 72nd vol percentile lit the old market-only light (ARIS case).
+// License habitat: ES/MES + liquid US mega-caps only.
+ownRV     = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
+nameCheap = not (syminfo.type == "stock" or syminfo.type == "dr") or ta.percentrank(ownRV, 252) <= 30
+cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef and nameCheap
 var int stCount = 0
 if cheapDay and not cheapDay[1]
     stCount += 1
