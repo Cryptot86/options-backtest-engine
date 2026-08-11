@@ -101,11 +101,19 @@ sizeCap = ((isCL or syminfo.root=="MCL") or syminfo.root=="NG" or syminfo.root==
      (syminfo.root=="ES" or syminfo.root=="MES" or syminfo.root=="GC" or syminfo.root=="MGC") ? 2 :
      (syminfo.root=="NQ" or syminfo.root=="MNQ") ? 3 : 1
 sizeQty = math.max(1, math.min(sizeCap, math.floor(0.02 * acctEquity / sizeAnchor)))
-cheapOK  = isEq or isCL
+// ============ STRADDLE WHITELIST (LAW 2026-08-11, census-confirmed) ============
+// 35-name census: the 7 mega-caps +$32/tr vs the other 28 = -$21/tr (19/28
+// negative) under IDENTICAL rules -> straddles are licensed ONLY on:
+//   ES/MES (backbone) · CL/MCL (OVX gauge) · MSFT AAPL NVDA GOOGL AMZN META TSLA
+// Everything else (incl. GC/NG: tested-banned) shows NO-GO.
+stradStock = syminfo.ticker == "MSFT" or syminfo.ticker == "AAPL" or syminfo.ticker == "NVDA"
+     or syminfo.ticker == "GOOGL" or syminfo.ticker == "AMZN" or syminfo.ticker == "META"
+     or syminfo.ticker == "TSLA"
+stradFut   = syminfo.root == "ES" or syminfo.root == "MES" or isCL
+stradOK    = stradStock or stradFut
+cheapOK  = stradOK
 // STRADDLE light (TJ 2026-08-11 fix): for SINGLE STOCKS the cheapness test must
-// include the NAME'S OWN vol (rank<=30), not just market VIX — an illiquid gold
-// miner at its 72nd vol percentile lit the old market-only light (ARIS case).
-// License habitat: ES/MES + liquid US mega-caps only.
+// include the NAME'S OWN vol (rank<=30), not just market VIX (ARIS case).
 ownRV     = ta.stdev(math.log(close/close[1]), 20) * math.sqrt(252) * 100
 nameCheap = not (syminfo.type == "stock" or syminfo.type == "dr") or ta.percentrank(ownRV, 252) <= 30
 cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef and nameCheap
@@ -367,11 +375,11 @@ if showTable and barstate.islast
          + "  (equity $" + str.tostring(acctEquity, "#") + ")",
          bgcolor=cRow, text_color=wht)
     table.cell(tb, 0, 11, iStrad ? "MY STRADDLE (exit card)" : "STRADDLE (Sleeve 3)", bgcolor=cRow, text_color=wht)
-    table.cell(tb, 1, 11, (not cheapOK ? "NG/GC: no valid gauge — dashboard only" :
+    table.cell(tb, 1, 11, (not stradOK ? "⛔ NO-GO — straddle whitelist: ES/CL + 7 mega-caps (census: others −$21/tr)" :
           cheapDay ? ("🟣 " + (isCL ? "OVX" : "VIX") + " CHEAP — buy ATM straddle") :
           (isCL ? "OVX" : "VIX") + " not cheap — off")
-         + (cheapOK ? "  ·  " + str.tostring(stCount) + " signals" : ""),
-         bgcolor=cheapDay ? color.rgb(90, 40, 140) : cRow, text_color=wht)
+         + (stradOK ? "  ·  " + str.tostring(stCount) + " signals" : ""),
+         bgcolor=cheapDay ? color.rgb(90, 40, 140) : not stradOK ? color.new(#4a1f1f, 0) : cRow, text_color=wht)
     slope5 = vix - vix[5]
     // FOLDED (TJ 2026-08-01): long citation made the table too wide and covered
     // the chart. Receipts live in docs/GATES_EXPLAINED.md; row shows the minimum.

@@ -101,6 +101,11 @@ LAWS = [
     # --- straddle light: single stocks need NAME-level cheapness (ARIS fix 2026-08-11) ---
     ("straddle-name-cheap", "straddle light requires the name's OWN vol rank<=30 for stocks",
      r"cheapDay = useStraddle and cheapOK and volRank <= 30 and volIdx < hvRef and nameCheap"),
+    # --- straddle whitelist (LAW 2026-08-11, census-confirmed) ---
+    ("straddle-whitelist", "straddle gated to ES/CL + 7 mega-caps (stradOK)",
+     r"cheapOK\s*=\s*stradOK"),
+    ("straddle-nogo-row", "off-whitelist charts show straddle NO-GO",
+     r"NO-GO — straddle whitelist"),
     # --- SIZE row (2% risk, capped) must stay present ---
     ("size-row", "SIZE row present with 2% risk + anchor + cap",
      r"SIZE \(2% risk"),
