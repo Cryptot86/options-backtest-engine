@@ -280,7 +280,7 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
      cdActive ? "🧊 COOLDOWN — " + str.tostring(cdDaysLeft) + "d left on " + cdRoot + " (21d loss rule)" :
      sigConf ? "✅ ACT NOW: sell 16Δ put — rule 8 first: cluster budget (anchors JSON), then size formula" :
      sigForm ? "🕐 FORMING today — only real if it holds at 4pm close; then act TOMORROW 9:30" :
-     nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE " + (dip2SD[1] ? "2SD" : "5DL") + " ready — ONE check: chain IV > "
+     nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE " + (dip2SD[1] ? "2SD" : "5DL") + " ready — ONE check: chain IV > this stock's RV "
          + str.tostring(nRV, "#.#") + "% → open (earnings already cleared)" :
      "⬜ NOTHING today — wait"
 actCol    = cdActive ? color.new(#12344F, 0) :
@@ -335,7 +335,7 @@ if showTable and barstate.islast
           lastChainIV > 0 and nRV > lastChainIV and convK > 0 ?
           "  CONVERGING — IV " + str.tostring(lastChainIV, "#.#") + " < RV; entry likely in ~" +
           str.tostring(convK) + " calm session(s)" :
-          "  READY — last check: chain IV > " + str.tostring(nRV, "#.#") + "% → open the trade"
+          "  READY — last check: chain IV > stock's RV " + str.tostring(nRV, "#.#") + "% → open the trade"
           + (earnUnk ? " (⚪ verify earnings)" : "")),
          bgcolor=ngStormOK and ngTrigC and isEquity and useNameGate and not gateGreen ? color.new(#1F4A2E, 0) : cRow, text_color=wht)
     table.cell(tb, 0, 4, "Trend (10x100)", bgcolor=cRow, text_color=wht)
