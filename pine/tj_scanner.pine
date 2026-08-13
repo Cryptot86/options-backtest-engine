@@ -385,7 +385,7 @@ if showTable and barstate.islast
     // the chart. Receipts live in docs/GATES_EXPLAINED.md; row shows the minimum.
     table.cell(tb, 0, 13, "NAME-GATE (this chart)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 13, not useNameGate ? "off — enable in settings" :
-         str.tostring(ngCount) + " sigs · +$62/tr n=331 · needs chain IV > RV",
+         str.tostring(ngCount) + " sigs · +$70/tr n=367 · needs chain IV > RV",
          bgcolor=cRow, text_color=color.new(color.yellow, 20))
     table.cell(tb, 0, 12, "VIX dials (live)", bgcolor=cRow, text_color=wht)
     table.cell(tb, 1, 12,
