@@ -143,7 +143,8 @@
     "rule": "SGOV/T-bill ETF is COLLATERAL + yield, NOT a tracked position. Never blocked by dedupe/cluster/band rules; never counts against any allocation budget.",
     "mechanics": "VERIFIED (tastytrade order screen 2026-07-29): buying 100 SGOV (~$10,066) reduces STOCK BP $5,033 (50% Reg-T initial) and OPTION BP ~$2,516 (25%). For sell book the OPTION-BP 25% binds: ~75% of SGOV value stays available to sell against, +~4.5% yield. SGOV = efficient dual-use collateral.",
     "futures_caveat": "MES/MCL/MNG options need CASH margin (futures side) - SGOV can't collateralize those. Keep cash for futures sleeves.",
-    "example_42k": "~300 sh SGOV (~$30K) + ~$12K cash (futures margin+buffer). Verify exact BP on platform (Reg-T vs PM differs)."
+    "example_42k": "~300 sh SGOV (~$30K) + ~$12K cash (futures margin+buffer). Verify exact BP on platform (Reg-T vs PM differs).",
+    "yield_note": "YIELD FLOATS with Fed short rate minus 0.09% ER \u2014 never treat as constant. Was ~4.5% mid-2026 planning; VERIFIED live 2026-08-17: \\$30.68 July distribution on 100sh = ~3.65% annualized. Sensitivity: each -1pt on SGOV = ~-0.6pt on income-book CAGR (idle ~60%); plans robust, update RF in sims when it drifts >0.5pt."
    },
    "IDLE_IS_NORMAL": "Energy & metals fire ~1-4 trades/yr each; their 5% budgets sit EMPTY most of the time. Correct + expected. Empty cluster != under-deployed. Never loosen to fill idle budgets.",
    "THETA_INVARIANT": {

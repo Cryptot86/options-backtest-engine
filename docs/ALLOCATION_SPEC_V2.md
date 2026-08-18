@@ -22,7 +22,7 @@ must NOT be blocked by dedupe/cluster/band rules.
   against, WHILE the position earns ~4.5% yield. SGOV IS efficient dual-use
   collateral. (Residual: confirm Option BP drops ~$2,516 not the full $5,033 on
   the first live fill.)
-- It earns ~4.5% yield. It is where idle net-liq lives.
+- It earns the FLOATING T-bill rate minus 0.09% (verified 2026-08-17: ~3.65%; was ~4.5% earlier in 2026 — Fed moved). It is where idle net-liq lives; never hardcode the rate.
 - RULE: buying/holding SGOV is always allowed; the allocation engine ignores it
   except to (a) reduce available BPR by 25% of SGOV value, (b) credit yield.
 - Futures options (MES/MCL/MNG) need CASH margin (futures account) — SGOV can't
