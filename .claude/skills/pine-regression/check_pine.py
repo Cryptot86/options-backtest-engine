@@ -106,6 +106,11 @@ LAWS = [
      r"cheapOK\s*=\s*stradOK"),
     ("straddle-nogo-row", "off-whitelist charts show straddle NO-GO",
      r"NO-GO — straddle whitelist"),
+    # --- fast-win re-entry hint (2026-08-19): hint only, never a gate ---
+    ("fastwin-inputs", "fast-win inputs present (fwRoot + fwExit)",
+     r"fwRoot\s*=\s*input\.string"),
+    ("fastwin-hint-not-gate", "fast-win is a hint appended to ACTION, cooldown still wins",
+     r"fwActive\s*=\s*fwMatch and fwDaysLeft > 0 and not cdActive"),
     # --- SIZE row (2% risk, capped) must stay present ---
     ("size-row", "SIZE row present with 2% risk + anchor + cap",
      r"SIZE \(2% risk"),

@@ -20,6 +20,8 @@ armFrom      = input.time(timestamp("2025-01-01"), "Track positions from date (i
 acctEquity   = input.float(50000, "Account equity $ (for position-size suggestion)", minval=1000)
 cdRoot       = input.string("", "Cooldown: root of last LOSS exit (e.g. INTC; blank = off)")
 cdLossExit   = input.time(timestamp("2020-01-01"), "  date of that LOSING exit (21-day loss cooldown)")
+fwRoot       = input.string("", "Fast-win: root of last QUICK WIN exit (blank = off)")
+fwExit       = input.time(timestamp("2020-01-01"), "  date of that fast-win exit (10-day best-cohort window)")
 
 // ============ 21-DAY LOSS COOLDOWN (LAW 2026-07-30, OOS-validated) ============
 // After a booked LOSS in a name: no re-entry in THAT name for 21 calendar days
@@ -29,6 +31,11 @@ cdLossExit   = input.time(timestamp("2020-01-01"), "  date of that LOSING exit (
 cdMatch    = cdRoot != "" and (syminfo.root == cdRoot or syminfo.ticker == cdRoot)
 cdDaysLeft = 21 - math.floor((timenow - cdLossExit) / 86400000.0)
 cdActive   = cdMatch and cdDaysLeft > 0
+// FAST-WIN window (receipts: re-entry <=10d after a <=7d 50% win = best cohort, 95%/+$148 n=21;
+// wins NEVER block — this is a green HINT only; the pay check (IV>RV) still rules)
+fwMatch    = fwRoot != "" and (syminfo.root == fwRoot or syminfo.ticker == fwRoot)
+fwDaysLeft = 10 - math.floor((timenow - fwExit) / 86400000.0)
+fwActive   = fwMatch and fwDaysLeft > 0 and not cdActive
 
 // ============ PRICE STRUCTURE (your indicators) ============
 ema10  = ta.ema(close, 10)
@@ -283,6 +290,8 @@ actTxt    = isRTY ? "⛔ NOTHING — TESTED & REJECTED: 1/3 of MES pay, worse ta
      nameStorm and (dip2SD[1] or low5[1]) ? "🟡 NAME-GATE " + (dip2SD[1] ? "2SD" : "5DL") + " ready — ONE check: chain IV > this stock's RV "
          + str.tostring(nRV, "#.#") + "% → open (earnings already cleared)" :
      "⬜ NOTHING today — wait"
+actTxt    := actTxt + (fwActive and (sigConf or sigForm or (nameStorm and (dip2SD[1] or low5[1]))) ?
+     " · ⚡ fast-win window (" + str.tostring(fwDaysLeft) + "d left · 95% cohort — pay check still rules)" : "")
 actCol    = cdActive ? color.new(#12344F, 0) :
      sigConf and not (holdActive and inPos) ? color.new(#0E6B4F, 0) :
      sigForm ? color.new(#7A5C00, 0) : color.new(#2A2E39, 0)
