@@ -10,6 +10,9 @@ per trade (raw dollars lie when position risk varies across names/eras).*
 ## 📦 SYSTEM ARTIFACTS (the buildable spec)
 | artifact | what |
 |---|---|
+| docs/SCANNER_AUTOMATION_SPEC.md | Python port of the pine scanner for Titan (parity tests vs 27 laws, chain-IV auto-check via broker API fail->manual, shadow rollout, human-on-trigger) |
+| docs/TITAN_APP_SPEC_ADDENDUM.md | post-v2 law corrections for the app (IV-floor demoted, overrides=violations, theta 0.10%, cooldown/fast-win automation, whitelists w/ receipts) |
+| docs/SCANNER_SPEC_FRESH_CROSS.md | STOCK-system market-wide fresh-cross scanner spec (universe layer; seed CSV committed) |
 | docs/SYSTEM.md | one-page system map |
 | docs/rulebook.json | machine-readable line registry + `_meta.allocation` + `_meta.sizing_engine` (code reads this) |
 | docs/ALLOCATION_SPEC_V2.md | allocation handoff v2 (supersedes ALLOCATION_SIZING_SPEC): SGOV rule, buckets, dedupe 3/day + cooldown, cluster caps |
