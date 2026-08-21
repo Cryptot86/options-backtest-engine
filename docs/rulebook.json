@@ -139,6 +139,15 @@
     "kills_speed_tradeoff": "NO speed/endurance tradeoff exists. Toyota (25%) = same return as Aggressive (55%) at <half the DD. The '50/50 speed option' documented earlier is SUPERSEDED - there is no speed to buy by deploying more.",
     "FINAL": "SELLING ~25% BPR (eqidx 7 + energy 5 + metals 5 tail) \u00b7 BUYING ~15% BPR (straddle 10 + longcall 5) \u00b7 T-BILLS ~60%. Do NOT deploy more - strictly worse."
    },
+   "CLUSTER_BASIS_LAW": {
+    "adopted": "2026-08-21 (TJ: 'adopt p95 and make it law')",
+    "law": "Cluster/total tail budgets (EQIDX 7% / ENERGY 5% / METALS 5% / TOTAL 12% of equity) are accounted in P95-ANCHOR dollars. Per-trade sizing STAYS on worst-case anchors: qty = clamp(floor(0.02*E/worst_anchor), 1, cap). Two bases, two jobs: worst-anchor sizes the single trade so the once-per-decade bomb costs ~2%; p95 prices the bucket at what a correlated bad DAY actually costs.",
+    "p95_anchors_bucket_accounting": {"EQ_put": 367, "MES": 127, "MCL": 111, "MNG": 20, "MGC": 115},
+    "worst_anchors_per_trade_sizing": {"EQ_put": 3495, "MES": 1569, "MCL": 290, "MNG": 200, "MGC": 823},
+    "why": "Worst-basis buckets jam a small account (2 MES = $3,138 anchors ~ fills the whole EQIDX room at $44K; book admits 445 vs 815 trades, CAGR 5.1% vs 8.4%). The worst case is already absorbed one layer down (per-trade worst-anchor sizing) and one layer up (25% BPR fence + VIX 3-green entry gate). Pricing the bucket at worst-case double-counts the same catastrophe three times.",
+    "receipts": "Ledger audit 2026-08-21, docs/ledgers/ (every trade CSV'd): p95 12% bank = $44K->$111,349, 8.4% CAGR, 6.0% DD, 815 trades, 75% win (real year-varying T-bill rates). Roof is signal-limited, not capital-limited: room pressed on 8 days out of 2,996; 50% roof adds 9 net trades (+$1,200/11.5yr); caps 25/50/60 byte-identical on p95.",
+    "capacity_tiebreak_convention": "On a day capacity binds (~8 days/decade), admit signals ranked by highest IV-RV spread, then alphabetical. Deterministic convention, NOT a tested edge (total surface ~$1.2K/decade - too small to ever study)."
+   },
    "SGOV_COLLATERAL_RULE": {
     "rule": "SGOV/T-bill ETF is COLLATERAL + yield, NOT a tracked position. Never blocked by dedupe/cluster/band rules; never counts against any allocation budget.",
     "mechanics": "VERIFIED (tastytrade order screen 2026-07-29): buying 100 SGOV (~$10,066) reduces STOCK BP $5,033 (50% Reg-T initial) and OPTION BP ~$2,516 (25%). For sell book the OPTION-BP 25% binds: ~75% of SGOV value stays available to sell against, +~4.5% yield. SGOV = efficient dual-use collateral.",

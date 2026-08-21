@@ -16,11 +16,17 @@ source of truth. Every item below carries scoreboard receipts.*
    owner-override survives at all: require a written reason, tag the trade
    forever, and surface a cumulative "override cohort P&L" report. The
    constitution itself has no overrides.
-3b. **Align the undefined-risk/cluster cap to LAW: EQIDX = 7% of net-liq in
-   WORST-CASE ANCHOR dollars** (app currently uses 8%). One cluster for ES/MES
-   + NQ/MNQ + ALL gated stock puts (corr 0.93). ENERGY 5%, METALS 5%, total 12%.
-   Anchor basis (worst vs p95) remains TJ's parked decision — implement both,
-   config-switchable, default worst until he rules.
+3b. **Align the undefined-risk/cluster cap to LAW: EQIDX = 7% of net-liq**
+   (app currently uses 8%). One cluster for ES/MES + NQ/MNQ + ALL gated stock
+   puts (corr 0.93). ENERGY 5%, METALS 5%, total 12%.
+   **Anchor basis RULED 2026-08-21 (no config switch — pin it):**
+   - Bucket/cluster accounting in **P95 anchors** (EQ put $367, MES $127,
+     MCL $111, MNG $20, MGC $115).
+   - Per-trade sizing stays on **WORST anchors** (EQ $3,495, MES $1,569, ...).
+   Receipt: ledger audit docs/ledgers/ — p95 basis $44K→$111,349 (8.4%/6.0%DD,
+   815 trades) vs worst-basis bucket-jam (445 trades, 5.1%). rulebook.json
+   `CLUSTER_BASIS_LAW`. Capacity tiebreak when a bucket is full (~8 days per
+   decade): admit highest IV−RV first, then alphabetical (convention).
 4. **Theta alarm threshold = 0.10% of net-liq** (rulebook THETA_INVARIANT), not
    0.06%. Alarm/log only — never blocks, never sizes.
 
@@ -61,15 +67,18 @@ source of truth. Every item below carries scoreboard receipts.*
 
 ## F. THE NUMBERS — hard deployment ceilings (answer permanently, at any equity E)
 The app MUST display these live so the owner never has to compute them:
-- EQIDX cluster (MES/MNQ + ALL stock puts): 0.07 x E in worst-anchor dollars
-- ENERGY (MCL/MNG calls): 0.05 x E   |   METALS (MGC puts): 0.05 x E
+- EQIDX cluster (MES/MNQ + ALL stock puts): 0.07 x E in **P95-anchor dollars**
+  (LAW 2026-08-21 — rulebook CLUSTER_BASIS_LAW; worst basis retired for buckets)
+- ENERGY (MCL/MNG calls): 0.05 x E   |   METALS (MGC puts): 0.05 x E (p95 $)
 - TOTAL across all clusters: 0.12 x E  <- THE CONSTITUTIONAL MAX, binds first
 - SELL_BAND: 0.25 x E in BPR — outer fence only; a maximally-loaded legal book
-  consumes ~0.10 x E BPR, so the band is structurally unreachable. There is NO
+  stays under it, so the band is structurally unreachable. There is NO
   VIX-conditional allocation (tested redundant: blocked $63.8K of good trades).
-- Per-trade: 0.02 x E / line worst-anchor, per-line caps, 3 new equity/day.
-- Reference book at E=$44K (worst basis): 1 MES + 5 MCL + 3 MNG + 2 MGC =
-  $5,265 anchors (12%), ~$4,330 BPR (~10%), ~$2,077 credit (~5%). MAXIMUM.
+- Per-trade: 0.02 x E / line WORST-anchor (sizing keeps worst basis), per-line
+  caps, 3 new equity/day.
+- Reference at E=$44K (p95 buckets): EQIDX room $3,080 holds ~8 stock puts
+  ($367 ea) or 2 MES ($254) + 7 stocks; TOTAL room $5,280. TJ's live 2 MES
+  consume $254 of bucket — NOT $3,138 (that was the worst-basis jam, retired).
 
 ### F.1 CAPACITY DASHBOARD (build this view)
 One screen, always visible: per-cluster bars [used anchor $ / budget $] +
