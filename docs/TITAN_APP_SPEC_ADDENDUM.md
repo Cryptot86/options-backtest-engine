@@ -58,3 +58,21 @@ source of truth. Every item below carries scoreboard receipts.*
     7-study manifest; app should ingest chains to data_cache-compatible parquet.
 14. MC cone view: equity curve inside the bootstrap cone (p5/p50/p95), kill
     lines at ~18-20% DD (options book) — "you are here" percentile.
+
+## F. THE NUMBERS — hard deployment ceilings (answer permanently, at any equity E)
+The app MUST display these live so the owner never has to compute them:
+- EQIDX cluster (MES/MNQ + ALL stock puts): 0.07 x E in worst-anchor dollars
+- ENERGY (MCL/MNG calls): 0.05 x E   |   METALS (MGC puts): 0.05 x E
+- TOTAL across all clusters: 0.12 x E  <- THE CONSTITUTIONAL MAX, binds first
+- SELL_BAND: 0.25 x E in BPR — outer fence only; a maximally-loaded legal book
+  consumes ~0.10 x E BPR, so the band is structurally unreachable. There is NO
+  VIX-conditional allocation (tested redundant: blocked $63.8K of good trades).
+- Per-trade: 0.02 x E / line worst-anchor, per-line caps, 3 new equity/day.
+- Reference book at E=$44K (worst basis): 1 MES + 5 MCL + 3 MNG + 2 MGC =
+  $5,265 anchors (12%), ~$4,330 BPR (~10%), ~$2,077 credit (~5%). MAXIMUM.
+
+### F.1 CAPACITY DASHBOARD (build this view)
+One screen, always visible: per-cluster bars [used anchor $ / budget $] +
+total bar [used / 0.12E] + BPR bar [used / 0.25E] + open credit $. Color:
+green <70%, amber 70-99%, red = full (entries auto-skip, logged). When the
+owner asks "how much more can I sell?" the answer is THIS SCREEN, not a chat.
