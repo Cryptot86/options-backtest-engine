@@ -24,7 +24,7 @@ EQ_DAILY_CAP = int(os.environ.get("EQ_DAILY_CAP", "3"))  # law 2026-07-30 (was 2
 
 EQ0 = float(os.environ.get("BOOK_EQ0", "42000"))
 START, END = pd.Timestamp("2015-01-01"), pd.Timestamp("2026-06-30")
-RF = 0.045 / 252
+RF = float(os.environ.get("BOOK_RF", "0.045")) / 252  # historical-honest: ~0.02 (2015-21 bills near zero); forward: current SGOV
 RISK_PCT = 0.02
 DTE = 35.0
 CREDIT = {"EQ": 435.0, "MES": 227.5, "MCL": 200.0, "MNG": 150.0, "MGC": 200.0}  # calibrated to TJ acct
