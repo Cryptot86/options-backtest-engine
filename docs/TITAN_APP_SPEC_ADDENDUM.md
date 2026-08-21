@@ -16,6 +16,11 @@ source of truth. Every item below carries scoreboard receipts.*
    owner-override survives at all: require a written reason, tag the trade
    forever, and surface a cumulative "override cohort P&L" report. The
    constitution itself has no overrides.
+3b. **Align the undefined-risk/cluster cap to LAW: EQIDX = 7% of net-liq in
+   WORST-CASE ANCHOR dollars** (app currently uses 8%). One cluster for ES/MES
+   + NQ/MNQ + ALL gated stock puts (corr 0.93). ENERGY 5%, METALS 5%, total 12%.
+   Anchor basis (worst vs p95) remains TJ's parked decision — implement both,
+   config-switchable, default worst until he rules.
 4. **Theta alarm threshold = 0.10% of net-liq** (rulebook THETA_INVARIANT), not
    0.06%. Alarm/log only — never blocks, never sizes.
 
